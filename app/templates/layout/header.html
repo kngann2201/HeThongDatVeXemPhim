@@ -1,0 +1,48 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+{% set current_path = request.path %}
+<nav id="mainNav"
+     class="navbar navbar-expand-lg navbar-dark fixed-top
+     {% if transparent_nav %}navbar-transparent{% else %}bg-dark{% endif %}">
+
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="/">{{ ("CINEMA") }}</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mynavbar">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link {% if current_path == '/' %}active{% endif %}" href="/">
+                        {{ ("Trang chủ") }}
+                    </a>
+                </li>
+
+                {% for i in items %}
+                <li class="nav-item">
+                    <a class="nav-link {% if current_path.startswith('/' ~ i.url_name) %}active{% endif %}"
+                       href="/{{ i.url_name }}">
+                        {{ (i.name_key) }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">
+                        <i class="fa-regular fa-user me-1"></i> {{ ("Đăng nhập") }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">{{ ("Đăng ký") }}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
