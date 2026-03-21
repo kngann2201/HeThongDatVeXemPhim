@@ -1,5 +1,5 @@
 import hashlib
-from models import Customer
+from models import Customer, Seat, RoomType
 from app import db
 
 def md5_hash(password: str):
@@ -26,3 +26,9 @@ def is_username_exists(username):
 
 def is_phone_exists(phone):
     return db.session.query(Customer).filter_by(phone=phone).first() is not None
+
+def get_seats():
+    return db.session.query(Seat).all()
+
+def get_room_types():
+    return db.session.query(RoomType).all()

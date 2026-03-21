@@ -1,0 +1,90 @@
+<link href="{{url_for('static', filename='css/booking.css')}}" rel="stylesheet">
+<script src="{{url_for('static', filename='js/booking.js')}}"></script>
+
+
+{% extends 'layout/base.html' %}
+
+{% block title %}{{ ("Trang chủ - CINEMA") }}{% endblock %}
+
+{% block content %}
+
+<div class="container-xxl my-5" style="max-width: 1400px;">
+    <div class="col-12 col-lg-7" style="padding:1rem">
+        <img src="" alt="Ảnh phim">
+        <p class="mb-3 text-justify">Mô tả phim</p>
+        <div class="row mb-3">
+            <div class="col text-center text-sm-left">
+                <strong>
+                    <i class='far fa-clock'></i>
+                    <span class="d-none d-sm-inline-block">Thời lượng</span>
+                </strong>
+                <br>
+                <span>120 phút</span>
+            </div>
+            <div class="col text-center text-sm-left">
+                <strong>
+                    <i class="fa fa-user-plus" style="color:black"></i>
+                    <span class="d-none d-sm-inline-block">Giới hạn tuổi</span>
+                </strong>
+                <br>
+                <span>Trên 13 tuổi</span>
+            </div>
+        </div>
+    </div>
+    <div>
+        <form method="post">
+            <div class="form-floating mt-3 mb-3">
+                <input type="date" class="form-control" id="date" placeholder="Chọn ngày xem" name="date">
+                <label for="date">Chọn ngày xem</label>
+            </div>
+
+            <div class="form-floating mt-3 mb-3">
+                <strong>Chọn loại phòng</strong>
+                <select id="room_type">Chọn loại phòng
+                    {% for type in room_types %}
+                    <option class="room_type" id="{{type.id}}">{{type.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-floating mt-3 mb-3">
+                <strong>Chọn khung giờ</strong>
+                <span>12:00</span>
+                <span>14:00</span>
+            </div>
+
+            <div>
+                <strong>Chọn ghế</strong>
+                <div class="cinema-container">
+                    <div class="screen">Màn hình</div>
+                    <div id="seat-map"></div>
+                    <div class="description d-flex justify-content-center gap-3">
+                        <div class="d-flex justify-content-center gap-2">
+                            <p>Ghế trống</p>
+                            <span class="color-description" style="background-color: green"></span>
+
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                            <p>Đã đặt</p>
+                            <span class="color-description" style="background-color: red"></span>
+
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                            <p>Ghế bạn chọn</p>
+                            <span class="color-description" style="background-color: #6feaf6"></span>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-floating mt-3 mb-3">
+               <button class="btn btn-info" type="submit">Đặt vé</button>
+            </div>
+            </form>
+    </div>
+
+
+</div>
+{% endblock %}
+<script src="../static/js/booking.js"></script>
