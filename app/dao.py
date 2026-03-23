@@ -1,5 +1,5 @@
 import hashlib
-from models import Customer
+from models import Customer, Seat, RoomType
 from app import db
 import re
 
@@ -31,3 +31,9 @@ def is_email_exists(email):
 
 def get_user_by_id(customer_id):
     return Customer.query.get(customer_id)
+
+def get_seats():
+    return db.session.query(Seat).all()
+
+def get_room_types():
+    return db.session.query(RoomType).all()
