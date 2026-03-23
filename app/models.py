@@ -1,3 +1,4 @@
+from flask_login import UserMixin
 from sqlalchemy import Column, String, Integer, Boolean, Text, ForeignKey, DateTime, Date, Enum
 from enum import Enum as CustomEnum
 from app import db, app
@@ -6,13 +7,15 @@ class Base(db.Model):
     __abstract__ = True
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-class Customer(Base):
+class Customer(Base, UserMixin):
     full_name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
     phone_number = Column(String(100), nullable=False)
     username = Column(String(100), nullable=False)
     password = Column(String(100), nullable=False)
     # birthday = Column(Date, nullable=False)
+    def __str__(self):
+        return f"{self.username}"
 
 class RoomType(Base):
     name = Column(String(100), nullable=False)

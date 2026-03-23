@@ -22,6 +22,16 @@
                         {{ ("Trang chủ") }}
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if current_path == '/' %}active{% endif %}" href="/">
+                        {{ ("Phim mới") }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if current_path == '/' %}active{% endif %}" href="/">
+                        {{ ("Bảng xếp hạng") }}
+                    </a>
+                </li>
 
                 {% for i in items %}
                 <li class="nav-item">
@@ -33,15 +43,30 @@
                 {% endfor %}
             </ul>
 
-            <ul class="navbar-nav ms-auto align-items-lg-center">
+            <ul class="navbar-nav">
+                {% if current_user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/login">
-                        <i class="fa-regular fa-user me-1"></i> {{ ("Đăng nhập") }}
+                    <a class="nav-link text-white" href="#">
+                        <i class="fa fa-user"></i> Chào, {{ current_user.username }}
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/register">{{ ("Đăng ký") }}</a>
+                    <a class="nav-link text-danger" href="{{ url_for('logout_my_user') }}">
+                        Đăng xuất
+                    </a>
                 </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login_my_user') }}">
+                        <i class="fa fa-sign-in"></i> Đăng nhập
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('register') }}">
+                        Đăng ký
+                    </a>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </div>
