@@ -14,8 +14,6 @@ class Customer(Base, UserMixin):
     username = Column(String(100), nullable=False)
     password = Column(String(100), nullable=False)
     # birthday = Column(Date, nullable=False)
-    def __str__(self):
-        return f"{self.username}"
 
 class RoomType(Base):
     name = Column(String(100), nullable=False)
