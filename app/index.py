@@ -2,6 +2,7 @@ from app import app, db, login
 from flask import render_template, request, redirect, url_for, flash
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
+from flask_mail import Message
 import re
 import dao
 import cloudinary
@@ -99,5 +100,15 @@ def logout_my_user():
     logout_user()
     return redirect('/login')
 
+@app.route("/booking", methods=['POST', 'GET'])
+def booking():
+    movie_id = 1
+    err_msg = None
+    room_types = dao.get_room_types()
+    seats = dao.get_seats()
+    return render_template('booking.html', movie_id=movie_id,
+                           seats=seats, err_msg=err_msg, room_types=room_types)
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
