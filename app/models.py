@@ -130,14 +130,71 @@ if __name__ == '__main__':
         db.session.commit()
 
         # ===== 3. Movie =====
-        movie = Movie(
-            title="Avengers",
-            description="Marvel movie",
-            age_limit=13,
-            duration=120,
-            poster="poster.jpg"
-        )
-        db.session.add(movie)
+        movies = [
+            # --- PHIM VIỆT NAM ---
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+                "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg" 
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+              "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            }
+
+        ]
+        for m in movies:
+            movie = Movie(**m)
+            db.session.add(movie)
+
         db.session.commit()
 
         # ===== 4. Screening =====

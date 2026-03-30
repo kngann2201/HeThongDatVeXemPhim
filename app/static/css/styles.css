@@ -1,0 +1,66 @@
+<style>
+    /* Tiêu đề mục */
+    .section-title {
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: #333;
+        border-left: 5px solid #e74c3c;
+        padding-left: 15px;
+    }
+
+    /* Card tối giản */
+    .movie-card-minimal {
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        background: #000;
+    }
+
+    .poster-wrapper {
+        position: relative;
+        width: 100%;
+        height: 380px; /* Cố định chiều cao để ảnh không bị mất */
+    }
+
+    .poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Lớp phủ Hover HIỆN NGAY LẬP TỨC */
+    .movie-hover-instant {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.85); /* Nền tối ở đáy */
+        padding: 15px;
+
+        /* Triệt tiêu mọi hiệu ứng chậm */
+        display: none;
+        z-index: 10;
+    }
+
+    /* Khi rà chuột vào card thì hiện lớp phủ ngay lập tức */
+    .movie-card-minimal:hover .movie-hover-instant {
+        display: block; /* Hiện ngay, không dùng opacity/transition */
+    }
+
+    /* Cụm nút bấm */
+    .btn-group-hover {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-group-hover .btn {
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 8px 2px;
+        border: none;
+    }
+
+    .btn-light { color: #000 !important; }
+</style>

@@ -6,10 +6,21 @@ from flask_mail import Message
 import re
 import dao
 import cloudinary
+import math
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    page = request.args.get('page', 1, type=int)
+    page_size = 8
+    movies = dao.get_movies(page=page, page_size=page_size)
+
+    total_movies = dao.count_movies()
+    pages = math.ceil(total_movies / page_size)
+
+    return render_template('index.html',
+                           products=movies,
+                           pages=pages,
+                           current_page=page)
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():

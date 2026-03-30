@@ -1,14 +1,17 @@
 import hashlib
-from models import Customer, Seat, RoomType
+from models import Customer, Seat, RoomType, Movie
 from app import db
+import math
 import re
+
 
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
+
 def add_user(username, password, full_name, phone, email):
     password = md5_hash(password)
-    c = Customer(username=username, password=password,full_name=full_name, phone_number=phone, email=email)
+    c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email)
     try:
         db.session.add(c)
         db.session.commit()
@@ -16,24 +19,40 @@ def add_user(username, password, full_name, phone, email):
         db.session.rollback()
         raise ex
 
-def auth_user(username,password):
+
+def auth_user(username, password):
     password = md5_hash(password)
     return Customer.query.filter(Customer.username.__eq__(username), Customer.password.__eq__(password)).first()
+
 
 def is_username_exists(username):
     return db.session.query(Customer).filter_by(username=username).first() is not None
 
+
 def is_phone_exists(phone):
     return db.session.query(Customer).filter_by(phone_number=phone).first() is not None
+
 
 def is_email_exists(email):
     return db.session.query(Customer).filter_by(email=email).first() is not None
 
+
 def get_user_by_id(customer_id):
     return Customer.query.get(customer_id)
+
 
 def get_seats():
     return db.session.query(Seat).all()
 
+
 def get_room_types():
     return db.session.query(RoomType).all()
+
+
+def get_movies(page=1, page_size=8):
+    start = (page - 1) * page_size
+    # Trả về danh sách phim có phân trang
+    return Movie.query.offset(start).limit(page_size).all()
+
+def count_movies():
+    return Movie.query.count()
