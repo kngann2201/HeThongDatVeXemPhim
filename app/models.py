@@ -1,5 +1,6 @@
 from tkinter.constants import CASCADE
 
+from flask_login import UserMixin
 from sqlalchemy import Column, String, Integer, Boolean, Text, ForeignKey, DateTime, Date, Enum, UniqueConstraint
 from enum import Enum as CustomEnum
 
@@ -15,12 +16,15 @@ class Base(db.Model):
     active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=datetime.now)
 
-class Customer(Base):
+class Customer(Base, UserMixin):
     full_name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     phone_number = Column(String(100), nullable=False, unique=True)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
+    # birthday = Column(Date, nullable=False)
+    def __str__(self):
+        return f"{self.username}"
     birthday = Column(Date, nullable=False)
     avatar = Column(String(200), nullable=True, default="https://res.cloudinary.com/dkzxdp1gi/image/upload/v1767843265/avatar-trang-nu-001_dym4n0.webp")
 
@@ -145,6 +149,82 @@ if __name__ == '__main__':
         )
         # db.session.add(m1)
         # db.session.commit()
+        # ===== 2. Room + RoomType =====
+        room_type = RoomType(name="2D")
+        db.session.add(room_type)
+        db.session.commit()
+
+        room = Room(room_type=room_type.id, image="room.jpg")
+        db.session.add(room)
+        db.session.commit()
+
+        # ===== 3. Movie =====
+        movies = [
+            # --- PHIM VIỆT NAM ---
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+                "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg" 
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            },
+            {
+                "title": "Mai",
+                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
+                "age_limit": 18,
+                "duration": 131,
+              "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+            }
+
+        ]
+        for m in movies:
+            movie = Movie(**m)
+            db.session.add(movie)
+
+        db.session.commit()
 
         # Gán thể loại cho phim
         # db.session.add(MovieTypeDetail(type_id=t1.id, movie_id=m1.id))

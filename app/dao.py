@@ -3,31 +3,45 @@ from sqlalchemy import cast, Date, extract
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
     Bill, Payment
 from app import db
+import math
+import re
+
 
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
-def add_user(username, password, avatar, full_name, phone, email=None):
+
+def add_user(username, password, full_name, phone, email):
     password = md5_hash(password)
-    u = Customer(username=username, password=password, avatar=avatar)
-    c = Customer(full_name=full_name, phone=phone, email=email, user=u)
+    c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email)
     try:
-        db.session.add(u)
         db.session.add(c)
         db.session.commit()
     except Exception as ex:
         db.session.rollback()
         raise ex
 
-def auth_user(username,password):
+
+def auth_user(username, password):
     password = md5_hash(password)
     return Customer.query.filter(Customer.username.__eq__(username), Customer.password.__eq__(password)).first()
+
 
 def is_username_exists(username):
     return db.session.query(Customer).filter_by(username=username).first() is not None
 
+
 def is_phone_exists(phone):
-    return db.session.query(Customer).filter_by(phone=phone).first() is not None
+    return db.session.query(Customer).filter_by(phone_number=phone).first() is not None
+
+
+def is_email_exists(email):
+    return db.session.query(Customer).filter_by(email=email).first() is not None
+
+
+def get_user_by_id(customer_id):
+    return Customer.query.get(customer_id)
+
 
 
 
@@ -72,6 +86,7 @@ def get_seats_by_screening(screening_id):
         .filter(ScreeningSeat.screening_id == screening_id)
         .order_by(Seat.row, Seat.number).all())
 
+
 def get_room_types():
     return db.session.query(RoomType).all()
 
@@ -87,3 +102,11 @@ def add_payment(bill_id):
     payment = Payment(bill_id=bill_id)
     db.session.add(payment)
     db.session.commit()
+
+def get_movies(page=1, page_size=8):
+    start = (page - 1) * page_size
+    # Trả về danh sách phim có phân trang
+    return Movie.query.offset(start).limit(page_size).all()
+
+def count_movies():
+    return Movie.query.count()

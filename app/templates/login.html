@@ -1,0 +1,93 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}{{ ("Đăng nhập - Garage Center") }}{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-container">
+        <h2 class="sign-up__title">{{ ("ĐĂNG NHẬP") }}</h2>
+
+        {% if err_msg %}
+        <div class="alert alert-danger" style="color: red; text-align: center; margin-bottom: 15px;">
+            {{ err_msg }}
+        </div>
+        {% endif %}
+
+        <form class="sign-up__form" method="POST" action="{{ url_for('login_my_user') }}">
+            <div class="sign-up__content">
+                <div class="form-group">
+                    <input class="sign-up__inp" type="text" placeholder="{{ ('Tên đăng nhập') }}" name="username" required="required"/>
+                </div>
+                <div class="form-group">
+                    <input class="sign-up__inp" type="password" placeholder="{{ ('Mật khẩu') }}" name="password" required="required"/>
+                </div>
+            </div>
+
+            <div class="sign-up__buttons">
+                <button class="btn btn--signin" type="submit">{{ ("Đăng nhập") }}</button>
+                <div class="auth-links" style="margin-top: 20px; text-align: center;">
+                    <a class="btn--register" href="/register" style="text-decoration: none; color: #007bff;">{{ ("Tạo tài khoản") }}</a>
+                    <span style="margin: 0 10px; color: #ccc;">|</span>
+                    <a class="forgot__password" href="#" style="text-decoration: none; color: #666;">{{ ("Quên mật khẩu?") }}</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Căn giữa toàn bộ form vào giữa màn hình */
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+        padding: 20px;
+    }
+
+    .login-container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .sign-up__title {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: bold;
+    }
+
+    /* Đảm bảo mỗi input chiếm 100% chiều ngang và cách nhau ra */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .sign-up__inp {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box; /* Ngăn input tràn viền */
+    }
+
+    /* Style cho nút bấm */
+    .btn--signin {
+        width: 100%;
+        padding: 12px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .btn--signin:hover {
+        background-color: #555;
+    }
+</style>
+{% endblock %}
