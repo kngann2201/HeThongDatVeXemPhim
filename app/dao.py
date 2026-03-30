@@ -1,5 +1,7 @@
 import hashlib
-from models import Customer, Seat, RoomType
+from sqlalchemy import cast, Date, extract
+from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
+    Bill, Payment
 from app import db
 
 def md5_hash(password: str):
@@ -27,8 +29,61 @@ def is_username_exists(username):
 def is_phone_exists(phone):
     return db.session.query(Customer).filter_by(phone=phone).first() is not None
 
-def get_seats():
-    return db.session.query(Seat).all()
+
+
+def get_movies(movie_type_id=None, release_year=None, age_limit=None):
+    query = db.session.query(Movie).all()
+
+    if movie_type_id is not None:
+        query = query(Movie).join(MovieTypeDetail).filter(MovieTypeDetail.movie_type_id == movie_type_id).all()
+    if release_year is not None:
+        query = query.filter(extract('year', Movie.release_date) == release_year).all()
+    if age_limit is not None:
+        query = query.filer(Movie.age_limit >= age_limit).all()
+
+    return query
+
+def get_movie_by_id(movie_id):
+    return db.session.query(Movie).filter_by(id=movie_id).first()
+
+def get_movie_types(movie_id):
+    return (db.session.query(MovieType)
+            .join(MovieTypeDetail, MovieTypeDetail.type_id == MovieType.id)
+            .join(Movie, MovieTypeDetail.movie_id == Movie.id)
+            .filter(Movie.id == movie_id)
+            .limit(3).all())
+
+def get_room_by_type(room_type_id):
+    return db.session.query(Room).filter_by(room_type_id=room_type_id).all()
+
+def get_movie_screenings(movie_id, room_id, watch_date):
+    return (db.session.query(MovieScreening)
+        .join(Room, Room.id==MovieScreening.room_id)
+        .join(Movie, Movie.id==MovieScreening.movie_id)
+        .filter(MovieScreening.room_id == room_id,
+                cast(MovieScreening.start_time, Date) == watch_date,
+                MovieScreening.movie_id==movie_id)
+        .order_by(MovieScreening.start_time.asc()).all())
+
+def get_seats_by_screening(screening_id):
+    return (db.session.query(Seat, ScreeningSeat.status)
+        .join(ScreeningSeat, Seat.id == ScreeningSeat.seat_id)
+        .join(MovieScreening, MovieScreening.id==ScreeningSeat.screening_id)
+        .filter(ScreeningSeat.screening_id == screening_id)
+        .order_by(Seat.row, Seat.number).all())
 
 def get_room_types():
     return db.session.query(RoomType).all()
+
+def get_bill(bill_id):
+    return db.session.query(Bill).filter_by(id=bill_id).first()
+
+def add_bill(customer_id):
+    bill = Bill(customer_id=customer_id)
+    db.session.add(bill)
+    db.session.commit()
+
+def add_payment(bill_id):
+    payment = Payment(bill_id=bill_id)
+    db.session.add(payment)
+    db.session.commit()

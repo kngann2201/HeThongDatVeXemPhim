@@ -1,90 +1,131 @@
-<link href="{{url_for('static', filename='css/booking.css')}}" rel="stylesheet">
-<script src="{{url_for('static', filename='js/booking.js')}}"></script>
-
-
 {% extends 'layout/base.html' %}
 
-{% block title %}{{ ("Trang chủ - CINEMA") }}{% endblock %}
+{% block title %}{{ ("Trang đặt vé - CINEMA") }}{% endblock %}
 
 {% block content %}
+<link href="{{url_for('static', filename='css/booking.css')}}" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" rel="stylesheet"/>
 
 <div class="container-xxl my-5" style="max-width: 1400px;">
-    <div class="col-12 col-lg-7" style="padding:1rem">
-        <img src="" alt="Ảnh phim">
-        <p class="mb-3 text-justify">Mô tả phim</p>
-        <div class="row mb-3">
-            <div class="col text-center text-sm-left">
-                <strong>
-                    <i class='far fa-clock'></i>
-                    <span class="d-none d-sm-inline-block">Thời lượng</span>
-                </strong>
-                <br>
-                <span>120 phút</span>
+    {% if not movie %}
+        {% if err_msg%}
+            <div class="alert alert-danger">{{err_msg}}</div>
+        {% endif %}
+    {% else %}
+    <div class="movie-container d-flex gap-5" style="padding:1rem">
+        <div class="movie-poster">
+            <img src="{{movie.poster}}" alt="Ảnh phim">
+        </div>
+        <div class="movie-info d-flex flex-column">
+            <strong class="movie-title">{{movie.title}}</strong>
+            <p class="mb-3 text-justify movie-description">{{movie.description}}</p>
+
+            <div class="d-flex gap-3 flex-wrap align-items-center">
+                <strong class="text-justify" style="margin-bottom: 2px;">Thể loại: </strong>
+                {% for type in movie_types %}
+                <span class="type-badge">{{type.name}}</span>
+                {% endfor %}
             </div>
-            <div class="col text-center text-sm-left">
-                <strong>
-                    <i class="fa fa-user-plus" style="color:black"></i>
-                    <span class="d-none d-sm-inline-block">Giới hạn tuổi</span>
-                </strong>
-                <br>
-                <span>Trên 13 tuổi</span>
+
+            <div class="d-flex gap-3 flex-wrap align-items-center mt-3">
+                <strong class="text-justify" style="margin-bottom: 2px;">Ngày chiếu: </strong>
+                <p class="mb-0 text-justify movie-description">{{movie.release_date.strftime('%d/%m/%Y')}}</p>
+            </div>
+
+            <div class="row mt-auto mb-0">
+                <div class="col text-center text-sm-left">
+                    <strong>
+                        <i class='far fa-clock'></i>
+                        <span class="d-none d-sm-inline-block">Thời lượng</span>
+                    </strong>
+                    <br>
+                    <span>{{movie.duration}} phút</span>
+                </div>
+
+                <div class="col text-center text-sm-left">
+                    <strong>
+                        <i class="fa fa-user-plus" style="color:black"></i>
+                        <span class="d-none d-sm-inline-block">Giới hạn tuổi</span>
+                    </strong>
+                    <br>
+                    <span>C{{movie.age_limit}} - {{movie.age_limit}} tuổi</span>
+                </div>
             </div>
         </div>
     </div>
+
     <div>
-        <form method="post">
-            <div class="form-floating mt-3 mb-3">
-                <input type="date" class="form-control" id="date" placeholder="Chọn ngày xem" name="date">
-                <label for="date">Chọn ngày xem</label>
+        <form method="post" action="/booking" enctype="multipart/form-data">
+            <div class="selected-menu">
+                <h5 class="mb-3 px-2">Lịch chiếu</h5>
+                <div class="swiper mySwiper">
+                    <div id="date-wrapper" class="swiper-wrapper"></div>
+                </div>
+                <input type="hidden" name="watch-date" id="selected-date">
             </div>
 
-            <div class="form-floating mt-3 mb-3">
-                <strong>Chọn loại phòng</strong>
-                <select id="room_type">Chọn loại phòng
-                    {% for type in room_types %}
-                    <option class="room_type" id="{{type.id}}">{{type.name}}</option>
-                    {% endfor %}
-                </select>
+            <div class="selected-menu">
+                <h5 class="mb-3 px-2">Loại phòng chiếu</h5>
+                <div class="room-types d-types">
+                  {% for type in room_types %}
+                  <div class="room-type d-type" data-type="{{ type.id }}">{{ type.name }}</div>
+                  {% endfor %}
+                </div>
+                <input type="hidden" name="room-type" id="selected-room-type">
             </div>
 
-            <div class="form-floating mt-3 mb-3">
-                <strong>Chọn khung giờ</strong>
-                <span>12:00</span>
-                <span>14:00</span>
+            <div class="selected-menu">
+                <h5 class="mb-3 px-2">Danh sách phòng</h5>
+                <div class="rooms d-types">
+                    <p class="text-info">Chọn loại phòng để hiện thông tin này</p>
+                </div>
+                <input type="hidden" name="room" id="selected-room">
             </div>
 
-            <div>
-                <strong>Chọn ghế</strong>
+            <div class="selected-menu">
+                <h5 class="mb-3 px-2">Khung giờ chiếu</h5>
+                <div class="screenings d-types">
+                    <p class="text-info">Chọn đầy đủ các thông tin trên để hiện suất chiếu</p>
+                </div>
+                <input type="hidden" name="screening" id="selected-screening">
+            </div>
+
+            <div class="selected-menu">
+                <h5 class="mb-3 px-2">Vị trí ghế</h5>
                 <div class="cinema-container">
                     <div class="screen">Màn hình</div>
-                    <div id="seat-map"></div>
+                    <div id="seat-map">
+                        <p class="text-info">Chọn suất chiếu để xem sơ đồ ghế!</p>
+                    </div>
+                    <input type="hidden" name="seat" id="selected-seat">
                     <div class="description d-flex justify-content-center gap-3">
                         <div class="d-flex justify-content-center gap-2">
                             <p>Ghế trống</p>
                             <span class="color-description" style="background-color: green"></span>
-
                         </div>
                         <div class="d-flex justify-content-center gap-2">
-                            <p>Đã đặt</p>
+                            <p>Đã được đặt</p>
                             <span class="color-description" style="background-color: red"></span>
-
                         </div>
                         <div class="d-flex justify-content-center gap-2">
                             <p>Ghế bạn chọn</p>
-                            <span class="color-description" style="background-color: #6feaf6"></span>
-
+                            <span class="color-description" style="background-color: black"></span>
                         </div>
                     </div>
                 </div>
             </div>
+        </form>
+        <div id="total-price" class="d-flex justify-content-center"></div>
 
-            <div class="form-floating mt-3 mb-3">
-               <button class="btn btn-info" type="submit">Đặt vé</button>
-            </div>
-            </form>
+        <div class="form-floating mt-3 mb-3 d-flex justify-content-center">
+           <button class="btn btn-success" type="submit">Đặt vé</button>
+        </div>
+
     </div>
-
-
+    {% endif %}
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="{{url_for('static', filename='js/booking.js')}}"></script>
 {% endblock %}
-<script src="../static/js/booking.js"></script>
