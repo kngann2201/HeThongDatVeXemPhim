@@ -1,12 +1,49 @@
 {% extends 'layout/base.html' %}
 
-{% block title %}{{ ("Trang chủ - CINEMA") }}{% endblock %}
-
 {% block content %}
+<div class="container mt-4">
 
-<div class="container-xxl my-5" style="max-width: 1400px;">
-        <div class="col-md-6 featured-image">
-            <div class="featured-overlay"></div>
+    <div class="mb-5">
+        <h2 class="section-title">PHIM SẮP CHIẾU</h2>
+        <div class="row">
+            {% for p in coming_soon %}
+            <div class="col-lg-3 col-md-4 col-6 p-2">
+                <div class="movie-card-minimal">
+                    <div class="poster-wrapper">
+                        <img class="poster-img" src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
+                        <div class="movie-hover-instant">
+                            <div class="btn-group-hover">
+                                <a href="/movie/{{ p.id }}" class="btn btn-light btn-sm w-100">Chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
+    </div>
+
+    <div class="mb-5">
+        <h2 class="section-title">PHIM ĐANG CHIẾU</h2>
+        <div class="row">
+            {% for p in products %}
+            <div class="col-lg-3 col-md-4 col-6 p-2">
+                <div class="movie-card-minimal">
+                    <div class="poster-wrapper">
+                        <img class="poster-img" src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
+
+                        <div class="movie-hover-instant">
+                            <div class="btn-group-hover">
+                                <a href="/movie/{{ p.id }}" class="btn btn-light btn-sm flex-fill">Chi tiết</a>
+                                <button class="btn btn-danger btn-sm flex-fill" onclick="addToCart({{ p.id }}, '{{ p.title }}', 0)">Đặt vé</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
 </div>
 {% endblock %}
