@@ -16,25 +16,38 @@ class Base(db.Model):
     active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=datetime.now)
 
+class UserRole(CustomEnum):
+    CUSTOMER = 0
+    ADMIN = 1
+
 class Customer(Base, UserMixin):
     full_name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     phone_number = Column(String(100), nullable=False, unique=True)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
-    # birthday = Column(Date, nullable=False)
-    def __str__(self):
-        return f"{self.username}"
-    birthday = Column(Date, nullable=False)
+    birthday = Column(Date, nullable=True)
     avatar = Column(String(200), nullable=True, default="https://res.cloudinary.com/dkzxdp1gi/image/upload/v1767843265/avatar-trang-nu-001_dym4n0.webp")
+    role = Column(Enum(UserRole), nullable=False, default=UserRole.CUSTOMER)
+
+    def __str__(self):
+        return f"{self.full_name}"
 
 class RoomType(Base):
     name = Column(String(100), nullable=False)
+
+    def __str__(self):
+        return self.name
 
 class Room(Base):
     room_type_id = Column(Integer, ForeignKey(RoomType.id), nullable=False)
     number = Column(Integer, nullable=False, unique=True)
     image = Column(String(200), nullable=False)
+
+    room_type = relationship(RoomType, backref="rooms")
+
+    def __str__(self):
+        return f"Phòng {self.number} ({self.room_type.name})"
 
 class SeatStatus(CustomEnum):
     AVAILABLE = 0
@@ -46,9 +59,14 @@ class Seat(Base):
     number = Column(Integer, nullable=False)
     room_id = Column(Integer, ForeignKey(Room.id), nullable=False)
 
+    room = relationship(Room, backref="seats")
+
     __table_args__ = (
         UniqueConstraint('room_id', 'row', 'number', name='unique_seat_room'),
     )
+
+    def __str__(self):
+        return f"{self.room}, Ghế {self.row}{self.number}"
 
 class MovieType(Base):
     name = Column(String(100), nullable=False)
@@ -64,9 +82,15 @@ class Movie(Base):
     poster = Column(String(200), nullable=False)
     release_date = Column(Date, nullable=False)
 
+    def __str__(self):
+        return self.title
+
 class MovieTypeDetail(Base):
     type_id = Column(Integer, ForeignKey(MovieType.id), nullable=False)
     movie_id = Column(Integer, ForeignKey(Movie.id), nullable=False)
+
+    type = relationship("MovieType", backref="movie_type_details")
+    movie = relationship("Movie", backref="movie_type_details")
 
     __table_args__ = (
         UniqueConstraint('type_id', 'movie_id', name='unique_movie_type'),
@@ -78,9 +102,15 @@ class MovieScreening(Base):
     room_id = Column(Integer, ForeignKey(Room.id), nullable=False)
     movie_id = Column(Integer, ForeignKey(Movie.id), nullable=False)
 
+    room = relationship("Room", backref="movie_screenings")
+    movie = relationship("Movie", backref="movie_screenings")
+
     __table_args__ = (
         UniqueConstraint('room_id', 'start_time', name='unique_room_time'),
     )
+
+    def __str__(self):
+        return f"{self.start_time}"
 
 class ScreeningSeat(Base):
     seat_id = Column(Integer, ForeignKey(Seat.id), nullable=False, index=True)
@@ -88,8 +118,8 @@ class ScreeningSeat(Base):
     status = Column(Enum(SeatStatus), default=SeatStatus.AVAILABLE, index=True)
     hold_expired_at = Column(DateTime, index=True)
 
-    seat = relationship("Seat", backref="screening_seat",lazy=True)
-    screening = relationship("MovieScreening", backref="screening_seat",lazy=True)
+    seat = relationship("Seat", backref="screening_seats",lazy=True)
+    screening = relationship("MovieScreening", backref="screening_seats",lazy=True)
 
     __table_args__ = (
         UniqueConstraint('seat_id', 'screening_id', name='unique_seat_screening'),
@@ -106,6 +136,8 @@ class Bill(Base):
     status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     customer_id = Column(Integer, ForeignKey(Customer.id), nullable=False, index=True)
 
+    customer = relationship("Customer", backref="bills")
+
 class TicketStatus(CustomEnum):
     HOLDING = 0
     PAID = 1
@@ -118,17 +150,34 @@ class Ticket(Base):
     screening_seat_id = Column(Integer, ForeignKey(ScreeningSeat.id), nullable=False, index=True)
     bill_id = Column(Integer, ForeignKey(Bill.id, ondelete="CASCADE"), nullable=True, index=True)
 
+    bill = relationship("Bill", backref="tickets")
+
 class Payment(Base):
     bill_id = Column(Integer, ForeignKey(Bill.id), nullable=False)
     amount = Column(Integer, nullable=False)
     transaction_id = Column(String(100), nullable=False, unique=True)
     status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
 
+    bill = relationship("Bill", backref="payments")
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         print("DB created successfully!")
+
+        #Tạo admin
+
+        import hashlib
+        admin = Customer(
+            full_name = "Admin",
+            username='admin',
+            password=hashlib.md5("123".encode("utf-8")).hexdigest(),
+            email='admin@gmail.com',
+            phone_number='0357899304',
+            role=UserRole.ADMIN
+        )
+        # db.session.add(admin)
+        # db.session.commit()
 
         # 1. Tạo Thể loại phim
         t1 = MovieType(name="Hành động")
@@ -149,14 +198,6 @@ if __name__ == '__main__':
         )
         # db.session.add(m1)
         # db.session.commit()
-        # ===== 2. Room + RoomType =====
-        room_type = RoomType(name="2D")
-        db.session.add(room_type)
-        db.session.commit()
-
-        room = Room(room_type=room_type.id, image="room.jpg")
-        db.session.add(room)
-        db.session.commit()
 
         # ===== 3. Movie =====
         movies = [
@@ -166,14 +207,16 @@ if __name__ == '__main__':
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-                "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+                "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
             },
             {
                 "title": "Mai",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
 
             },
             {
@@ -181,62 +224,61 @@ if __name__ == '__main__':
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
             },
             {
                 "title": "Mai",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg" 
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
             },
             {
                 "title": "Mai",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
             },
             {
                 "title": "Mai",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
             },
             {
                 "title": "Mai",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
-               "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
-            },
-            {
-                "title": "Mai",
-                "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
-                "age_limit": 18,
-                "duration": 131,
-              "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg"
+              "poster": "https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg",
+                "release_date": "2019-04-26"
             }
 
         ]
         for m in movies:
             movie = Movie(**m)
-            db.session.add(movie)
-
-        db.session.commit()
+        #     db.session.add(movie)
+        #
+        # db.session.commit()
 
         # Gán thể loại cho phim
-        # db.session.add(MovieTypeDetail(type_id=t1.id, movie_id=m1.id))
-        # db.session.add(MovieTypeDetail(type_id=t3.id, movie_id=m1.id))
-
+        # db.session.add(MovieTypeDetail(type_id=1, movie_id=1))
+        # db.session.add(MovieTypeDetail(type_id=3, movie_id=1))
+        # db.session.add(MovieTypeDetail(type_id=2, movie_id=2))
+        # db.session.add(MovieTypeDetail(type_id=3, movie_id=2))
         # 3. Tạo Loại phòng và Phòng
         rt_standard = RoomType(name="Standard")
         rt_imax = RoomType(name="IMAX")
         # db.session.add_all([rt_standard, rt_imax])
         # db.session.commit()
 
-        r1 = Room(room_type_id=rt_imax.id, number=101, image="room1.jpg")
+        r1 = Room(room_type_id=1, number=101, image="room1.jpg")
         # db.session.add(r1)
         # db.session.commit()
 
@@ -280,7 +322,7 @@ if __name__ == '__main__':
         for seat in seats:
             ss = ScreeningSeat(
                 seat_id=seat.id,
-                screening_id=5
+                screening_id=1
             )
         #     db.session.add(ss)
         #

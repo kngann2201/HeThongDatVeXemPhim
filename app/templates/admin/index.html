@@ -1,0 +1,35 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<h3 class="text-info text-center mt-3">CHÀO MỪNG ĐẾN VỚI TRANG QUẢN TRỊ</h3>
+
+
+{% if current_user.is_authenticated%}
+
+Chào {{current_user.full_name}}
+
+{% else %}
+
+    {% if err_msg%}
+    <div class="alert alert-danger">{{err_msg}}</div>
+    {% endif %}
+
+    <form method="post" action="/login-admin">
+        <div class="form-group mb-3 mt-3">
+            <label for="username">Tài khoản</label>
+            <input type="text" class="form-control" id="username" placeholder="Nhập tài khoản" name="username">
+        </div>
+
+        <div class="form-group mt-3 mb-3">
+            <label for="password">Mật khẩu</label>
+            <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" name="password">
+
+        </div>
+
+        <div class="form-group mt-3 mb-3">
+            <button class="btn btn-primary" type="submit">ĐĂNG NHẬP</button>
+        </div>
+    </form>
+    {%endif%}
+
+{% endblock %}

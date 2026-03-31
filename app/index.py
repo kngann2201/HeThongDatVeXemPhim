@@ -1,5 +1,7 @@
-from app import app, db, login
-from flask import render_template, request, redirect, url_for, flash
+from datetime import timedelta
+
+from app import app, db, login, admin
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
 from flask_mail import Message
@@ -99,6 +101,10 @@ def login_my_user():
 
 @login.user_loader
 def get_user(user_id):
+    user = dao.get_admin_by_id(user_id)
+    if user:
+        return user
+
     return dao.get_user_by_id(user_id)
 
 @login.unauthorized_handler
@@ -110,6 +116,20 @@ def unauthorized_callback():
 def logout_my_user():
     logout_user()
     return redirect('/login')
+
+@app.route("/login-admin", methods=["post", "get"])
+def login_admin():
+    if request.method == 'POST':
+        username = request.form.get("username")
+        password = request.form.get("password")
+        user = dao.auth_admin(username, password)
+
+        if user:
+            login_user(user)
+        else:
+            err_msg = "Tài khoản hoặc mật khẩu không đúng!"
+
+    return redirect("/admin")
 
 @app.route("/booking", methods=['GET', 'POST'])
 def booking():
