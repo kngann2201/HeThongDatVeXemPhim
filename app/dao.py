@@ -1,7 +1,7 @@
 import hashlib
 from sqlalchemy import cast, Date, extract
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
-    Bill, Payment
+    Bill, Payment, UserRole
 from app import db
 import math
 import re
@@ -40,22 +40,29 @@ def is_email_exists(email):
 
 
 def get_user_by_id(customer_id):
-    return Customer.query.get(customer_id)
+    return Customer.query.filter_by(id=customer_id, role=UserRole.CUSTOMER).first()
+
+def get_admin_by_id(admin_id):
+    return Customer.query.filter_by(id=admin_id, role=UserRole.ADMIN).first()
+
+def auth_admin(username, password):
+    password = md5_hash(password)
+    return Customer.query.filter_by(username=username, password=password, role=UserRole.ADMIN).first()
 
 
 
 
-def get_movies(movie_type_id=None, release_year=None, age_limit=None):
-    query = db.session.query(Movie).all()
-
-    if movie_type_id is not None:
-        query = query(Movie).join(MovieTypeDetail).filter(MovieTypeDetail.movie_type_id == movie_type_id).all()
-    if release_year is not None:
-        query = query.filter(extract('year', Movie.release_date) == release_year).all()
-    if age_limit is not None:
-        query = query.filer(Movie.age_limit >= age_limit).all()
-
-    return query
+# def get_movies(movie_type_id=None, release_year=None, age_limit=None):
+#     query = db.session.query(Movie).all()
+#
+#     if movie_type_id is not None:
+#         query = query(Movie).join(MovieTypeDetail).filter(MovieTypeDetail.movie_type_id == movie_type_id).all()
+#     if release_year is not None:
+#         query = query.filter(extract('year', Movie.release_date) == release_year).all()
+#     if age_limit is not None:
+#         query = query.filer(Movie.age_limit >= age_limit).all()
+#
+#     return query
 
 def get_movie_by_id(movie_id):
     return db.session.query(Movie).filter_by(id=movie_id).first()
