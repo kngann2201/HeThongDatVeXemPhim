@@ -2,13 +2,18 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_babel import Babel
+import cloudinary
 
 app = Flask(__name__)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+pymysql://root:ngan1312@localhost/cinemadb?charset=utf8mb4'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config['SECRET_KEY'] = 'suhtiwnetseveytneewtadyreveeyppahswt'
-app.config['BABEL_DEFAULT_LOCALE'] = 'vi'
+# app.config['BABEL_DEFAULT_LOCALE'] = 'vi'
+
+cloudinary.config(cloud_name='dkzxdp1gi',
+                  api_key='889343733763378',
+                  api_secret='AfqkwYpSy0i8oRU4XN4bRC-5qIg')
 
 db = SQLAlchemy(app)
 babel = Babel(app)

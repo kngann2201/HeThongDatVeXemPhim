@@ -1,5 +1,5 @@
 const state = {
-    movieId: null,
+    movieId: MOVIE_ID,
     date: null,
     roomTypeId: null,
     roomId: null,
@@ -162,7 +162,7 @@ roomsContainer.addEventListener('click', function(e) {
     console.info("Phòng đã chọn:", room.dataset.room);
     state.roomId = room.dataset.room;
 
-    fetch(`/api/get-screenings?movie_id=1&room_id=${state.roomId}&watch_date=${state.date}`, {
+    fetch(`/api/get-screenings?movie_id=${state.movieId}&room_id=${state.roomId}&watch_date=${state.date}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
         console.info(data)
@@ -181,6 +181,7 @@ screeningsContainer.addEventListener('click', function(e) {
 
     console.info("Suất chiếu đã chọn:", screening.dataset.screening);
     state.screeningId = screening.dataset.screening;
+    document.getElementById("selected-screening").value = state.screeningId;
 
     const selected = state.screenings.find(s => s.id == state.screeningId);
     state.price = selected.base_price;
@@ -203,6 +204,10 @@ seatsContainer.addEventListener('click', function(e) {
     const seat = e.target.closest('.seat');
     if (!seat) return;
 
+    if (seat.classList.contains('BOOKED') || seat.classList.contains('HOLDING')) {
+        return;
+    }
+
     const seat_id = seat.dataset.seat;
     if (state.seats.includes(seat_id)) {
         state.seats = state.seats.filter(s => s !== seat_id);
@@ -213,7 +218,10 @@ seatsContainer.addEventListener('click', function(e) {
         }
         state.seats.push(seat_id);
     }
+
     console.info("Các ghế đã đã chọn:", state.seats);
+    document.getElementById("selected-seat").value = state.seats.join(",");
+
     render();
     updatePrice();
 
@@ -241,4 +249,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     state.date = document.querySelector('.date-card.active').dataset.date;
     console.info("Ngày đã chọn:", state.date);
+});
+
+document.querySelector("form").addEventListener("submit", function(e) {
+    if (!state.screeningId) {
+        alert("Vui lòng chọn suất chiếu!");
+        e.preventDefault();
+        return;
+    }
+
+    if (state.seats.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 ghế!");
+        e.preventDefault();
+        return;
+    }
 });

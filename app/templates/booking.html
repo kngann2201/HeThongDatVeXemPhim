@@ -5,6 +5,9 @@
 {% block content %}
 <link href="{{url_for('static', filename='css/booking.css')}}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" rel="stylesheet"/>
+<script>
+    const MOVIE_ID = {{ movie.id }};
+</script>
 
 <div class="container-xxl my-5" style="max-width: 1400px;">
     {% if not movie %}
@@ -55,13 +58,12 @@
     </div>
 
     <div>
-        <form method="post" action="/booking" enctype="multipart/form-data">
+        <form method="post" action="/pay" enctype="multipart/form-data">
             <div class="selected-menu">
                 <h5 class="mb-3 px-2">Lịch chiếu</h5>
                 <div class="swiper mySwiper">
                     <div id="date-wrapper" class="swiper-wrapper"></div>
                 </div>
-                <input type="hidden" name="watch-date" id="selected-date">
             </div>
 
             <div class="selected-menu">
@@ -71,7 +73,6 @@
                   <div class="room-type d-type" data-type="{{ type.id }}">{{ type.name }}</div>
                   {% endfor %}
                 </div>
-                <input type="hidden" name="room-type" id="selected-room-type">
             </div>
 
             <div class="selected-menu">
@@ -79,7 +80,6 @@
                 <div class="rooms d-types">
                     <p class="text-info">Chọn loại phòng để hiện thông tin này</p>
                 </div>
-                <input type="hidden" name="room" id="selected-room">
             </div>
 
             <div class="selected-menu">
@@ -114,12 +114,16 @@
                     </div>
                 </div>
             </div>
-        </form>
-        <div id="total-price" class="d-flex justify-content-center"></div>
 
-        <div class="form-floating mt-3 mb-3 d-flex justify-content-center">
-           <button class="btn btn-success" type="submit">Đặt vé</button>
-        </div>
+            <div id="total-price" class="d-flex justify-content-center"></div>
+
+            <div class="form-floating mt-3 mb-3 d-flex justify-content-center">
+               <button class="btn btn-success" type="submit">Đặt vé</button>
+            </div>
+        </form>
+
+
+
 
     </div>
     {% endif %}
