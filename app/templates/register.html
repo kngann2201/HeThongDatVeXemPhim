@@ -22,7 +22,11 @@
             <div class="input-field">
                 <input class="form-control" type="text" placeholder="Họ và tên" name="full_name" required/>
             </div>
-
+            <div class="input-field">
+                <label for="birthday" class="input-label">Ngày sinh</label>
+                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31" required>
+                <small id="birthday-error" class="error-text"></small>
+            </div>
             <div class="input-field">
                 <input class="form-control" type="text" name="phone" id="phone" placeholder="Số điện thoại" required>
                 <small id="phone-error" class="error-text"></small>
@@ -58,7 +62,10 @@
                 </ul>
             </div>
             <small id="password-error" class="error-text"></small>
-
+            <div class="input-field">
+                <label for="avatar" class="input-label">Ảnh đại diện</label>
+                <input class="form-control" type="file" name="avatar" id="avatar" accept="image/*">
+            </div>
             <button class="btn-submit" type="submit" id="submit-btn">Đăng ký</button>
         </form>
     </div>

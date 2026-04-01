@@ -263,9 +263,9 @@ if __name__ == '__main__':
         ]
         for m in movies:
             movie = Movie(**m)
-        #     db.session.add(movie)
-        #
-        # db.session.commit()
+            db.session.add(movie)
+
+        db.session.commit()
 
         # Gán thể loại cho phim
         # db.session.add(MovieTypeDetail(type_id=1, movie_id=1))

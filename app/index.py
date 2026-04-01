@@ -7,15 +7,16 @@ from flask_login import login_user, current_user, login_required, logout_user
 from flask_mail import Message
 import re
 import dao
-import cloudinary
+import cloudinary.uploader
 import math
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 @app.route("/")
 def index():
     page = request.args.get('page', 1, type=int)
     page_size = 8
     movies = dao.get_movies(page=page, page_size=page_size)
-
     total_movies = dao.count_movies()
     pages = math.ceil(total_movies / page_size)
 
@@ -34,9 +35,31 @@ def register():
         full_name = request.form.get('full_name')
         phone = request.form.get('phone')
         email=request.form.get('email')
+        birthday = request.form.get('birthday')
+        avatar= request.files.get('avatar')
+        avatar_url = None
+        if birthday:
+            birthday = date.fromisoformat(birthday)
+            today = date.today()
+            age = relativedelta(today, birthday).years
+
+            if age < 13:
+                err_msg = "Bạn phải từ 13 tuổi trở lên để đăng ký tài khoản."
+                return render_template('register.html', err_msg=err_msg)
+
+            if age > 100:
+                err_msg = "Ngày sinh không hợp lệ."
+                return render_template('register.html', err_msg=err_msg)
+        if avatar:
+            res = cloudinary.uploader.upload(avatar)
+            avatar_url = res.get('secure_url')
+
+        if not birthday:
+            err_msg = "Vui lòng chọn ngày sinh"
+            return render_template('register.html', err_msg=err_msg)
 
         if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
-            err_msg = "Số điện thoại không hợp lệ, phải gồm 10 kí tự. VD: 0123456789"
+            err_msg = "Số điện thoại không hợp lệ"
             return render_template('register.html', err_msg=err_msg)
 
         if dao.is_username_exists(username):
@@ -68,8 +91,11 @@ def register():
                     password=password,
                     full_name=full_name,
                     phone=phone,
-                    email=email )
-            return render_template("register.html", success=True)
+                    email=email,
+                    birthday=birthday,
+                    avatar=avatar_url
+            )
+            return render_template("login.html", success=True)
         except Exception as ex:
             db.session.rollback()
             err_msg = "Hệ thống đang lỗi!"
@@ -198,6 +224,19 @@ def get_seats(screening_id):
 @app.route("/api/pay", methods=['POST'])
 def pay():
     pass
+
+@app.route("/user/profile")
+@login_required
+def profile():
+    return render_template('user/profile.html', user=current_user)
+
+@app.route('/user/bookings')
+@login_required
+def history_booking():
+    customer = current_user.customer
+    bookings = customer.bookings if customer else []
+    return render_template('user_bookings.html', bookings=bookings)
+
 
 
 if __name__ == "__main__":

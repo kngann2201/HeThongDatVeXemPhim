@@ -11,9 +11,9 @@ def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
 
-def add_user(username, password, full_name, phone, email):
+def add_user(username, password, full_name, phone, email, birthday,avatar):
     password = md5_hash(password)
-    c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email)
+    c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email, birthday=birthday, avatar=avatar)
     try:
         db.session.add(c)
         db.session.commit()
@@ -112,7 +112,6 @@ def add_payment(bill_id):
 
 def get_movies(page=1, page_size=8):
     start = (page - 1) * page_size
-    # Trả về danh sách phim có phân trang
     return Movie.query.offset(start).limit(page_size).all()
 
 def count_movies():
