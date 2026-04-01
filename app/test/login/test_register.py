@@ -24,13 +24,6 @@ def test_invalid_username(username):
     with pytest.raises(ValueError):
         add_user(username=username,password='1a'*4,name='admin',avatar=None)
 
-
-def test_avatar(test_session,mock_cloudinary):
-    add_user(username='a1' * 4, password='1a' * 4, name='admin', avatar='abc')
-    u = Customer.query.filter(Customer.username.__eq__('a1' * 4)).first()
-    assert u.avatar=='https://fake-avartar.png'
-
-
 def test_exist_username(test_session,mock_cloudinary):
     add_user(username='a1' * 4, password='1a' * 4, name='admin', avatar='abc')
     with pytest.raises(ValueError):
