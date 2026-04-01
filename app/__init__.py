@@ -9,7 +9,11 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+pymysql://root:root@localhost/cinemadb?charset=utf8mb4'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config['SECRET_KEY'] = 'suhtiwnetseveytneewtadyreveeyppahswt'
-app.config['BABEL_DEFAULT_LOCALE'] = 'vi'
+# app.config['BABEL_DEFAULT_LOCALE'] = 'vi'
+
+cloudinary.config(cloud_name='dkzxdp1gi',
+                  api_key='889343733763378',
+                  api_secret='AfqkwYpSy0i8oRU4XN4bRC-5qIg')
 
 db = SQLAlchemy(app)
 babel = Babel(app)

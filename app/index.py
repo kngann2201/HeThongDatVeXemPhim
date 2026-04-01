@@ -157,9 +157,8 @@ def login_admin():
 
     return redirect("/admin")
 
-@app.route("/booking", methods=['GET', 'POST'])
-def booking():
-    movie_id = 1
+@app.route("/booking/<movie_id>", methods=['GET', 'POST'])
+def booking(movie_id):
     err_msg = None
     movie = dao.get_movie_by_id(movie_id)
     movie_types = dao.get_movie_types(movie_id)
@@ -221,9 +220,10 @@ def get_seats(screening_id):
         })
     return jsonify({"success": True, "seats": seats_data})
 
-@app.route("/api/pay", methods=['POST'])
+@app.route("/pay", methods=['POST', 'GET'])
+@login_required
 def pay():
-    pass
+    return render_template("pay.html")
 
 @app.route("/user/profile")
 @login_required
@@ -240,4 +240,4 @@ def history_booking():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

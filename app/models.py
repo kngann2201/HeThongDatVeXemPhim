@@ -1,5 +1,3 @@
-from tkinter.constants import CASCADE
-
 from flask_login import UserMixin
 from sqlalchemy import Column, String, Integer, Boolean, Text, ForeignKey, DateTime, Date, Enum, UniqueConstraint
 from enum import Enum as CustomEnum
@@ -117,17 +115,19 @@ class ScreeningSeat(Base):
     screening_id = Column(Integer, ForeignKey(MovieScreening.id), nullable=False, index=True)
     status = Column(Enum(SeatStatus), default=SeatStatus.AVAILABLE, index=True)
     hold_expired_at = Column(DateTime, index=True)
+    holding_user_id = Column(Integer, ForeignKey(Customer.id), nullable=True)
 
     seat = relationship("Seat", backref="screening_seats",lazy=True)
     screening = relationship("MovieScreening", backref="screening_seats",lazy=True)
+    holding_user = relationship("Customer", backref="holding_seats", lazy=True)
 
     __table_args__ = (
         UniqueConstraint('seat_id', 'screening_id', name='unique_seat_screening'),
     )
 
 class PaymentStatus(CustomEnum):
-    PENDING = 1
-    SUCCESS = 2
+    PENDING = 0
+    SUCCESS = 1
     FAILED = 2
 
 class Bill(Base):
@@ -151,6 +151,7 @@ class Ticket(Base):
     bill_id = Column(Integer, ForeignKey(Bill.id, ondelete="CASCADE"), nullable=True, index=True)
 
     bill = relationship("Bill", backref="tickets")
+    screening_seat = relationship("ScreeningSeat", backref="tickets")
 
 class Payment(Base):
     bill_id = Column(Integer, ForeignKey(Bill.id), nullable=False)
@@ -211,7 +212,7 @@ if __name__ == '__main__':
                 "release_date": "2019-04-26"
             },
             {
-                "title": "Mai",
+                "title": "Mai 2",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
@@ -220,7 +221,7 @@ if __name__ == '__main__':
 
             },
             {
-                "title": "Mai",
+                "title": "Mai 3",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
@@ -228,7 +229,7 @@ if __name__ == '__main__':
                 "release_date": "2019-04-26"
             },
             {
-                "title": "Mai",
+                "title": "Mai 4",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
@@ -236,7 +237,7 @@ if __name__ == '__main__':
                 "release_date": "2019-04-26"
             },
             {
-                "title": "Mai",
+                "title": "Mai 5",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
@@ -244,7 +245,7 @@ if __name__ == '__main__':
                 "release_date": "2019-04-26"
             },
             {
-                "title": "Mai",
+                "title": "Mai 6",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
@@ -252,7 +253,7 @@ if __name__ == '__main__':
                 "release_date": "2019-04-26"
             },
             {
-                "title": "Mai",
+                "title": "Mai 7",
                 "description": "Phim tâm lý tình cảm của Trấn Thành, xoay quanh cuộc đời của người phụ nữ tên Mai.",
                 "age_limit": 18,
                 "duration": 131,
@@ -329,7 +330,3 @@ if __name__ == '__main__':
         # db.session.commit()
 
         print("Data was imported successfully!")
-
-
-
-

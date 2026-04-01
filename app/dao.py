@@ -93,7 +93,6 @@ def get_seats_by_screening(screening_id):
         .filter(ScreeningSeat.screening_id == screening_id)
         .order_by(Seat.row, Seat.number).all())
 
-
 def get_room_types():
     return db.session.query(RoomType).all()
 
