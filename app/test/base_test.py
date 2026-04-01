@@ -115,5 +115,12 @@ def sample_room(test_session):
     test_session.commit()
     return [r1, r2, r3]
 
+@pytest.fixture
+def mock_cloudinary(monkeypatch):
+    def fake_upload(file):
+        return {'secure_url': 'https://fake-avartar.png'}
+
+    monkeypatch.setattr('cloudinary.uploader.upload',fake_upload)
+
 
 

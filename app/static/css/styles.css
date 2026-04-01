@@ -1,66 +1,227 @@
-<style>
-    /* Tiêu đề mục */
-    .section-title {
-        font-weight: 800;
-        margin-bottom: 20px;
-        color: #333;
-        border-left: 5px solid #e74c3c;
-        padding-left: 15px;
-    }
+.section-title {
+    font-weight: 800;
+    margin-bottom: 25px;
+    color: #333;
+    border-left: 5px solid #e74c3c;
+    padding-left: 15px;
+    text-transform: uppercase;
+}
 
-    /* Card tối giản */
-    .movie-card-minimal {
-        border-radius: 8px;
-        overflow: hidden;
-        position: relative;
-        background: #000;
-    }
+.nav-search-glass {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 6px 15px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
 
-    .poster-wrapper {
-        position: relative;
-        width: 100%;
-        height: 380px; /* Cố định chiều cao để ảnh không bị mất */
-    }
+.nav-search-glass:focus-within {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #e74c3c;
+}
 
-    .poster-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
+.nav-search-glass input {
+    background: transparent;
+    border: none;
+    color: white;
+    padding-left: 10px;
+    outline: none;
+    font-size: 0.85rem;
+    width: 140px;
+}
 
-    /* Lớp phủ Hover HIỆN NGAY LẬP TỨC */
-    .movie-hover-instant {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, 0.85); /* Nền tối ở đáy */
-        padding: 15px;
 
-        /* Triệt tiêu mọi hiệu ứng chậm */
-        display: none;
-        z-index: 10;
-    }
+.user-avatar-container {
+    width: 36px;
+    height: 36px;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid #e74c3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #222;
+}
 
-    /* Khi rà chuột vào card thì hiện lớp phủ ngay lập tức */
-    .movie-card-minimal:hover .movie-hover-instant {
-        display: block; /* Hiện ngay, không dùng opacity/transition */
-    }
+.user-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
-    /* Cụm nút bấm */
-    .btn-group-hover {
-        display: flex;
-        gap: 8px;
-    }
 
-    .btn-group-hover .btn {
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        padding: 8px 2px;
-        border: none;
-    }
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block !important;
+}
 
-    .btn-light { color: #000 !important; }
-</style>
+.dropdown-menu {
+    display: none;
+    background-color: #1a1a1a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px;
+    margin-top: 0 !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 1000;
+}
+
+.dropdown-item {
+    color: #ffffff !important;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: none !important;
+}
+
+.dropdown-item:hover {
+    background-color: #e74c3c !important;
+    color: #fff !important;
+    padding-left: 20px !important;
+}
+
+.dropdown-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+.movie-card-minimal {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    border: none;
+    z-index: 1;
+    transition: transform 0.1s ease-out !important;
+}
+
+.movie-card-minimal:hover {
+    transform: scale(1.03);
+    z-index: 10;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.poster-wrapper {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+}
+
+.movie-hover-instant {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+
+
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+
+
+    opacity: 0;
+    transition: opacity 0.1s steps(1) !important;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.movie-card-minimal:hover .movie-hover-instant {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-group-hover {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    transform: scale(0.8);
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.movie-card-minimal:hover .btn-group-hover {
+    transform: scale(1);
+}
+
+.btn-group-hover .btn {
+    flex: 1;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    padding: 12px 2px;
+    border-radius: 10px;
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-white { background: #ffffff; color: #000000 !important; }
+.btn-red { background: #e74c3c; color: #ffffff !important; }
+
+#backToTopBtn {
+    display: none;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    background-color: #e74c3c !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    padding: 0;
+    cursor: pointer;
+}
+
+#backToTopBtn i {
+    font-size: 18px;
+    line-height: 50px;
+    display: block;
+}
+
+
+.profile-sidebar, .profile-info-card {
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+
+.form-control:disabled {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    font-weight: 500;
+    padding: 10px 15px;
+    cursor: not-allowed;
+}
+
+.form-label {
+    color: #6c757d;
+    margin-bottom: 6px;
+}
+
+.active-cinema {
+    background-color: #e74c3c !important;
+    border-color: #e74c3c !important;
+    color: white !important;
+    border-radius: 8px !important;
+}
+
+.btn-danger {
+    background-color: #e74c3c !important;
+    border: none;
+    font-weight: 600;
+}
+
+.btn-outline-dark {
+    font-weight: 600;
+}
+
+.list-group-item-action:hover:not(.active-cinema) {
+    background-color: #f8f9fa;
+    color: #e74c3c;
+}
