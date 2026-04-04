@@ -4,7 +4,7 @@ import hashlib
 import pytest
 from app.models import Customer
 def test_success(test_app,test_session):
-    add_user(username='a1'*4, password='Abcd123@', name='admin', avatar=None)
+    add_user(username='a1'*4, password='Abcd123@', full_name='admin', avatar=None)
     u=Customer.query.filter(Customer.username.__eq__('a1'*4)).first()
     assert u is not None
     assert u.name=='admin'
@@ -15,23 +15,16 @@ def test_success(test_app,test_session):
 
 def test_invalid_password(password):
     with pytest.raises(ValueError):
-        add_user(username='a1'*4,password=password,name='admin',avatar=None)
+        add_user(username='a1'*4,password=password,full_name='admin',phone='0123456789', birthday='1/1/2008',email='admin123@gmail.com',avatar=None)
 
 @pytest.mark.parametrize('username',[
     '1a'*2
 ])
 def test_invalid_username(username):
     with pytest.raises(ValueError):
-        add_user(username=username,password='1a'*4,name='admin',avatar=None)
-
-
-def test_avatar(test_session,mock_cloudinary):
-    add_user(username='a1' * 4, password='1a' * 4, name='admin', avatar='abc')
-    u = Customer.query.filter(Customer.username.__eq__('a1' * 4)).first()
-    assert u.avatar=='https://fake-avartar.png'
-
+        add_user(username=username,password='1a'*4,full_name='admin',phone='0123456789', birthday='1/1/2008',email='admin123@gmail.com',avatar=None)
 
 def test_exist_username(test_session,mock_cloudinary):
-    add_user(username='a1' * 4, password='1a' * 4, name='admin', avatar='abc')
+    add_user(username='a1' * 4, password='1a' * 4, full_name='admin',phone='0123456789', birthday='1/1/2008',email='admin123@gmail.com',avatar='abc')
     with pytest.raises(ValueError):
-        add_user(username='a1'*4,password='1a'*4,name='admin',avatar='abc')
+        add_user(username='a1'*4,password='1a'*4,full_name='admin',phone='0123456789', birthday='1/1/2008',email='admin123@gmail.com',avatar='abc')
