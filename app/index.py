@@ -9,9 +9,6 @@ import re
 import dao
 import cloudinary.uploader
 import math
-from datetime import date
-from dateutil.relativedelta import relativedelta
-
 @app.route("/")
 def index():
     page = request.args.get('page', 1, type=int)
@@ -38,53 +35,12 @@ def register():
         birthday = request.form.get('birthday')
         avatar= request.files.get('avatar')
         avatar_url = None
-        if birthday:
-            birthday = date.fromisoformat(birthday)
-            today = date.today()
-            age = relativedelta(today, birthday).years
-
-            if age < 13:
-                err_msg = "Bạn phải từ 13 tuổi trở lên để đăng ký tài khoản."
-                return render_template('register.html', err_msg=err_msg)
-
-            if age > 100:
-                err_msg = "Ngày sinh không hợp lệ."
-                return render_template('register.html', err_msg=err_msg)
-        if avatar:
-            res = cloudinary.uploader.upload(avatar)
-            avatar_url = res.get('secure_url')
-
-        if not birthday:
-            err_msg = "Vui lòng chọn ngày sinh"
-            return render_template('register.html', err_msg=err_msg)
-
-        if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
-            err_msg = "Số điện thoại không hợp lệ"
-            return render_template('register.html', err_msg=err_msg)
-
-        if dao.is_username_exists(username):
-            err_msg = "Tên đăng nhập đã tồn tại"
-            return render_template('register.html', err_msg=err_msg)
-
-        if dao.is_phone_exists(phone):
-            err_msg = "Số điện thoại đã được sử dụng"
-            return render_template('register.html', err_msg=err_msg)
-
-        if len(password) < 8:
-            err_msg = "Mật khẩu phải có ít nhất 8 ký tự"
-            return render_template('register.html', err_msg=err_msg)
-
-        if not re.search(r'[A-Z]', password) or not re.search(r'\d', password):
-            err_msg = "Mật khẩu phải có chữ hoa và số"
-            return render_template('register.html', err_msg=err_msg)
-
         if password != confirm:
             err_msg = "Mật khẩu không khớp!"
             return render_template('register.html', err_msg=err_msg)
-
-        if not re.search(r'^\S+@\S+\.\S+$', email) or dao.is_email_exists(email):
-            err_msg = "Không đúng định dạng hoặc email đã tồn tại"
-            return render_template('register.html', err_msg=err_msg)
+        if avatar:
+            res = cloudinary.uploader.upload(avatar)
+            avatar_url = res.get('secure_url')
         try:
             dao.add_user(
                     username=username,
