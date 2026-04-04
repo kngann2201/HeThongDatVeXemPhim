@@ -4,10 +4,10 @@ import hashlib
 import pytest
 from app.models import Customer
 def test_success(test_app,test_session):
-    add_user(username='a1'*4, password='Abcd123@', full_name='admin', avatar=None)
+    add_user(username='a1'*4, password='Abcd123@', full_name='admin', phone='0123456789', birthday='1/1/2008',email='admin123@gmail.com',avatar=None)
     u=Customer.query.filter(Customer.username.__eq__('a1'*4)).first()
     assert u is not None
-    assert u.name=='admin'
+    assert u.full_name=='admin'
     assert u.password==str(hashlib.md5(('1a'*4).encode('utf-8')).hexdigest())
 @pytest.mark.parametrize('password',[
     '1a'*3+'1', '12'*4, 'a'*8
