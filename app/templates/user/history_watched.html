@@ -1,0 +1,35 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="section-title">Lịch sử xem phim của bạn</h2>
+    <div class="table-responsive mt-4">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Mã vé</th>
+                    <th>Phim</th>
+                    <th>Suất chiếu</th>
+                    <th>Vị trí ngồi</th>
+                    <th>Giá vé</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in watched_list %}
+                <tr>
+                    <td class="fw-bold">#{{ w.id }}</td>
+                    <td>{{ w.movie_name }}</td>
+                    <td>{{ w.show_time }}</td>
+                    <td>phòng {{ w.room_number }} - ghế {{ w.seat_number }}</td>
+                    <td>{{ "{:,.0f}".format(w.price) }}đ</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">Bạn chưa xem phim nào!!!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

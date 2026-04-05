@@ -9,6 +9,7 @@ import re
 import dao
 import cloudinary.uploader
 import math
+from app.models import Movie
 @app.route("/")
 def index():
     page = request.args.get('page', 1, type=int)
@@ -16,11 +17,17 @@ def index():
     movies = dao.get_movies(page=page, page_size=page_size)
     total_movies = dao.count_movies()
     pages = math.ceil(total_movies / page_size)
+    keyword = request.args.get('kw', '').strip()
+    query = Movie.query
 
+    if keyword:
+        query = query.filter(Movie.title.icontains(keyword))
+    movies = query.order_by(Movie.id.desc()).all()
     return render_template('index.html',
                            products=movies,
                            pages=pages,
-                           current_page=page)
+                           current_page=page,
+                           keyword=keyword)
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -67,12 +74,11 @@ def login_my_user():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
         user = dao.auth_user(username, password)
 
         if user:
             login_user(user)
-            if next_page:
+            if next_page and next_page != "None" and next_page.startswith('/'):
                 return redirect(next_page)
             else:
                 return redirect('/')
@@ -193,7 +199,16 @@ def history_booking():
     bookings = customer.bookings if customer else []
     return render_template('user_bookings.html', bookings=bookings)
 
+@app.route("/user/history_booking")
+@login_required
+def history_booking_ticket():
+    data = dao.get_info_movie(current_user.id)
+    return render_template('user/history_booking.html', watched_list=data)
 
-
+@app.route("/user/history_watched")
+@login_required
+def history_watched():
+    data = dao.get_info_movie(current_user.id)
+    return render_template('user/history_watched.html', watched_list=data)
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

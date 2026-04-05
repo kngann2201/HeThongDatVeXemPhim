@@ -4,30 +4,39 @@
 <div class="container mt-5">
     <h2 class="section-title">Lịch sử đặt vé của bạn</h2>
     <div class="table-responsive mt-4">
-        <table class="table table-hover">
+        <table class="table table-hover align-middle">
             <thead class="table-dark">
-                <tr>
-                    <th>Mã vé</th>
-                    <th>Phim</th>
-                    <th>Suất chiếu</th>
-                    <th>Ghế</th>
-                    <th>Trạng thái</th>
-                </tr>
+            <tr>
+                <th>Mã vé</th>
+                <th>Phim</th>
+                <th>Suất chiếu</th>
+                <th>Ghế</th>
+                <th>Giá vé</th>
+                <th>Trạng thái</th>
+            </tr>
             </thead>
             <tbody>
-                {% for b in bookings %}
-                <tr>
-                    <td>#{{ b.id }}</td>
-                    <td>{{ b.movie_name }}</td>
-                    <td>{{ b.show_time }}</td>
-                    <td>{{ b.seat_number }}</td>
-                    <td><span class="badge bg-success">Thành công</span></td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center">Bạn chưa có lịch sử đặt vé nào.</td>
-                </tr>
-                {% endfor %}
+            {% for b in bookings %}
+            <tr>
+                <td>#{{ b.id }}</td>
+                <td>{{ b.movie_name }}</td>
+                <td>{{ b.show_time }}</td>
+                <td>{{ b.seat_number }}</td>
+                <td>{{ "{:,.0f}".format(w.price) }}đ</td>
+                <td>
+                    {% if w.status.value == 3 %} <span class="badge bg-secondary">Đã xem</span>
+                    {% elif w.status.value == 1 %} <span class="badge bg-success">Sắp xem</span>
+                    {% elif w.status.value == 2 %} <span class="badge bg-danger">Đã hủy</span>
+                    {% else %}
+                    <span class="badge bg-warning">Đang giữ</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center py-4">Bạn chưa đặt vé nào!!!</td>
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>

@@ -21,7 +21,7 @@
                 <div class="form-group">
                     <input class="sign-up__inp" type="password" placeholder="{{ ('Mật khẩu') }}" name="password" required="required"/>
                 </div>
-                <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+                <input type="hidden" name="next" value="{{ request.args.get('next') or ''}}">
             </div>
 
             <div class="sign-up__buttons">
