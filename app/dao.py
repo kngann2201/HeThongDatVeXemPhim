@@ -1,15 +1,14 @@
 import hashlib
 from sqlalchemy import cast, Date, extract
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
-    Bill, Payment, UserRole
+    Bill, Payment, UserRole, Ticket, TicketStatus
 from app import db
 import math
 import re
 from datetime import date
 from dateutil.relativedelta import relativedelta
 import cloudinary.uploader
-
-
+from sqlalchemy import and_
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
@@ -147,3 +146,28 @@ def get_movies(page=1, page_size=8):
 
 def count_movies():
     return Movie.query.count()
+
+def get_info_movie(customer_id):
+    results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
+        Ticket.price,Ticket.status
+    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
+     .join(Seat, ScreeningSeat.seat_id == Seat.id)\
+     .join(Room, Seat.room_id == Room.id)\
+     .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)\
+     .join(Movie, MovieScreening.movie_id == Movie.id)\
+     .join(Bill, Ticket.bill_id == Bill.id)\
+     .filter(Bill.customer_id == customer_id,
+             Ticket.status == TicketStatus.USED).all()
+
+    watched_list = []
+    for r in results:
+        watched_list.append({
+            'id': r[0],
+            'movie_name': r[1],
+            'show_time': r[2].strftime('%H:%M - %d/%m/%Y'),
+            'room_number': r[3],
+            'seat_number': f"{r[4]}{r[5]}",
+            'price': r[6],
+            'status': r[7]
+        })
+    return watched_list

@@ -3,7 +3,13 @@
 {% block content %}
 <div class="container mt-4">
     <div class="mb-5">
-        <h2 class="section-title">PHIM ĐANG CHIẾU</h2>
+        {% if keyword %}
+            <h3 class="section-title">KẾT QUẢ TÌM KIẾM CHO: "<span class="text-danger">{{ keyword }}</span>"</h3>
+            <p class="text-secondary">Tìm thấy {{ products|length }} phim phù hợp</p>
+        {% else %}
+            <h3 class="section-title">PHIM ĐANG CHIẾU</h3>
+        {% endif %}
+
         <div class="row">
             {% for p in products %}
             <div class="col-lg-3 col-md-4 col-6 p-2">
@@ -17,11 +23,19 @@
                             </div>
                         </div>
                     </div>
+                    <div class="mt-2">
+                        <h6 class="text-white text-truncate">{{ p.name }}</h6>
+                    </div>
                 </div>
             </div>
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <i class="fa-solid fa-magnifying-glass fa-3x text-secondary mb-3"></i>
+                    <h4 class="text-white">Không tìm thấy phim nào khớp với "{{ keyword }}"</h4>
+                    <a href="/" class="btn btn-outline-danger mt-3">Quay lại trang chủ</a>
+                </div>
             {% endfor %}
         </div>
     </div>
-
 </div>
 {% endblock %}
