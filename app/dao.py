@@ -4,12 +4,6 @@ from datetime import datetime
 from pymysql import NULL
 from sqlalchemy import cast, Date, extract, Time
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
-<<<<<<< HEAD
-    Bill, Payment, UserRole, Ticket, PaymentStatus, SeatStatus, TicketStatus
-from app import db
-
-
-=======
     Bill, Payment, UserRole, Ticket, TicketStatus
 from app import db
 import math
@@ -18,7 +12,6 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import cloudinary.uploader
 from sqlalchemy import and_
->>>>>>> origin/main
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
@@ -157,7 +150,6 @@ def get_movies(page=1, page_size=8):
 def count_movies():
     return Movie.query.count()
 
-<<<<<<< HEAD
 def pay_fail(payment, bill):
     payment.status = PaymentStatus.FAILED
     bill.status = PaymentStatus.FAILED
@@ -183,7 +175,6 @@ def pay_success(payment, bill):
     db.session.commit()
 
 
-=======
 def get_info_movie(customer_id):
     results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
         Ticket.price,Ticket.status
@@ -208,4 +199,3 @@ def get_info_movie(customer_id):
             'status': r[7]
         })
     return watched_list
->>>>>>> origin/main

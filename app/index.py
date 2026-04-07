@@ -9,17 +9,10 @@ import re
 import dao
 import cloudinary.uploader
 import math
-<<<<<<< HEAD
-from datetime import date
 from dateutil.relativedelta import relativedelta
-
-from app.models import SeatStatus, Payment, PaymentStatus
+from app.models import SeatStatus, Payment, PaymentStatus, Movie
 from app.vnpay import build_payment_url
 
-
-=======
-from app.models import Movie
->>>>>>> origin/main
 @app.route("/")
 def index():
     page = request.args.get('page', 1, type=int)
