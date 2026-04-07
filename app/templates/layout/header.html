@@ -51,10 +51,10 @@
                         <li><a class="dropdown-item py-2" href="{{ url_for('profile') }}">
                             <i class="fa-solid fa-circle-user me-2"></i> Hồ sơ cá nhân
                         </a></li>
-                        <li><a class="dropdown-item py-2" href="history_booking">
+                        <li><a class="dropdown-item py-2" href="{{ url_for('history_booking_ticket') }}">
                             <i class="fa-solid fa-ticket me-2"></i> Vé của tôi
                         </a></li>
-                        <li><a class="dropdown-item py-2" href="history_watched">
+                        <li><a class="dropdown-item py-2" href="{{ url_for('history_watched') }}">
                             <i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử xem
                         </a></li>
                         <li>
@@ -67,7 +67,7 @@
                 </div>
                 {% else %}
                 <div class="d-flex gap-2">
-                    <a href="/login" class="btn btn-outline-light btn-sm px-3 border-0">Đăng nhập</a>
+                    <a href="/login" class="btn btn-outline-light btn-sm px-3 rounded-pill">Đăng nhập</a>
                     <a href="/register" class="btn btn-danger btn-sm px-3 rounded-pill">Đăng ký</a>
                 </div>
                 {% endif %}

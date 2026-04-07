@@ -4,15 +4,55 @@ from datetime import datetime
 from pymysql import NULL
 from sqlalchemy import cast, Date, extract, Time
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
+<<<<<<< HEAD
     Bill, Payment, UserRole, Ticket, PaymentStatus, SeatStatus, TicketStatus
 from app import db
 
 
+=======
+    Bill, Payment, UserRole, Ticket, TicketStatus
+from app import db
+import math
+import re
+from datetime import date
+from dateutil.relativedelta import relativedelta
+import cloudinary.uploader
+from sqlalchemy import and_
+>>>>>>> origin/main
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
 
 def add_user(username, password, full_name, phone, email, birthday,avatar):
+    if birthday and isinstance(birthday, str):
+        birthday = date.fromisoformat(birthday)
+    if birthday:
+        today = date.today()
+        age = relativedelta(today, birthday).years
+        if age < 13:
+            raise ValueError("Bạn phải từ 13 tuổi trở lên để đăng ký tài khoản")
+
+        if age > 100:
+            raise ValueError("Ngày sinh không hợp lệ")
+
+    if not birthday:
+        raise ValueError("Vui lòng chọn ngày sinh")
+
+    if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
+        raise ValueError("Số điện thoại không hợp lệ")
+
+    if is_username_exists(username):
+        raise ValueError("Tên đăng nhập đã tồn tại")
+
+    if is_phone_exists(phone):
+        raise ValueError("Số điện thoại đã được sử dụng")
+
+    if len(password) < 8:
+        raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
+    if not re.search(r'[A-Z]', password) or not re.search(r'\d', password):
+        raise ValueError("Mật khẩu phải có chữ hoa và số")
+    if not re.search(r'^\S+@\S+\.\S+$', email) or is_email_exists(email):
+        raise ValueError("Không đúng định dạng hoặc email đã tồn tại")
     password = md5_hash(password)
     c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email, birthday=birthday, avatar=avatar)
     try:
@@ -117,6 +157,7 @@ def get_movies(page=1, page_size=8):
 def count_movies():
     return Movie.query.count()
 
+<<<<<<< HEAD
 def pay_fail(payment, bill):
     payment.status = PaymentStatus.FAILED
     bill.status = PaymentStatus.FAILED
@@ -142,3 +183,29 @@ def pay_success(payment, bill):
     db.session.commit()
 
 
+=======
+def get_info_movie(customer_id):
+    results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
+        Ticket.price,Ticket.status
+    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
+     .join(Seat, ScreeningSeat.seat_id == Seat.id)\
+     .join(Room, Seat.room_id == Room.id)\
+     .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)\
+     .join(Movie, MovieScreening.movie_id == Movie.id)\
+     .join(Bill, Ticket.bill_id == Bill.id)\
+     .filter(Bill.customer_id == customer_id,
+             Ticket.status == TicketStatus.USED).all()
+
+    watched_list = []
+    for r in results:
+        watched_list.append({
+            'id': r[0],
+            'movie_name': r[1],
+            'show_time': r[2].strftime('%H:%M - %d/%m/%Y'),
+            'room_number': r[3],
+            'seat_number': f"{r[4]}{r[5]}",
+            'price': r[6],
+            'status': r[7]
+        })
+    return watched_list
+>>>>>>> origin/main

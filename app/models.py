@@ -199,8 +199,8 @@ if __name__ == '__main__':
             poster="https://image.tmdb.org/t/p/original/d5NXSklZfs7Z1o2m9gH9D8M6S3p.jpg",
             release_date=date(2024, 3, 1)
         )
-        # db.session.add(m1)
-        # db.session.commit()
+        db.session.add(m1)
+        db.session.commit()
 
         # ===== 3. Movie =====
         movies = [
