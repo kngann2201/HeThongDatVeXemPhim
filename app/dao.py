@@ -1,6 +1,15 @@
 import hashlib
-from sqlalchemy import cast, Date, extract
+from datetime import datetime
+
+from pymysql import NULL
+from sqlalchemy import cast, Date, extract, Time
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
+<<<<<<< HEAD
+    Bill, Payment, UserRole, Ticket, PaymentStatus, SeatStatus, TicketStatus
+from app import db
+
+
+=======
     Bill, Payment, UserRole, Ticket, TicketStatus
 from app import db
 import math
@@ -9,6 +18,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import cloudinary.uploader
 from sqlalchemy import and_
+>>>>>>> origin/main
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
@@ -80,21 +90,6 @@ def auth_admin(username, password):
     password = md5_hash(password)
     return Customer.query.filter_by(username=username, password=password, role=UserRole.ADMIN).first()
 
-
-
-
-# def get_movies(movie_type_id=None, release_year=None, age_limit=None):
-#     query = db.session.query(Movie).all()
-#
-#     if movie_type_id is not None:
-#         query = query(Movie).join(MovieTypeDetail).filter(MovieTypeDetail.movie_type_id == movie_type_id).all()
-#     if release_year is not None:
-#         query = query.filter(extract('year', Movie.release_date) == release_year).all()
-#     if age_limit is not None:
-#         query = query.filer(Movie.age_limit >= age_limit).all()
-#
-#     return query
-
 def get_movie_by_id(movie_id):
     return db.session.query(Movie).filter_by(id=movie_id).first()
 
@@ -114,6 +109,7 @@ def get_movie_screenings(movie_id, room_id, watch_date):
         .join(Movie, Movie.id==MovieScreening.movie_id)
         .filter(MovieScreening.room_id == room_id,
                 cast(MovieScreening.start_time, Date) == watch_date,
+                MovieScreening.start_time > datetime.now(),
                 MovieScreening.movie_id==movie_id)
         .order_by(MovieScreening.start_time.asc()).all())
 
@@ -127,18 +123,32 @@ def get_seats_by_screening(screening_id):
 def get_room_types():
     return db.session.query(RoomType).all()
 
-def get_bill(bill_id):
+def hold_seats(seat_ids, screening_id):
+    return ScreeningSeat.query.filter(
+        ScreeningSeat.seat_id.in_(seat_ids),
+        ScreeningSeat.screening_id == screening_id
+    ).with_for_update().all()
+
+def get_bill_by_id(bill_id):
     return db.session.query(Bill).filter_by(id=bill_id).first()
 
-def add_bill(customer_id):
-    bill = Bill(customer_id=customer_id)
+def add_bill(customer_id, total=0):
+    bill = Bill(customer_id=customer_id, total_amount=total)
     db.session.add(bill)
+    db.session.flush()
+    # db.session.commit()
+    return bill
+
+def add_ticket(bill_id, ss_id, price):
+    ticket = Ticket(bill_id=bill_id, screening_seat_id=ss_id, price=price)
+    db.session.add(ticket)
     db.session.commit()
 
-def add_payment(bill_id):
-    payment = Payment(bill_id=bill_id)
+def add_payment(bill_id, amount, txn_ref):
+    payment = Payment(bill_id=bill_id, amount=amount, txn_ref=txn_ref)
     db.session.add(payment)
     db.session.commit()
+    return payment
 
 def get_movies(page=1, page_size=8):
     start = (page - 1) * page_size
@@ -147,6 +157,33 @@ def get_movies(page=1, page_size=8):
 def count_movies():
     return Movie.query.count()
 
+<<<<<<< HEAD
+def pay_fail(payment, bill):
+    payment.status = PaymentStatus.FAILED
+    bill.status = PaymentStatus.FAILED
+    bill.pay_time = datetime.now()
+
+    for ticket in bill.tickets:
+        ticket.status = TicketStatus.CANCELLED
+        ticket.screening_seat.status = SeatStatus.AVAILABLE
+        ticket.screening_seat.holding_user = NULL
+        ticket.screening_seat.hold_expired_at = NULL
+
+    db.session.commit()
+
+def pay_success(payment, bill):
+    payment.status = PaymentStatus.SUCCESS
+    bill.status = PaymentStatus.SUCCESS
+    bill.pay_time = datetime.now()
+
+    for ticket in bill.tickets:
+        ticket.status = TicketStatus.PAID
+        ticket.screening_seat.status = SeatStatus.BOOKED
+
+    db.session.commit()
+
+
+=======
 def get_info_movie(customer_id):
     results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
         Ticket.price,Ticket.status
@@ -171,3 +208,4 @@ def get_info_movie(customer_id):
             'status': r[7]
         })
     return watched_list
+>>>>>>> origin/main

@@ -156,8 +156,10 @@ class Ticket(Base):
 class Payment(Base):
     bill_id = Column(Integer, ForeignKey(Bill.id), nullable=False)
     amount = Column(Integer, nullable=False)
-    transaction_id = Column(String(100), nullable=False, unique=True)
     status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
+
+    txn_ref = Column(String(100))
+    vnp_transaction_id = Column(String(100))
 
     bill = relationship("Bill", backref="payments")
 
@@ -323,10 +325,10 @@ if __name__ == '__main__':
         for seat in seats:
             ss = ScreeningSeat(
                 seat_id=seat.id,
-                screening_id=1
+                screening_id=2
             )
-        #     db.session.add(ss)
-        #
-        # db.session.commit()
+            db.session.add(ss)
+
+        db.session.commit()
 
         print("Data was imported successfully!")

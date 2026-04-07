@@ -4,6 +4,7 @@ const state = {
     roomTypeId: null,
     roomId: null,
     screeningId: null,
+    startTime: null,
     seats: [],
     total: 0,
     price: 0,
@@ -51,7 +52,7 @@ function renderScreenings() {
     }
     state.screenings.forEach(item => {
         screeningsContainer.innerHTML += `
-        <div class="screening d-type ${state.screeningId == item.id ? 'active' : ''}" data-screening="${item.id}">
+        <div class="screening d-type ${state.screeningId == item.id ? 'active' : ''}" data-screening="${item.id}" data-start="${item.start_time}">
             <div class="time">${item.start_time} ~ ${item.end_time}</div>
             <div class="price">(${item.base_price.toLocaleString()}đ/vé)</div>
         </div>`;
@@ -92,6 +93,15 @@ function render() {
     renderScreenings();
     renderSeats();
 }
+
+function reset() {
+    state.roomId = null;
+    state.screeningId = null;
+    state.startTime = null;
+    state.seats = [];
+    state.screenings = [];
+    state.seatMap = {};
+}
 /////END STATE AND RENDER TEMPLATE
 
 
@@ -116,14 +126,8 @@ dateWrapper.addEventListener('click', function (e) {
 
     state.date = dateCard.dataset.date;
     state.roomTypeId = null;
-    state.roomId = null;
-    state.screeningId = null;
-    state.seats = [];
-
-    state.rooms = [];
-    state.screenings = [];
-    state.seatMap = {};
-
+    roomTypesContainer.querySelector('.room-type.active')?.classList.remove('active');
+    reset();
     render();
 });
 ///// END DATE SWIPER
@@ -136,17 +140,12 @@ roomTypesContainer.addEventListener('click', function(e) {
     roomTypesContainer.querySelector('.room-type.active')?.classList.remove('active');
     room_type.classList.add('active');
     state.roomTypeId = room_type.dataset.type;
-
-    state.roomId = null;
-    state.screeningId = null;
-    state.seats = [];
-    state.screenings = [];
-    state.seatMap = {};
+    reset();
 
     fetch(`/api/get-rooms/${state.roomTypeId}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
-        console.info(data)
+        console.info(data);
         if (data.success) {
             state.rooms = data.rooms;
             render();
@@ -165,7 +164,7 @@ roomsContainer.addEventListener('click', function(e) {
     fetch(`/api/get-screenings?movie_id=${state.movieId}&room_id=${state.roomId}&watch_date=${state.date}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
-        console.info(data)
+        console.info(data);
         if (data.success) {
             state.screenings = data.screenings;
             render();
@@ -183,14 +182,17 @@ screeningsContainer.addEventListener('click', function(e) {
     state.screeningId = screening.dataset.screening;
     document.getElementById("selected-screening").value = state.screeningId;
 
+    state.startTime = screening.dataset.start;
+    console.info("Thời gian bắt đầu chiếu:", state.startTime);
+
     const selected = state.screenings.find(s => s.id == state.screeningId);
     state.price = selected.base_price;
-    console.info("Giá vé đã chọn:", state.price)
+    console.info("Giá vé đã chọn:", state.price);
 
     fetch(`/api/get-seats/${state.screeningId}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
-        console.info(data)
+        console.info(data);
         if (data.success) {
             state.seatMap = data.seats;
             render();
@@ -251,16 +253,22 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info("Ngày đã chọn:", state.date);
 });
 
-document.querySelector("form").addEventListener("submit", function(e) {
-    if (!state.screeningId) {
-        alert("Vui lòng chọn suất chiếu!");
+const submitButton = document.getElementById("btn-submit")
+
+submitButton.addEventListener("click", function(e) {
+    const now = new Date();
+    const nowFormat = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    console.info("Thời gian bắt đầu chiếu:", state.startTime);
+    console.info("Thời gian hiện tại:", nowFormat);
+
+    if (state.startTime <= nowFormat) {
         e.preventDefault();
+        alert("Suất chiếu đã bắt đầu, không thể đặt vé");
         return;
     }
-
-    if (state.seats.length === 0) {
-        alert("Vui lòng chọn ít nhất 1 ghế!");
+    if (!state.seats || state.seats.length == 0) {
         e.preventDefault();
+        alert("Vui lòng chọn ít nhất 1 ghế!");
         return;
     }
 });
