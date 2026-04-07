@@ -1,7 +1,7 @@
-from datetime import timedelta
-
+from datetime import timedelta, datetime
+import time
 from app import app, db, login, admin
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
 from flask_mail import Message
@@ -11,6 +11,10 @@ import cloudinary.uploader
 import math
 from datetime import date
 from dateutil.relativedelta import relativedelta
+
+from app.models import SeatStatus, Payment, PaymentStatus
+from app.vnpay import build_payment_url
+
 
 @app.route("/")
 def index():
@@ -143,7 +147,7 @@ def logout_my_user():
     logout_user()
     return redirect('/login')
 
-@app.route("/login-admin", methods=["post", "get"])
+@app.route("/login-admin", methods=["POST", "GET"])
 def login_admin():
     if request.method == 'POST':
         username = request.form.get("username")
@@ -170,7 +174,7 @@ def booking(movie_id):
 @app.route("/api/get-rooms/<room_type_id>", methods=['GET'])
 def get_rooms(room_type_id):
     rooms = dao.get_room_by_type(room_type_id)
-    print(rooms)
+    print(f"DS phòng theo loại phòng {room_type_id} đã chọn: {rooms}")
     rooms_data = []
     for r in rooms:
         rooms_data.append({
@@ -186,10 +190,12 @@ def get_screenings():
     watch_date = request.args.get("watch_date")
     room_id = request.args.get("room_id")
     movie_id = request.args.get("movie_id")
-    print(watch_date, room_id, movie_id)
+    print("Ngày xem:", watch_date)
+    print("Id phòng đã chọn:",room_id)
+    print("Id phim đã chọn:", movie_id)
     movie = dao.get_movie_by_id(movie_id)
     screenings = dao.get_movie_screenings(movie_id=movie_id, room_id=room_id, watch_date=watch_date)
-    print(screenings)
+    print("DS suất chiếu phim đã chọn:", screenings)
     screenings_data = []
     for s in screenings:
         screenings_data.append({
@@ -204,7 +210,6 @@ def get_screenings():
 @app.route("/api/get-seats/<screening_id>", methods=['GET'])
 def get_seats(screening_id):
     seats = dao.get_seats_by_screening(screening_id=screening_id)
-    print(seats)
 
     seats_data = {}
     for seat, status in seats:
@@ -220,10 +225,112 @@ def get_seats(screening_id):
         })
     return jsonify({"success": True, "seats": seats_data})
 
-@app.route("/pay", methods=['POST', 'GET'])
+@app.route('/booking/submit', methods=['POST', 'GET'])
+def booking_submit():
+    if request.method == "POST":
+        seat_ids = request.form.get("seat")
+        screening = request.form.get("screening")
+        session["booking_seats"] = seat_ids
+        session["screening"] = screening
+
+        if not seat_ids:
+            return "Thiếu thông tin ghế", 400
+
+        if not seat_ids:
+            return "Thiếu thông tin suất chiếu", 400
+
+    else:
+        seat_ids = session.get("booking_seats")
+        screening = session.get("screening")
+        if not seat_ids or not screening:
+            return redirect("/")
+
+    if not current_user.is_authenticated:
+        return redirect(url_for("login_my_user", next=request.url))
+
+    seat_ids = [int(id) for id in seat_ids.split(",")]
+    print(f"DS ghế nhận được từ trang đặt vé: {seat_ids}, suất chiếu {screening}")
+    now = datetime.now()
+    expired_time = now + timedelta(minutes=5)
+
+    try:
+        screening_seats = dao.hold_seats(seat_ids, screening)
+        print("DS ghế sẽ giữ chỗ trong 10p: ", screening_seats)
+        if not screening_seats:
+            return "Không tìm thấy ghế", 404
+
+        for s in screening_seats:
+            if s.status == SeatStatus.BOOKED:
+                return "Ghế đã được đặt"
+
+            if s.status == SeatStatus.HOLDING and s.hold_expired_at > now:
+                return "Ghế đang được giữ"
+
+        for s in screening_seats:
+            s.status = SeatStatus.HOLDING
+            s.hold_expired_at = expired_time
+            s.holding_user_id = current_user.id
+
+        total = 0
+        bill = dao.add_bill(customer_id=current_user.id)
+        for s in screening_seats:
+            price = s.screening.base_price
+            total += price
+            dao.add_ticket(bill_id=bill.id, ss_id=s.id, price=price)
+        bill.total_amount = total
+
+        session.pop("booking_seats", None)
+        db.session.commit()
+
+        return redirect(url_for("payment", bill_id=bill.id))
+
+    except Exception as e:
+        db.session.rollback()
+        print("Lỗi khi đặt vé:", e)
+        return redirect('/')
+
+@app.route("/payment/<bill_id>")
 @login_required
-def pay():
-    return render_template("pay.html")
+def payment(bill_id):
+    try:
+        bill = dao.get_bill_by_id(bill_id)
+        txn_ref = f"{bill.id}_{int(time.time())}"
+        payment = dao.add_payment(bill_id=bill_id, txn_ref=txn_ref, amount=bill.total_amount)
+        payment_url = build_payment_url(amount=payment.amount, txn_ref=txn_ref)
+        return redirect(payment_url)
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route("/vnpay_return")
+def vnpay_return():
+    res_code = request.args.get("vnp_ResponseCode")
+    trans_id = request.args.get("vnp_TransactionNo")
+    txn_ref = request.args.get("vnp_TxnRef")
+
+    print("Kết quả trả về từ VNPAY")
+    print(res_code)
+    print(trans_id)
+    print(txn_ref)
+
+    payment = Payment.query.filter_by(txn_ref=txn_ref).first()
+
+    if payment.status != PaymentStatus.PENDING:
+        return "Đã xử lý trước đó"
+
+    payment.vnp_transaction_id = trans_id
+    bill = payment.bill
+
+    if not payment:
+        return 404
+    if res_code != '00':
+        dao.pay_fail(payment, bill)
+        return redirect("/fail")
+
+    dao.pay_success(payment, bill)
+
+    return redirect("/")
+
 
 @app.route("/user/profile")
 @login_required
