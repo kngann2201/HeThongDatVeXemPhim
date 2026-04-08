@@ -1,0 +1,91 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Xác thực OTP{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-5">
+                    <h2 class="text-center fw-bold mb-4" style="letter-spacing: -1px;">Xác thực OTP</h2>
+
+                    <p class="text-center text-muted small mb-4">
+                        Nhập mã 6 chữ số đã được gửi đến email của bạn.
+                    </p>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, msg in messages %}
+                        <div class="alert alert-{{ category }} small py-2">{{ msg }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="/verify_otp">
+                        <div class="mb-4">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white border-end-0 text-muted small fw-bold" style="font-size: 0.9rem;">Mã OTP</span>
+                                <input type="text" name="otp"
+                                       class="form-control border-start-0 ps-0 shadow-none fw-bold text-center"
+                                       placeholder="· · · · · ·"
+                                       maxlength="6"
+                                       pattern="\d{6}"
+                                       style="letter-spacing: 5px; font-size: 1.2rem;"
+                                       required autocomplete="off" autofocus>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-black w-100 py-3 fw-bold shadow-sm">
+                            XÁC THỰC NGAY
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-1 small text-muted">Không nhận được mã?</p>
+                        <a href="/forgot_password" class="text-decoration-none text-dark fw-bold small">Gửi lại mã mới</a>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="/login" class="text-decoration-none text-muted small">Quay lại đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Nút màu đen đồng bộ */
+    .btn-black {
+        background-color: #000000;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        letter-spacing: 1px;
+    }
+
+    .btn-black:hover {
+        background-color: #333333;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    /* Hiệu ứng focus đồng bộ màu đen */
+    .input-group:focus-within .input-group-text,
+    .input-group:focus-within .form-control {
+        border-color: #000000;
+    }
+
+    .input-group-text {
+        border-radius: 8px 0 0 8px !important;
+        min-width: 90px;
+        justify-content: center;
+    }
+
+    .form-control {
+        border-radius: 0 8px 8px 0 !important;
+    }
+</style>
+{% endblock %}
