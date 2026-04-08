@@ -12,6 +12,9 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import cloudinary.uploader
 from sqlalchemy import and_
+from flask_mail import Message
+from app import mail
+
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
@@ -199,3 +202,37 @@ def get_info_movie(customer_id):
             'status': r[7]
         })
     return watched_list
+def get_customer_by_email(email):
+    return Customer.query.filter(Customer.email == email.strip()).first()
+
+def send_reset_email(user_email, otp_code):
+    msg = Message(
+        subject='Mã xác nhận đặt lại mật khẩu',
+        recipients=[user_email]
+    )
+    msg.body = f"Mã OTP của bạn là: {otp_code}. Vui lòng không chia sẻ mã này cho bất kỳ ai."
+
+    try:
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Lỗi gửi mail: {e}")
+        return False
+
+
+def update_password(customer_id, new_password):
+    customer = Customer.query.get(customer_id)
+    if len(new_password) < 8:
+        raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
+    if not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password):
+        raise ValueError("Mật khẩu phải có chữ hoa và số")
+    if customer:
+        password_hashed = md5_hash(new_password)
+        customer.password = password_hashed
+        try:
+            db.session.commit()
+            return True
+        except:
+            db.session.rollback()
+            return False
+    return False

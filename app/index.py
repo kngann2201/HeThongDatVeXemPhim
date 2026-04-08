@@ -1,6 +1,9 @@
+
+
+
+from app import app, db, login, admin, mail
 from datetime import timedelta, datetime
 import time
-from app import app, db, login, admin
 from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
@@ -9,6 +12,7 @@ import re
 import dao
 import cloudinary.uploader
 import math
+import secrets
 from dateutil.relativedelta import relativedelta
 from app.models import SeatStatus, Payment, PaymentStatus, Movie
 from app.vnpay import build_payment_url
@@ -316,5 +320,66 @@ def history_booking_ticket():
 def history_watched():
     data = dao.get_info_movie(current_user.id)
     return render_template('user/history_watched.html', watched_list=data)
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        identifier = request.form.get('identifier')
+        customer = dao.get_customer_by_email(identifier)
+
+        if customer:
+            if customer.email:
+                otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
+                session['reset_otp'] = otp
+                session['reset_customer_id'] = customer.id
+                if dao.send_reset_email(customer.email, otp):
+                    flash(f'Mã xác nhận đã được gửi vào email: {customer.email}', 'info')
+                    return redirect(url_for('verify_otp'))
+                else:
+                    flash('Lỗi hệ thống khi gửi email. Hãy thử lại!', 'danger')
+        else:
+            flash('Email không tồn tại!', 'danger')
+
+    return render_template('forgot_password.html')
+
+
+@app.route('/verify_otp', methods=['GET', 'POST'])
+def verify_otp():
+    if 'reset_otp' not in session:
+        return redirect(url_for('forgot_password'))
+    if request.method == 'POST':
+        user_otp = request.form.get('otp')
+        if user_otp == session.get('reset_otp'):
+            flash('Xác thực thành công! Hãy nhập mật khẩu mới.', 'success')
+            return redirect(url_for('reset_password'))
+        else:
+            flash('Mã OTP không chính xác!', 'danger')
+
+    return render_template('verify_otp.html')
+
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if 'reset_otp' not in session:
+        return redirect(url_for('forgot_password'))
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm = request.form.get('confirm')
+
+        if password == confirm:
+            customer_id = session.get('reset_customer_id')
+            try:
+                if dao.update_password(customer_id, password):
+                    flash('Đổi mật khẩu thành công! Mời bạn đăng nhập.', 'success')
+                    return redirect(url_for('login_my_user'))
+                else:
+                    flash('Không tìm thấy tài khoản hoặc lỗi database!', 'danger')
+
+            except ValueError as e:
+                flash(str(e), 'warning')
+        else:
+            flash('Mật khẩu xác nhận không khớp!', 'danger')
+
+    return render_template('reset_password.html')
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
