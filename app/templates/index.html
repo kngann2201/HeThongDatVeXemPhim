@@ -1,6 +1,15 @@
 {% extends 'layout/base.html' %}
 
 {% block content %}
+<script>
+    const msg = {{ msg | tojson }};
+    if (msg && msg.length > 0) {
+        msg.forEach(m => {
+            alert(m[1]);
+        });
+    }
+</script>
+
 <div class="container mt-4">
     <div class="mb-5">
         {% if keyword %}
@@ -38,4 +47,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
