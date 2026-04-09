@@ -39,51 +39,58 @@ def index():
                            keyword=keyword,
                            msg=msg)
 
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     err_msg = None
+    data = {}
+
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        confirm = request.form.get('confirm_password')
-        full_name = request.form.get('full_name')
-        phone = request.form.get('phone')
-        email=request.form.get('email')
-        birthday = request.form.get('birthday')
-        avatar= request.files.get('avatar')
+        data = request.form.to_dict()
+
+        username = data.get('username')
+        password = data.get('password')
+        confirm = data.get('confirm_password')
+        full_name = data.get('full_name')
+        phone = data.get('phone')
+        email = data.get('email')
+        birthday = data.get('birthday')
+        avatar = request.files.get('avatar')
         avatar_url = None
+
         if password != confirm:
             err_msg = "Mật khẩu không khớp!"
-            return render_template('register.html', err_msg=err_msg)
+            return render_template('register.html', err_msg=err_msg, data=data)
+
         if avatar:
             res = cloudinary.uploader.upload(avatar)
             avatar_url = res.get('secure_url')
         try:
             dao.add_user(
-                    username=username,
-                    password=password,
-                    full_name=full_name,
-                    phone=phone,
-                    email=email,
-                    birthday=birthday,
-                    avatar=avatar_url
+                username=username, password=password, full_name=full_name,
+                phone=phone, email=email, birthday=birthday, avatar=avatar_url
             )
             return render_template("login.html", success=True)
+        except ValueError as v:
+            err_msg = str(v)
         except Exception as ex:
             db.session.rollback()
             err_msg = "Hệ thống đang lỗi!"
             print(ex)
-    return render_template('register.html', err_msg=err_msg)
+
+    return render_template('register.html', err_msg=err_msg, data=data)
 
 @app.route("/login", methods=['GET', 'POST'])
 @anonymous_required
 def login_my_user():
     err_msg = None
     next_page = request.args.get('next') or request.form.get('next')
+    data = {}
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        data = request.form.to_dict()
+        username = data.get('username')
+        password = data.get('password')
         user = dao.auth_user(username, password)
 
         if user:
@@ -94,9 +101,9 @@ def login_my_user():
                 flash("Đăng nhập thành công!", "success")
                 return redirect(url_for('index'))
         else:
-            err_msg = "Username hoac password khong dung!!!"
+            err_msg = "Username hoặc password không đúng!!!"
 
-    return render_template('login.html', err_msg=err_msg)
+    return render_template('login.html', err_msg=err_msg, data=data)
 
 @login.user_loader
 def get_user(user_id):
@@ -392,5 +399,26 @@ def reset_password():
             flash('Mật khẩu xác nhận không khớp!', 'danger')
 
     return render_template('reset_password.html')
+
+@app.route('/user/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm = request.form.get('confirm')
+
+        if password == confirm:
+            customer_id = current_user.id
+            try:
+                if dao.update_password(customer_id, password):
+                    flash('Đổi mật khẩu thành công!', 'success')
+                    return redirect(url_for('profile'))
+            except ValueError as e:
+                flash(str(e), 'warning')
+        else:
+            flash('Mật khẩu xác nhận không khớp!', 'danger')
+
+    return render_template('user/change_password.html')
+
 if __name__ == "__main__":
     app.run(debug=True, port=5002)

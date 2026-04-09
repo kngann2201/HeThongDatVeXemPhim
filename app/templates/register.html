@@ -20,36 +20,35 @@
 
         <form class="register-form" method="POST" enctype="multipart/form-data">
             <div class="input-field">
-                <input class="form-control" type="text" placeholder="Họ và tên" name="full_name" required/>
+                <input class="form-control" type="text" placeholder="Họ và tên" name="full_name" value="{{ data.get('full_name', '') }}" required/>
             </div>
             <div class="input-field">
                 <label for="birthday" class="input-label">Ngày sinh</label>
-                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31" required>
+                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31" value="{{ data.get('birthday', '') }}"required>
                 <small id="birthday-error" class="error-text"></small>
             </div>
             <div class="input-field">
-                <input class="form-control" type="text" name="phone" id="phone" placeholder="Số điện thoại" required>
+                <input class="form-control" type="text" name="phone" id="phone" placeholder="Số điện thoại" value="{{ data.get('phone', '') }}" required>
                 <small id="phone-error" class="error-text"></small>
             </div>
 
             <div class="input-field">
-                <input class="form-control" type="email" name="email" id="email" placeholder="Email">
+                <input class="form-control" type="email" name="email" id="email" placeholder="Email" value="{{ data.get('email', '') }}">
                 <small id="email-error" class="error-text"></small>
             </div>
 
             <div class="input-field">
                 <input class="form-control" type="text" name="username" id="username" placeholder="Tên đăng nhập"
-                       required>
+                       value="{{ data.get('username', '') }}" required>
                 <small id="username-error" class="error-text"></small>
             </div>
 
             <div class="input-field">
-                <input class="form-control" type="password" name="password" id="password" placeholder="Mật khẩu"
-                       required>
+                <input class="form-control" type="password" name="password" id="password" placeholder="Mật khẩu" value="{{ data.get('password', '') }}" required>
             </div>
             <div class="input-field">
                 <input class="form-control" type="password" name="confirm_password" id="confirm_password"
-                       placeholder="Xác nhận mật khẩu" required>
+                       placeholder="Xác nhận mật khẩu" value="{{ data.get('confirm_password', '') }}" required>
                 <small id="confirm-error" class="error-text"></small>
             </div>
             <div class="password-requirements">
