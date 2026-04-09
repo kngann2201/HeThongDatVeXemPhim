@@ -1,12 +1,46 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-<h3 class="text-info text-center mt-3">CHÀO MỪNG ĐẾN VỚI TRANG QUẢN TRỊ</h3>
+<h3 class="text-info text-center mt-5">CHÀO MỪNG ĐẾN VỚI TRANG QUẢN TRỊ</h3>
 
 
-{% if current_user.is_authenticated%}
+{% if current_user.is_authenticated and current_user.is_admin %}
+<table class="table mt-5">
+    <tr>
+        <th>Phim</th>
+        <th>Vé</th>
+        <th>Doanh thu</th>
+        <th>Holding</th>
+        <th>Paid</th>
+        <th>Cancelled</th>
+    </tr>
 
-Chào {{current_user.full_name}}
+    {% for row in stats %}
+    <tr>
+        <td>{{ row.title }}</td>
+        <td>{{ row.total_tickets }}</td>
+        <td>{{ "{:,}".format(row.revenue) }} VND</td>
+
+        <td style="color: orange; font-weight: bold;">
+            {{ row.holding }}
+        </td>
+
+        <td style="color: green; font-weight: bold;">
+            {{ row.paid }}
+        </td>
+
+        <td style="color: red; font-weight: bold;">
+            {{ row.cancelled }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3 class="text-info text-center">Biểu đồ doanh thu phim</h3>
+<canvas id="revenueChart" class="mb-5" height="150"></canvas>
+
+<h3 class="text-info text-center">Danh sách phim hot (TOP10 lượt đặt vé cao nhất)</h3>
+<canvas id="hotChart" class="mb-5"></canvas>
 
 {% else %}
 
@@ -31,5 +65,94 @@ Chào {{current_user.full_name}}
         </div>
     </form>
     {%endif%}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const revenueLabels = [
+        {% for row in chart_stats %}
+            "{{ row.title }}",
+        {% endfor %}
+    ];
+
+    const revenueData = [
+        {% for row in chart_stats %}
+            {{ row.revenue or 0 }},
+        {% endfor %}
+    ];
+
+    const hotLabels = [
+        {% for row in stats|sort(attribute='total_tickets', reverse=True) %}
+            {% if loop.index <= 10 %}
+                "{{ row.title }}",
+            {% endif %}
+        {% endfor %}
+    ];
+
+    const hotData = [
+         {% for row in stats|sort(attribute='total_tickets', reverse=True) %}
+            {% if loop.index <= 10 %}
+                {{ row.total_tickets }},
+            {% endif %}
+        {% endfor %}
+    ];
+
+    let revenueChart;
+    function createRevenueChart() {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        if (revenueChart) {
+            revenueChart.destroy();
+        }
+
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Doanh thu (VND)',
+                    data: revenueData,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw.toLocaleString() + " VND";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    let hotChart;
+    function createHotChart() {
+        const ctx = document.getElementById('hotChart').getContext('2d');
+
+        hotChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: hotLabels,
+                datasets: [{
+                    label: 'Lượt đặt vé',
+                    data: hotData,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
+
+    window.onload = function() {
+        createRevenueChart();
+        createHotChart();
+    };
+</script>
 
 {% endblock %}

@@ -4,7 +4,8 @@
 from app import app, db, login, admin, mail
 from datetime import timedelta, datetime
 import time
-from flask import render_template, request, redirect, url_for, flash, jsonify, session
+from app import app, db, login, admin
+from flask import render_template, request, redirect, url_for, flash, jsonify, session, get_flashed_messages
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
 from flask_mail import Message
@@ -26,6 +27,7 @@ def index():
     pages = math.ceil(total_movies / page_size)
     keyword = request.args.get('kw', '').strip()
     query = Movie.query
+    msg = get_flashed_messages(with_categories=True)
 
     if keyword:
         query = query.filter(Movie.title.icontains(keyword))
@@ -34,7 +36,8 @@ def index():
                            products=movies,
                            pages=pages,
                            current_page=page,
-                           keyword=keyword)
+                           keyword=keyword,
+                           msg=msg)
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -88,7 +91,8 @@ def login_my_user():
             if next_page and next_page != "None" and next_page.startswith('/'):
                 return redirect(next_page)
             else:
-                return redirect('/')
+                flash("Đăng nhập thành công!", "success")
+                return redirect(url_for('index'))
         else:
             err_msg = "Username hoac password khong dung!!!"
 
@@ -198,17 +202,24 @@ def booking_submit():
         session["booking_seats"] = seat_ids
         session["screening"] = screening
 
-        if not seat_ids:
-            return "Thiếu thông tin ghế", 400
+        # if not seat_ids:
+        #     flash("Thiếu thông tin ghế", "error")
+        #     return redirect(url_for('index'))
+        #
+        # if not screening:
+        #     flash("Thiếu thông tin suất chiếu", "error")
+        #     return redirect(url_for('index'))
 
-        if not seat_ids:
-            return "Thiếu thông tin suất chiếu", 400
+        if not seat_ids or not screening:
+            flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
+            return redirect(url_for('index'))
 
     else:
         seat_ids = session.get("booking_seats")
         screening = session.get("screening")
         if not seat_ids or not screening:
-            return redirect("/")
+            flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
+            return redirect(url_for('index'))
 
     if not current_user.is_authenticated:
         return redirect(url_for("login_my_user", next=request.url))
@@ -382,4 +393,4 @@ def reset_password():
 
     return render_template('reset_password.html')
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5002)

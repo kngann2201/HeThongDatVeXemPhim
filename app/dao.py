@@ -2,11 +2,10 @@ import hashlib
 from datetime import datetime
 
 from pymysql import NULL
-from sqlalchemy import cast, Date, extract, Time
+from sqlalchemy import cast, Date
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, \
-    Bill, Payment, UserRole, Ticket, TicketStatus
+    Bill, Payment, UserRole, Ticket, TicketStatus, SeatStatus, PaymentStatus
 from app import db
-import math
 import re
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -18,8 +17,7 @@ from app import mail
 def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
-
-def add_user(username, password, full_name, phone, email, birthday,avatar):
+def add_user(username, password, full_name, phone, email, birthday, avatar):
     if birthday and isinstance(birthday, str):
         birthday = date.fromisoformat(birthday)
     if birthday:
