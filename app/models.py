@@ -28,6 +28,10 @@ class Customer(Base, UserMixin):
     avatar = Column(String(200), nullable=True, default="https://res.cloudinary.com/dkzxdp1gi/image/upload/v1767843265/avatar-trang-nu-001_dym4n0.webp")
     role = Column(Enum(UserRole), nullable=False, default=UserRole.CUSTOMER)
 
+    @property
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
+
     def __str__(self):
         return f"{self.full_name}"
 
@@ -125,6 +129,9 @@ class ScreeningSeat(Base):
         UniqueConstraint('seat_id', 'screening_id', name='unique_seat_screening'),
     )
 
+    def __str__(self):
+        return f"{self.seat}  - Suất chiếu: {self.screening}"
+
 class PaymentStatus(CustomEnum):
     PENDING = 0
     SUCCESS = 1
@@ -199,8 +206,8 @@ if __name__ == '__main__':
             poster="https://image.tmdb.org/t/p/original/d5NXSklZfs7Z1o2m9gH9D8M6S3p.jpg",
             release_date=date(2024, 3, 1)
         )
-        db.session.add(m1)
-        db.session.commit()
+        # db.session.add(m1)
+        # db.session.commit()
 
         # ===== 3. Movie =====
         movies = [
@@ -268,7 +275,7 @@ if __name__ == '__main__':
             movie = Movie(**m)
             db.session.add(movie)
 
-        db.session.commit()
+        # db.session.commit()
 
         # Gán thể loại cho phim
         # db.session.add(MovieTypeDetail(type_id=1, movie_id=1))
@@ -327,8 +334,8 @@ if __name__ == '__main__':
                 seat_id=seat.id,
                 screening_id=2
             )
-            db.session.add(ss)
-
-        db.session.commit()
+        #     db.session.add(ss)
+        #
+        # db.session.commit()
 
         print("Data was imported successfully!")

@@ -1,7 +1,10 @@
 from flask import Flask
 from app import db, dao
 import pytest
-from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail
+import hashlib
+from datetime import datetime
+from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
+    ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
 from datetime import date
 
 def create_app():
@@ -19,6 +22,10 @@ def test_app():
         db.create_all()
         yield app
         db.drop_all()
+
+@pytest.fixture
+def test_client(test_app):
+    return test_app.test_client()
 
 @pytest.fixture
 def test_session(test_app):
@@ -51,33 +58,9 @@ def sample_movie(test_session):
         poster="the_dark_knight.png",
         release_date=date(2008, 7, 18)
     )
-    m4 = Movie(
-        title="Interstellar",
-        description="Trong tương lai, Trái Đất đang dần trở nên không thể sống được do khủng hoảng môi trường. Một nhóm phi hành gia được gửi vào không gian để tìm kiếm hành tinh mới cho loài người. Cooper, một phi công, phải rời xa gia đình để tham gia nhiệm vụ này. Họ du hành qua lỗ sâu và đối mặt với những hiện tượng vật lý kỳ lạ. Cuộc hành trình không chỉ là khám phá không gian mà còn là hành trình cảm xúc sâu sắc về tình yêu và thời gian.",
-        age_limit=13,
-        duration=169,
-        poster="interstellar.png",
-        release_date=date(2014, 11, 7)
-    )
-    m5 = Movie(
-        title="Avengers: Endgame",
-        description="Sau thất bại nặng nề trước Thanos, các Avengers còn sống sót phải tìm cách đảo ngược tình thế. Họ lên kế hoạch du hành thời gian để thu thập lại các viên đá vô cực. Mỗi thành viên phải đối mặt với quá khứ và những mất mát của mình. Trận chiến cuối cùng diễn ra với quy mô chưa từng có, quyết định số phận của cả vũ trụ. Đây là hồi kết đầy cảm xúc cho một hành trình kéo dài hơn một thập kỷ.",
-        age_limit=13,
-        duration=181,
-        poster="avengers_endgame.png",
-        release_date=date(2019, 4, 26)
-    )
-    m6 = Movie(
-        title="Parasite",
-        description="Gia đình Kim sống trong cảnh nghèo khó và chật vật kiếm sống qua ngày. Họ dần tìm cách thâm nhập vào gia đình giàu có Park bằng những kế hoạch tinh vi. Mỗi thành viên đảm nhận một vai trò trong ngôi nhà sang trọng đó. Mọi chuyện tưởng chừng suôn sẻ cho đến khi một bí mật bất ngờ bị phát hiện. Bộ phim dần chuyển sang hướng kịch tính và phơi bày sự chênh lệch giai cấp sâu sắc.",
-        age_limit=18,
-        duration=132,
-        poster="parasite.png",
-        release_date=date(2019, 5, 30)
-    )
-    test_session.add_all([m1, m2, m3, m4, m5, m6])
+    test_session.add_all([m1, m2, m3])
     test_session.commit()
-    return [m1, m2, m3, m4, m5, m6]
+    return [m1, m2, m3]
 
 @pytest.fixture
 def sample_movie_type(test_session):
@@ -122,5 +105,113 @@ def mock_cloudinary(monkeypatch):
 
     monkeypatch.setattr('cloudinary.uploader.upload',fake_upload)
 
+@pytest.fixture
+def sample_users(test_session):
+    u1 = Customer(
+        full_name="User 1",
+        username="user1",
+        password=hashlib.md5("Pass@123".encode()).hexdigest(),
+        email="user1@gmail.com",
+        phone_number="0123456789",
+        role=UserRole.CUSTOMER
+    )
+
+    admin = Customer(
+        full_name="Admin",
+        username="admin",
+        password=hashlib.md5("123".encode()).hexdigest(),
+        email="admin@gmail.com",
+        phone_number="0999999999",
+        role=UserRole.ADMIN
+    )
+
+    test_session.add_all([u1, admin])
+    test_session.commit()
+    return [u1, admin]
+
+@pytest.fixture
+def sample_seats(test_session, sample_room):
+    seats = []
+    rows = ['A', 'B']
+
+    for r in rows:
+        for n in range(1, 4):
+            s = Seat(row=r, number=n, room_id=sample_room[0].id)
+            seats.append(s)
+
+    test_session.add_all(seats)
+    test_session.commit()
+    return seats
+
+@pytest.fixture
+def sample_screening(test_session, sample_movie, sample_room):
+    screening = MovieScreening(
+        start_time=datetime.now(),
+        base_price=100000,
+        room_id=sample_room[0].id,
+        movie_id=sample_movie[0].id
+    )
+
+    test_session.add(screening)
+    test_session.commit()
+    return screening
+
+@pytest.fixture
+def sample_screening_seats(test_session, sample_seats, sample_screening):
+    ss_list = []
+
+    for seat in sample_seats:
+        ss = ScreeningSeat(
+            seat_id=seat.id,
+            screening_id=sample_screening.id,
+            status=SeatStatus.AVAILABLE
+        )
+        ss_list.append(ss)
+
+    test_session.add_all(ss_list)
+    test_session.commit()
+    return ss_list
+
+@pytest.fixture
+def sample_bill(test_session, sample_users):
+    bill = Bill(
+        total_amount=200000,
+        status=PaymentStatus.PENDING,
+        customer_id=sample_users[0].id
+    )
+
+    test_session.add(bill)
+    test_session.commit()
+    return bill
+
+@pytest.fixture
+def sample_tickets(test_session, sample_screening_seats, sample_bill):
+    tickets = []
+
+    for ss in sample_screening_seats[:2]:
+        t = Ticket(
+            price=100000,
+            status=TicketStatus.HOLDING,
+            screening_seat_id=ss.id,
+            bill_id=sample_bill.id
+        )
+        tickets.append(t)
+
+    test_session.add_all(tickets)
+    test_session.commit()
+    return tickets
+
+@pytest.fixture
+def sample_payment(test_session, sample_bill):
+    payment = Payment(
+        bill_id=sample_bill.id,
+        amount=200000,
+        status=PaymentStatus.PENDING,
+        txn_ref="TEST123"
+    )
+
+    test_session.add(payment)
+    test_session.commit()
+    return payment
 
 

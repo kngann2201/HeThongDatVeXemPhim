@@ -122,7 +122,7 @@ dateWrapper.addEventListener('click', function (e) {
 
     document.querySelector('.date-card.active')?.classList.remove('active');
     dateCard.classList.add('active');
-    console.info("Ngày đã chọn:", dateCard.dataset.date);
+//    console.info("Ngày đã chọn:", dateCard.dataset.date);
 
     state.date = dateCard.dataset.date;
     state.roomTypeId = null;
@@ -145,7 +145,7 @@ roomTypesContainer.addEventListener('click', function(e) {
     fetch(`/api/get-rooms/${state.roomTypeId}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
-        console.info(data);
+//        console.info(data);
         if (data.success) {
             state.rooms = data.rooms;
             render();
@@ -158,13 +158,13 @@ roomsContainer.addEventListener('click', function(e) {
     const room = e.target.closest('.room');
     if (!room) return;
 
-    console.info("Phòng đã chọn:", room.dataset.room);
+//    console.info("Phòng đã chọn:", room.dataset.room);
     state.roomId = room.dataset.room;
 
     fetch(`/api/get-screenings?movie_id=${state.movieId}&room_id=${state.roomId}&watch_date=${state.date}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
-        console.info(data);
+//        console.info(data);
         if (data.success) {
             state.screenings = data.screenings;
             render();
@@ -178,21 +178,21 @@ screeningsContainer.addEventListener('click', function(e) {
     const screening = e.target.closest('.screening');
     if (!screening) return;
 
-    console.info("Suất chiếu đã chọn:", screening.dataset.screening);
+//    console.info("Suất chiếu đã chọn:", screening.dataset.screening);
     state.screeningId = screening.dataset.screening;
     document.getElementById("selected-screening").value = state.screeningId;
 
     state.startTime = screening.dataset.start;
-    console.info("Thời gian bắt đầu chiếu:", state.startTime);
+//    console.info("Thời gian bắt đầu chiếu:", state.startTime);
 
     const selected = state.screenings.find(s => s.id == state.screeningId);
     state.price = selected.base_price;
-    console.info("Giá vé đã chọn:", state.price);
+//    console.info("Giá vé đã chọn:", state.price);
 
     fetch(`/api/get-seats/${state.screeningId}`, {
         method: 'get'
     }).then(res => res.json()).then(data => {
-        console.info(data);
+//        console.info(data);
         if (data.success) {
             state.seatMap = data.seats;
             render();
@@ -221,7 +221,7 @@ seatsContainer.addEventListener('click', function(e) {
         state.seats.push(seat_id);
     }
 
-    console.info("Các ghế đã đã chọn:", state.seats);
+//    console.info("Các ghế đã đã chọn:", state.seats);
     document.getElementById("selected-seat").value = state.seats.join(",");
 
     render();
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dateWrapper.innerHTML += slide;
     }
     state.date = document.querySelector('.date-card.active').dataset.date;
-    console.info("Ngày đã chọn:", state.date);
+//    console.info("Ngày đã chọn:", state.date);
 });
 
 const submitButton = document.getElementById("btn-submit")
@@ -258,8 +258,8 @@ const submitButton = document.getElementById("btn-submit")
 submitButton.addEventListener("click", function(e) {
     const now = new Date();
     const nowFormat = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-    console.info("Thời gian bắt đầu chiếu:", state.startTime);
-    console.info("Thời gian hiện tại:", nowFormat);
+//    console.info("Thời gian bắt đầu chiếu:", state.startTime);
+//    console.info("Thời gian hiện tại:", nowFormat);
 
     if (state.startTime <= nowFormat) {
         e.preventDefault();
