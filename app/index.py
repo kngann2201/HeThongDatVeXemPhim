@@ -1,6 +1,3 @@
-
-
-
 from app import app, db, login, admin, mail
 from datetime import timedelta, datetime
 import time
@@ -171,6 +168,7 @@ def get_screenings():
     print("Id phim đã chọn:", movie_id)
     movie = dao.get_movie_by_id(movie_id)
     screenings = dao.get_movie_screenings(movie_id=movie_id, room_id=room_id, watch_date=watch_date)
+    screenings = [s for s in screenings if s.start_time > datetime.now()]
     print("DS suất chiếu phim đã chọn:", screenings)
     screenings_data = []
     for s in screenings:
@@ -421,4 +419,4 @@ def change_password():
     return render_template('user/change_password.html')
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5001)

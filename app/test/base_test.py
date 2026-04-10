@@ -2,7 +2,7 @@ from flask import Flask
 from app import db, dao
 import pytest
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
     ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
 from datetime import date
@@ -75,19 +75,19 @@ def sample_movie_type(test_session):
 def sample_movie_type_detail(test_session):
     td1 = MovieTypeDetail(movie_id=1, type_id=1)
     td2 = MovieTypeDetail(movie_id=1, type_id=2)
-    td3 = MovieTypeDetail(movie_id=2, type_id=1)
-    td4 = MovieTypeDetail(movie_id=2, type_id=2)
-    test_session.add_all([td1, td2, td3, td4])
+    td3 = MovieTypeDetail(movie_id=3, type_id=2)
+    test_session.add_all([td1, td2, td3])
     test_session.commit()
-    return [td1, td2, td3, td4]
+    return [td1, td2, td3]
 
 @pytest.fixture
 def sample_room_type(test_session):
     rt1 = RoomType(name="Standard")
     rt2 = RoomType(name="IMAX")
-    test_session.add_all([rt1, rt2])
+    rt3 = RoomType(name="VIP")
+    test_session.add_all([rt1, rt2, rt3])
     test_session.commit()
-    return [rt1, rt2]
+    return [rt1, rt2, rt3]
 
 @pytest.fixture
 def sample_room(test_session):
@@ -135,7 +135,7 @@ def sample_seats(test_session, sample_room):
     rows = ['A', 'B']
 
     for r in rows:
-        for n in range(1, 4):
+        for n in range(1, 9):
             s = Seat(row=r, number=n, room_id=sample_room[0].id)
             seats.append(s)
 
@@ -145,16 +145,34 @@ def sample_seats(test_session, sample_room):
 
 @pytest.fixture
 def sample_screening(test_session, sample_movie, sample_room):
-    screening = MovieScreening(
-        start_time=datetime.now(),
+    scr1 = MovieScreening(
+        start_time=datetime.now() + timedelta(days=1),
         base_price=100000,
-        room_id=sample_room[0].id,
-        movie_id=sample_movie[0].id
+        room_id=1,
+        movie_id=1
+    )
+    scr2 = MovieScreening(
+        start_time=datetime.now() - timedelta(days=1),
+        base_price=100000,
+        room_id=1,
+        movie_id=1
+    )
+    scr3 = MovieScreening(
+        start_time=datetime.now() + timedelta(minutes=2),
+        base_price=100000,
+        room_id=1,
+        movie_id=1
+    )
+    scr4 = MovieScreening(
+        start_time=datetime.now() - timedelta(minutes=1),
+        base_price=100000,
+        room_id=1,
+        movie_id=1
     )
 
-    test_session.add(screening)
+    test_session.add_all([scr1, scr2, scr3, scr4])
     test_session.commit()
-    return screening
+    return [scr1, scr2, scr3, scr4]
 
 @pytest.fixture
 def sample_screening_seats(test_session, sample_seats, sample_screening):
@@ -163,7 +181,7 @@ def sample_screening_seats(test_session, sample_seats, sample_screening):
     for seat in sample_seats:
         ss = ScreeningSeat(
             seat_id=seat.id,
-            screening_id=sample_screening.id,
+            screening_id=1,
             status=SeatStatus.AVAILABLE
         )
         ss_list.append(ss)

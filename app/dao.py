@@ -1,6 +1,7 @@
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from flask import current_app
 from pymysql import NULL
 from sqlalchemy import cast, Date
 from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, 
@@ -62,23 +63,18 @@ def add_user(username, password, full_name, phone, email, birthday, avatar):
         db.session.rollback()
         raise ex
 
-
 def auth_user(username, password):
     password = md5_hash(password)
     return Customer.query.filter(Customer.username.__eq__(username), Customer.password.__eq__(password)).first()
 
-
 def is_username_exists(username):
     return db.session.query(Customer).filter_by(username=username).first() is not None
-
 
 def is_phone_exists(phone):
     return db.session.query(Customer).filter_by(phone_number=phone).first() is not None
 
-
 def is_email_exists(email):
     return db.session.query(Customer).filter_by(email=email).first() is not None
-
 
 def get_user_by_id(customer_id):
     return Customer.query.filter_by(id=customer_id, role=UserRole.CUSTOMER).first()
@@ -96,34 +92,37 @@ def get_movie_by_id(movie_id):
 def get_movie_types(movie_id):
     return (db.session.query(MovieType)
             .join(MovieTypeDetail, MovieTypeDetail.type_id == MovieType.id)
-            .join(Movie, MovieTypeDetail.movie_id == Movie.id)
-            .filter(Movie.id == movie_id)
-            .limit(3).all())
+            .filter(MovieTypeDetail.movie_id == movie_id)
+            .all())
+
+def get_room_types():
+    return db.session.query(RoomType).all()
 
 def get_room_by_type(room_type_id):
     return db.session.query(Room).filter_by(room_type_id=room_type_id).all()
 
 def get_movie_screenings(movie_id, room_id, watch_date):
+    start = datetime.combine(watch_date, datetime.min.time())
+    end = start + timedelta(days=1)
     return (db.session.query(MovieScreening)
-        .join(Room, Room.id==MovieScreening.room_id)
-        .join(Movie, Movie.id==MovieScreening.movie_id)
         .filter(MovieScreening.room_id == room_id,
-                cast(MovieScreening.start_time, Date) == watch_date,
-                MovieScreening.start_time > datetime.now(),
-                MovieScreening.movie_id==movie_id)
+                MovieScreening.movie_id == movie_id,
+                MovieScreening.start_time >= start,
+                MovieScreening.start_time < end,
+                MovieScreening.start_time >= datetime.now())
         .order_by(MovieScreening.start_time.asc()).all())
 
 def get_seats_by_screening(screening_id):
     return (db.session.query(Seat, ScreeningSeat.status)
         .join(ScreeningSeat, Seat.id == ScreeningSeat.seat_id)
-        .join(MovieScreening, MovieScreening.id==ScreeningSeat.screening_id)
         .filter(ScreeningSeat.screening_id == screening_id)
-        .order_by(Seat.row, Seat.number).all())
-
-def get_room_types():
-    return db.session.query(RoomType).all()
+        .order_by(Seat.row, Seat.number)
+        .all())
 
 def hold_seats(seat_ids, screening_id):
+    if (len(seat_ids) <= 0 or len(seat_ids) > 8):
+        raise Exception("Số lượng ghế không hợp lệ!")
+
     return ScreeningSeat.query.filter(
         ScreeningSeat.seat_id.in_(seat_ids),
         ScreeningSeat.screening_id == screening_id
@@ -136,7 +135,6 @@ def add_bill(customer_id, total=0):
     bill = Bill(customer_id=customer_id, total_amount=total)
     db.session.add(bill)
     db.session.flush()
-    # db.session.commit()
     return bill
 
 def add_ticket(bill_id, ss_id, price):
@@ -217,7 +215,8 @@ def send_reset_email(user_email, otp_code):
     msg.body = f"Mã OTP của bạn là: {otp_code}. Vui lòng không chia sẻ mã này cho bất kỳ ai."
 
     try:
-        mail.send(msg)
+        with current_app.app_context():
+            mail.send(msg)
         return True
     except Exception as e:
         print(f"Lỗi gửi mail: {e}")
