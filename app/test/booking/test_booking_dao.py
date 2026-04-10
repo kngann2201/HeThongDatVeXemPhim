@@ -4,7 +4,7 @@ import pytest
 
 from app.test.base_test import (
     test_app, test_session,
-    sample_movie, sample_movie_type, sample_room_type,
+    sample_movie, sample_movie_type, sample_room_type, sample_movie_type_detail,
     sample_room, sample_screening, sample_seats, sample_screening_seats
 )
 from app import dao
@@ -22,7 +22,7 @@ def test_get_movie_no_type(test_session, sample_movie_type):
     result = dao.get_movie_types(movie_id=4)
     assert len(result) == 0
 
-def test_get_movie_types(test_session, sample_movie_type):
+def test_get_movie_types(test_session, sample_movie_type, sample_movie_type_detail):
     t1 = sample_movie_type[0]
     t2 = sample_movie_type[1]
     result = dao.get_movie_types(movie_id=1)
@@ -36,7 +36,7 @@ def test_get_movie_type_movie_not_exist(test_session, sample_movie_type):
 
 def test_get_all_room_types(test_session, sample_room_type):
     result = dao.get_room_types()
-    assert len(result) == 2
+    assert len(result) == 3
 
 def test_get_rooms(test_session, sample_room):
     result = dao.get_room_by_type(room_type_id=1)
@@ -92,8 +92,8 @@ def test_hold_one_seat(test_session, sample_screening_seats):
 
 def test_hold_no_seat(test_session, sample_screening_seats):
     seat_ids = []
-    result = dao.hold_seats(seat_ids=seat_ids, screening_id=1)
-    assert len(result) == 0
+    with pytest.raises(Exception, match="Số lượng ghế không hợp lệ!"):
+        dao.hold_seats(seat_ids=seat_ids, screening_id=1)
 
 def test_hold_max_seats(test_app, test_session, sample_screening_seats):
     seat_ids = ['1', '2', '3', '4', '5', '6', '7', '8']
