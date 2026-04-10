@@ -36,18 +36,24 @@ def add_user(username, password, full_name, phone, email, birthday, avatar):
     if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
         raise ValueError("Số điện thoại không hợp lệ")
 
-    if is_username_exists(username):
-        raise ValueError("Tên đăng nhập đã tồn tại")
-
     if is_phone_exists(phone):
         raise ValueError("Số điện thoại đã được sử dụng")
 
-    if len(password) < 8:
-        raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
-    if not re.search(r'[A-Z]', password) or not re.search(r'\d', password):
-        raise ValueError("Mật khẩu phải có chữ hoa và số")
     if not re.search(r'^\S+@\S+\.\S+$', email) or is_email_exists(email):
         raise ValueError("Không đúng định dạng hoặc email đã tồn tại")
+
+    if len(username) <6:
+        raise ValueError("Username phải trên 6 kí tự")
+
+    if is_username_exists(username):
+        raise ValueError("Tên đăng nhập đã tồn tại")
+
+    if len(password) < 8:
+        raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
+
+    if not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password):
+        raise ValueError("Mật khẩu phải có chữ hoa, chữ thường và số")
+
     password = md5_hash(password)
     c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email, birthday=birthday, avatar=avatar)
     try:
