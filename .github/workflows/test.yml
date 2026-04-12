@@ -41,4 +41,5 @@ jobs:
         PYTHONPATH: .
         DATABASE_URL: mysql+pymysql://root:root@127.0.0.1:3306/cinemadb?charset=utf8mb4
       run: |
+        python -c "from app import app, db; with app.app_context(): db.create_all()"
         python -m pytest app/
