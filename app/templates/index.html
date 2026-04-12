@@ -24,16 +24,23 @@
             <div class="col-lg-3 col-md-4 col-6 p-2">
                 <div class="movie-card-minimal">
                     <div class="poster-wrapper">
-                        <img class="poster-img" src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
-
+                        <img class="poster-img"
+                             src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
                         <div class="movie-hover-instant">
+                            <div class="movie-info-content w-100 mb-2">
+                                <h6 class="text-white fw-bold mb-1"
+                                    style="font-size: 0.9rem; text-transform: uppercase;">
+                                    {{ p.title }}
+                                </h6>
+                                <p class="text-warning mb-0" style="font-size: 0.7rem; font-style: italic;">
+                                   {{p.type}}
+                                </p>
+                            </div>
+
                             <div class="btn-group-hover">
-                                <a class="btn btn-danger btn-sm flex-fill" href="/booking/{{ p.id }}">Đặt vé</a>
+                                <a class="btn btn-red" href="/booking/{{ p.id }}">Đặt vé</a>
                             </div>
                         </div>
-                    </div>
-                    <div class="mt-2">
-                        <h6 class="text-white text-truncate">{{ p.name }}</h6>
                     </div>
                 </div>
             </div>

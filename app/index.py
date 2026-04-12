@@ -1,6 +1,3 @@
-
-
-
 from app import app, db, login, admin, mail
 from datetime import timedelta, datetime
 import time

@@ -16,6 +16,11 @@ def test_success(test_app, test_session):
         assert u is not None
         assert u.full_name == 'admin'
         assert u.password == hashlib.md5('Abcd123@'.encode('utf-8')).hexdigest()
+        assert u.username == 'a1'*4
+        assert u.phone_number == '0323456789'
+        assert u.birthday == birthday_obj
+        assert u.email == 'admin123@gmail.com'
+        assert u.avatar=='https://res.cloudinary.com/dkzxdp1gi/image/upload/v1767843265/avatar-trang-nu-001_dym4n0.webp'
 
 
 @pytest.mark.parametrize('password', [

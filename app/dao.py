@@ -3,8 +3,8 @@ from datetime import datetime
 
 from pymysql import NULL
 from sqlalchemy import cast, Date
-from app.models import Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat, 
-    Bill, Payment, UserRole, Ticket, TicketStatus, SeatStatus, PaymentStatus
+from app.models import (Customer, Seat, RoomType, Movie, MovieTypeDetail, MovieType, MovieScreening, Room, ScreeningSeat,
+                        Bill, Payment, UserRole, Ticket, TicketStatus, SeatStatus, PaymentStatus)
 from app import db
 import re
 from datetime import date
