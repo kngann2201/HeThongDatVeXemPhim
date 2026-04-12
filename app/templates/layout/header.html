@@ -34,7 +34,7 @@
             <div class="d-flex align-items-center gap-3">
 
                 <form action="/" method="get" class="nav-search-glass">
-                    <input type="text" name="kw" placeholder="Tìm phim...">
+                    <input type="text" name="kw" value="{{ keyword }}" placeholder="Tìm phim...">
                 </form>
 
                 {% if current_user.is_authenticated %}

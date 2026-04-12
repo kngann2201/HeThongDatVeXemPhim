@@ -15,20 +15,26 @@ from dateutil.relativedelta import relativedelta
 from app.models import SeatStatus, Payment, PaymentStatus, Movie
 from app.vnpay import build_payment_url
 
+
 @app.route("/")
 def index():
     page = request.args.get('page', 1, type=int)
-    page_size = 8
-    movies = dao.get_movies(page=page, page_size=page_size)
-    total_movies = dao.count_movies()
-    pages = math.ceil(total_movies / page_size)
     keyword = request.args.get('kw', '').strip()
+    page_size = 8
     query = Movie.query
-    msg = get_flashed_messages(with_categories=True)
-
     if keyword:
         query = query.filter(Movie.title.icontains(keyword))
-    movies = query.order_by(Movie.id.desc()).all()
+
+    total_movies = query.count()
+    pages = math.ceil(total_movies / page_size)
+
+    movies = query.order_by(Movie.id.desc()) \
+        .offset((page - 1) * page_size) \
+        .limit(page_size) \
+        .all()
+
+    msg = get_flashed_messages(with_categories=True)
+
     return render_template('index.html',
                            products=movies,
                            pages=pages,
