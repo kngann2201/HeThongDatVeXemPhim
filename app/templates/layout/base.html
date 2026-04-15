@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}CINEMA{% endblock %}</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
@@ -18,22 +24,24 @@
 
     <div class="flex-grow-1" style="margin-top: 70px;">
         {% block content %}{% endblock %}
-    </main>
-
-    {% block footer %}
+    </div> {% block footer %}
         {% include 'layout/footer.html' %}
     {% endblock %}
 
-    <button type="button" id="backToTopBtn" class="btn btn-danger rounded-circle shadow-lg" title="Lên đầu trang">
+    <button type="button" id="backToTopBtn" class="btn btn-danger rounded-circle shadow-lg" title="Lên đầu trang" style="display: none;">
         <i class="fa-solid fa-arrow-up"></i>
     </button>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Xử lý nút Back to top
             const backToTopBtn = document.getElementById('backToTopBtn');
-
             window.addEventListener('scroll', function () {
                 if (window.scrollY > 400) {
                     backToTopBtn.style.display = "block";
@@ -43,12 +51,21 @@
             });
 
             backToTopBtn.addEventListener('click', function () {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
+
+        // Hàm hiện/ẩn mật khẩu dùng chung cho toàn website
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
     </script>
 
     {% block extra_js %}{% endblock %}

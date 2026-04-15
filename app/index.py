@@ -13,92 +13,69 @@ import secrets
 from app.models import SeatStatus, Payment, PaymentStatus, Movie
 from app.vnpay import build_payment_url
 
+@app.route("/")
+def index():
+    keyword = request.args.get('kw', '').strip()
 
-def register_app(app):
-    @app.route("/")
-    def index():
-        page = request.args.get('page', 1, type=int)
-        page_size = 8
-        movies = dao.get_movies(page=page, page_size=page_size)
-        total_movies = dao.count_movies()
-        pages = math.ceil(total_movies / page_size)
-        keyword = request.args.get('kw', '').strip()
-        query = Movie.query
-        msg = get_flashed_messages(with_categories=True)
+    query = Movie.query
+    if keyword:
+        query = query.filter(Movie.title.icontains(keyword))
+    movies = query.order_by(Movie.id.desc()).limit(20).all()
 
-        if keyword:
-            query = query.filter(Movie.title.icontains(keyword))
-        movies = query.order_by(Movie.id.desc()).all()
-        return render_template('index.html',
-                               products=movies,
-                               pages=pages,
-                               current_page=page,
-                               keyword=keyword,
-                               msg=msg)
+    msg = get_flashed_messages(with_categories=True)
+
+    return render_template('index.html',
+                           products=movies,
+                           keyword=keyword,
+                           msg=msg)
 
 
-    @app.route("/register", methods=['GET', 'POST'])
-    def register():
-        err_msg = None
-        data = {}
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    err_msg = None
+    data = {}
 
-        if request.method == 'POST':
-            data = request.form.to_dict()
+    if request.method == 'POST':
+        data = request.form.to_dict()
 
-            username = data.get('username')
-            password = data.get('password')
-            confirm = data.get('confirm_password')
-            full_name = data.get('full_name')
-            phone = data.get('phone')
-            email = data.get('email')
-            birthday = data.get('birthday')
-            avatar = request.files.get('avatar')
-            avatar_url = None
+        username = data.get('username')
+        password = data.get('password')
+        confirm = data.get('confirm_password')
+        full_name = data.get('full_name')
+        phone = data.get('phone')
+        email = data.get('email')
+        birthday = data.get('birthday')
+        avatar = request.files.get('avatar')
+        avatar_url = None
 
-            if password != confirm:
-                err_msg = "Mật khẩu không khớp!"
-                return render_template('register.html', err_msg=err_msg, data=data)
+        if password != confirm:
+            err_msg = "Mật khẩu không khớp!"
+            return render_template('register.html', err_msg=err_msg, data=data)
 
-            if avatar:
-                res = cloudinary.uploader.upload(avatar)
-                avatar_url = res.get('secure_url')
-            try:
-                dao.add_user(
-                    username=username, password=password, full_name=full_name,
-                    phone=phone, email=email, birthday=birthday, avatar=avatar_url
-                )
-                return render_template("login.html", success=True)
-            except ValueError as v:
-                err_msg = str(v)
-            except Exception as ex:
-                db.session.rollback()
-                err_msg = "Hệ thống đang lỗi!"
-                print(ex)
+        if avatar:
+            res = cloudinary.uploader.upload(avatar)
+            avatar_url = res.get('secure_url')
+        try:
+            dao.add_user(
+                username=username, password=password, full_name=full_name,
+                phone=phone, email=email, birthday=birthday, avatar=avatar_url
+            )
+            return render_template("login.html", success=True, data={})
+        except ValueError as v:
+            err_msg = str(v)
+        except Exception as ex:
+            db.session.rollback()
+            err_msg = "Hệ thống đang lỗi!"
+            print(ex)
 
-        return render_template('register.html', err_msg=err_msg, data=data)
+    return render_template('register.html', err_msg=err_msg, data=data)
 
-    @app.route("/login", methods=['GET', 'POST'])
-    @anonymous_required
-    def login_my_user():
-        err_msg = None
-        next_page = request.args.get('next') or request.form.get('next')
-        data = {}
-
-        if request.method == 'POST':
-            data = request.form.to_dict()
-            username = data.get('username')
-            password = data.get('password')
-            user = dao.auth_user(username, password)
-
-            if user:
-                login_user(user)
-                if next_page and next_page != "None" and next_page.startswith('/'):
-                    return redirect(next_page)
-                else:
-                    flash("Đăng nhập thành công!", "success")
-                    return redirect(url_for('index'))
-            else:
-                err_msg = "Username hoặc password không đúng!!!"
+@app.route("/login", methods=['GET', 'POST'])
+@anonymous_required
+def login_my_user():
+    err_msg = None
+    next_page = request.args.get('next') or request.form.get('next')
+    data = {}
 
         return render_template('login.html', err_msg=err_msg, data=data)
 

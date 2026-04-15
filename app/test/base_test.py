@@ -1,12 +1,15 @@
 import os
 from flask import Flask
-from app import db, dao, login
+from app import db, dao, app, mail, login
 import pytest
 import hashlib
 from datetime import datetime, timedelta
 from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
     ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
 from datetime import date
+from flask_mail import Mail
+from app import mail as flask_mail 
+
 
 def create_app():
     test_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,9 +22,13 @@ def create_app():
         static_folder=os.path.join(app_dir, 'app', 'static')
     )
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    app.config['MAIL_SUPPRESS_SEND'] = True
+    app.config['MAIL_DEFAULT_SENDER'] = 'test@example.com'
+
     app.config["TESTING"] = True
     app.secret_key = 'sjkfksgfghsvhvagjdhaldg'
     db.init_app(app)
+    flask_mail.init_app(app)
     from flask_login import LoginManager
     login.init_app(app)
 
@@ -31,14 +38,18 @@ def create_app():
 
     return app
 
+
 @pytest.fixture
 def test_app():
     app = create_app()
-
     with app.app_context():
         db.create_all()
         yield app
         db.drop_all()
+
+@pytest.fixture
+def test_mail_object():
+    return flask_mail
 
 @pytest.fixture
 def test_client(test_app):
@@ -246,5 +257,3 @@ def sample_payment(test_session, sample_bill):
     test_session.add(payment)
     test_session.commit()
     return payment
-
-
