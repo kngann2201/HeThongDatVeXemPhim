@@ -1,89 +1,79 @@
 {% extends 'layout/base.html' %}
 
 {% block content %}
-<script>
-    const msg = {{ msg | tojson }};
-    if (msg && msg.length > 0) {
-        msg.forEach(m => {
-            alert(m[1]);
-        });
-    }
-</script>
-
 <div class="container mt-4">
     <div class="mb-5">
         {% if keyword %}
-            <h3 class="section-title">KẾT QUẢ TÌM KIẾM CHO: "<span class="text-danger">{{ keyword }}</span>"</h3>
-            <p class="text-secondary">Tìm thấy {{ products|length }} phim phù hợp</p>
+        <h3 class="section-title">KẾT QUẢ TÌM KIẾM CHO: "<span class="text-danger">{{ keyword }}</span>"</h3>
+        <p class="text-secondary">Tìm thấy {{ products|length }} phim phù hợp</p>
         {% else %}
-            <h3 class="section-title">PHIM ĐANG CHIẾU</h3>
+        <h3 class="section-title">PHIM ĐANG CHIẾU</h3>
         {% endif %}
 
-        <div class="row">
-            {% for p in products %}
-            <div class="col-lg-3 col-md-4 col-6 p-2">
-                <div class="movie-card-minimal">
-                    <div class="poster-wrapper">
-                        <img class="poster-img"
-                             src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
-                             alt="{{ p.title }}">
-                        <div class="movie-hover-instant">
-                            <div class="movie-info-content w-100 mb-2">
-                                <h6 class="text-white fw-bold mb-1"
-                                    style="font-size: 0.9rem; text-transform: uppercase;">
-                                    {{ p.title }}
-                                </h6>
-                                <p class="text-warning mb-0" style="font-size: 0.7rem; font-style: italic;">
-                                   {{ p.type }}
-                                </p>
-                            </div>
-
-                            <div class="btn-group-hover">
-                                <a class="btn btn-red" href="/booking/{{ p.id }}">Đặt vé</a>
+        {% if products|length > 0 %}
+        <div class="slider-container">
+            <div class="movie-slider">
+                {% for p in products %}
+                <div class="px-2">
+                    <div class="movie-card-minimal shadow">
+                        <div class="poster-wrapper">
+                            <img class="poster-img"
+                                 src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
+                                 alt="{{ p.title }}">
+                            <div class="movie-hover-instant">
+                                <div class="movie-info-content w-100 mb-2">
+                                    <h6 class="movie-title-hover">{{ p.title }}</h6>
+                                    <p class="movie-type-hover">{{ p.type }}</p></div>
+                                <div class="btn-group-hover w-100">
+                                    <a class="btn-red" href="/booking/{{ p.id }}">Đặt vé</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            {% else %}
-                <div class="col-12 text-center py-5">
-                    <i class="fa-solid fa-magnifying-glass fa-3x text-secondary mb-3"></i>
-                    <h4 class="text-white">Không tìm thấy phim nào khớp với "{{ keyword }}"</h4>
-                    <a href="/" class="btn btn-outline-danger mt-3">Quay lại trang chủ</a>
-                </div>
-            {% endfor %}
-        </div>
-
-        {% if pages > 1 %}
-        <nav aria-label="Page navigation" class="mt-5">
-            <ul class="pagination justify-content-center">
-
-                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                    <a class="page-link bg-dark border-secondary text-white"
-                       href="{{ url_for('index', page=current_page-1, kw=keyword) }}">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </a>
-                </li>
-
-                {% for p in range(1, pages + 1) %}
-                <li class="page-item {% if p == current_page %}active{% endif %}">
-                    <a class="page-link {% if p == current_page %}bg-danger border-danger{% else %}bg-dark border-secondary text-white{% endif %}"
-                       href="{{ url_for('index', page=p, kw=keyword) }}">
-                        {{ p }}
-                    </a>
-                </li>
                 {% endfor %}
-
-                <li class="page-item {% if current_page == pages %}disabled{% endif %}">
-                    <a class="page-link bg-dark border-secondary text-white"
-                       href="{{ url_for('index', page=current_page+1, kw=keyword) }}">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </li>
-
-            </ul>
-        </nav>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="fa-solid fa-magnifying-glass fa-3x text-secondary mb-3"></i>
+            <h4 class="text-dark">Không tìm thấy phim nào khớp với "{{ keyword }}"</h4>
+            <a href="/" class="btn btn-outline-danger mt-3">Quay lại trang chủ</a>
+        </div>
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function(){
+        $('.movie-slider').slick({
+            infinite: true,
+            slidesToShow: 4,
+            slidesToScroll: 1,
+            autoplay: true,
+            autoplaySpeed: 3000,
+            arrows: true,
+            dots: false,
+            /* Tùy chỉnh mũi tên dùng icon FontAwesome */
+            prevArrow: '<button type="button" class="slick-prev shadow-sm"><i class="fa-solid fa-chevron-left"></i></button>',
+            nextArrow: '<button type="button" class="slick-next shadow-sm"><i class="fa-solid fa-chevron-right"></i></button>',
+            responsive: [
+                {
+                    breakpoint: 1024,
+                    settings: { slidesToShow: 3 }
+                },
+                {
+                    breakpoint: 768,
+                    settings: { slidesToShow: 2, arrows: false }
+                },
+                {
+                    breakpoint: 480,
+                    settings: { slidesToShow: 1, arrows: false }
+                }
+            ]
+        });
+    });
+</script>
 {% endblock %}

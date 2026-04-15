@@ -18,27 +18,17 @@ from app.vnpay import build_payment_url
 
 @app.route("/")
 def index():
-    page = request.args.get('page', 1, type=int)
     keyword = request.args.get('kw', '').strip()
-    page_size = 8
+
     query = Movie.query
     if keyword:
         query = query.filter(Movie.title.icontains(keyword))
-
-    total_movies = query.count()
-    pages = math.ceil(total_movies / page_size)
-
-    movies = query.order_by(Movie.id.desc()) \
-        .offset((page - 1) * page_size) \
-        .limit(page_size) \
-        .all()
+    movies = query.order_by(Movie.id.desc()).limit(20).all()
 
     msg = get_flashed_messages(with_categories=True)
 
     return render_template('index.html',
                            products=movies,
-                           pages=pages,
-                           current_page=page,
                            keyword=keyword,
                            msg=msg)
 
@@ -73,7 +63,7 @@ def register():
                 username=username, password=password, full_name=full_name,
                 phone=phone, email=email, birthday=birthday, avatar=avatar_url
             )
-            return render_template("login.html", success=True)
+            return render_template("login.html", success=True, data={})
         except ValueError as v:
             err_msg = str(v)
         except Exception as ex:

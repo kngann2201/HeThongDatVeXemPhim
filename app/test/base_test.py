@@ -1,27 +1,39 @@
 from flask import Flask
-from app import db, dao
+from app import db, dao, app, mail
 import pytest
 import hashlib
 from datetime import datetime, timedelta
 from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
     ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
 from datetime import date
+from flask_mail import Mail
+
+from app import mail as flask_mail  # Import instance mail từ dự án
+
 
 def create_app():
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    app.config['MAIL_SUPPRESS_SEND'] = True
+    app.config['MAIL_DEFAULT_SENDER'] = 'test@example.com'
+
     db.init_app(app)
+    flask_mail.init_app(app)
 
     return app
+
 
 @pytest.fixture
 def test_app():
     app = create_app()
-
     with app.app_context():
         db.create_all()
         yield app
         db.drop_all()
+
+@pytest.fixture
+def test_mail_object():
+    return flask_mail
 
 @pytest.fixture
 def test_client(test_app):
@@ -231,5 +243,3 @@ def sample_payment(test_session, sample_bill):
     test_session.add(payment)
     test_session.commit()
     return payment
-
-
