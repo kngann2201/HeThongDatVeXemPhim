@@ -76,8 +76,7 @@ def login_my_user():
     err_msg = None
     next_page = request.args.get('next') or request.form.get('next')
     data = {}
-
-        return render_template('login.html', err_msg=err_msg, data=data)
+return render_template('login.html', err_msg=err_msg, data=data)
 
     @login.user_loader
     def get_user(user_id):
