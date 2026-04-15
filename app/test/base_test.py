@@ -1,5 +1,6 @@
+import os
 from flask import Flask
-from app import db, dao
+from app import db, dao, login
 import pytest
 import hashlib
 from datetime import datetime, timedelta
@@ -8,9 +9,25 @@ from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Custom
 from datetime import date
 
 def create_app():
-    app = Flask(__name__)
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    app_dir = os.path.abspath(os.path.join(test_dir, '..', '..'))
+
+    app = Flask(
+        __name__,
+        root_path=os.path.join(app_dir, 'app'),
+        template_folder=os.path.join(app_dir, 'app', 'templates'),
+        static_folder=os.path.join(app_dir, 'app', 'static')
+    )
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    app.config["TESTING"] = True
+    app.secret_key = 'sjkfksgfghsvhvagjdhaldg'
     db.init_app(app)
+    from flask_login import LoginManager
+    login.init_app(app)
+
+
+    from app.index import register_app
+    register_app(app)
 
     return app
 
@@ -178,11 +195,13 @@ def sample_screening(test_session, sample_movie, sample_room):
 def sample_screening_seats(test_session, sample_seats, sample_screening):
     ss_list = []
 
-    for seat in sample_seats:
+    for i, seat in enumerate(sample_seats):
+        is_first = (i == 0)
         ss = ScreeningSeat(
             seat_id=seat.id,
-            screening_id=1,
-            status=SeatStatus.AVAILABLE
+            screening_id=sample_screening[0].id,
+            status=SeatStatus.BOOKED if is_first else SeatStatus.AVAILABLE,
+            holding_user_id=1 if is_first else None
         )
         ss_list.append(ss)
 
@@ -191,11 +210,11 @@ def sample_screening_seats(test_session, sample_seats, sample_screening):
     return ss_list
 
 @pytest.fixture
-def sample_bill(test_session, sample_users):
+def sample_bill(test_session):
     bill = Bill(
-        total_amount=200000,
+        total_amount=100000,
         status=PaymentStatus.PENDING,
-        customer_id=sample_users[0].id
+        customer_id=1
     )
 
     test_session.add(bill)
@@ -204,26 +223,22 @@ def sample_bill(test_session, sample_users):
 
 @pytest.fixture
 def sample_tickets(test_session, sample_screening_seats, sample_bill):
-    tickets = []
+    t = Ticket(
+        price=100000,
+        status=TicketStatus.PAID,
+        screening_seat_id=1,
+        bill_id=sample_bill[0].id
+    )
 
-    for ss in sample_screening_seats[:2]:
-        t = Ticket(
-            price=100000,
-            status=TicketStatus.HOLDING,
-            screening_seat_id=ss.id,
-            bill_id=sample_bill.id
-        )
-        tickets.append(t)
-
-    test_session.add_all(tickets)
+    test_session.add(t)
     test_session.commit()
-    return tickets
+    return [t]
 
 @pytest.fixture
 def sample_payment(test_session, sample_bill):
     payment = Payment(
         bill_id=sample_bill.id,
-        amount=200000,
+        amount=100000,
         status=PaymentStatus.PENDING,
         txn_ref="TEST123"
     )

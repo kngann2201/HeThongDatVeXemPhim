@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from flask import current_app
 from pymysql import NULL
-from sqlalchemy import cast, Date
+from sqlalchemy import cast, Date, or_
 from app.models import (Customer, UserRole, Seat, RoomType, Movie, MovieTypeDetail, MovieType,
     MovieScreening, Room, ScreeningSeat, Bill, Payment, Ticket, TicketStatus, SeatStatus, PaymentStatus)
 from app import db
@@ -65,7 +65,7 @@ def add_user(username, password, full_name, phone, email, birthday, avatar):
 
 def auth_user(username, password):
     password = md5_hash(password)
-    return Customer.query.filter(Customer.username.__eq__(username), Customer.password.__eq__(password)).first()
+    return db.session.query(Customer).filter(Customer.username.__eq__(username), Customer.password.__eq__(password)).first()
 
 def is_username_exists(username):
     return db.session.query(Customer).filter_by(username=username).first() is not None
@@ -77,14 +77,14 @@ def is_email_exists(email):
     return db.session.query(Customer).filter_by(email=email).first() is not None
 
 def get_user_by_id(customer_id):
-    return Customer.query.filter_by(id=customer_id, role=UserRole.CUSTOMER).first()
+    return db.session.query(Customer).filter_by(id=customer_id, role=UserRole.CUSTOMER).first()
 
 def get_admin_by_id(admin_id):
-    return Customer.query.filter_by(id=admin_id, role=UserRole.ADMIN).first()
+    return db.session.query(Customer).filter_by(id=admin_id, role=UserRole.ADMIN).first()
 
 def auth_admin(username, password):
     password = md5_hash(password)
-    return Customer.query.filter_by(username=username, password=password, role=UserRole.ADMIN).first()
+    return db.session.query(Customer).query.filter_by(username=username, password=password, role=UserRole.ADMIN).first()
 
 def get_movie_by_id(movie_id):
     return db.session.query(Movie).filter_by(id=movie_id).first()
@@ -123,10 +123,20 @@ def hold_seats(seat_ids, screening_id):
     if (len(seat_ids) <= 0 or len(seat_ids) > 8):
         raise Exception("Số lượng ghế không hợp lệ!")
 
-    return ScreeningSeat.query.filter(
+    return db.session.query(ScreeningSeat).filter(
         ScreeningSeat.seat_id.in_(seat_ids),
         ScreeningSeat.screening_id == screening_id
     ).with_for_update().all()
+
+def total_seat_per_screening(screening_id, user_id):
+    return db.session.query(ScreeningSeat).filter(
+        ScreeningSeat.screening_id == screening_id,
+        ScreeningSeat.holding_user_id == user_id,
+        or_(
+            ScreeningSeat.status == SeatStatus.BOOKED,
+            and_(ScreeningSeat.status == SeatStatus.HOLDING, ScreeningSeat.hold_expired_at > datetime.now())
+        )
+    ).count()
 
 def get_bill_by_id(bill_id):
     return db.session.query(Bill).filter_by(id=bill_id).first()
@@ -150,10 +160,10 @@ def add_payment(bill_id, amount, txn_ref):
 
 def get_movies(page=1, page_size=8):
     start = (page - 1) * page_size
-    return Movie.query.offset(start).limit(page_size).all()
+    return db.session.query(Movie).offset(start).limit(page_size).all()
 
 def count_movies():
-    return Movie.query.count()
+    return db.session.query(Movie).count()
 
 def pay_fail(payment, bill):
     payment.status = PaymentStatus.FAILED
@@ -205,7 +215,7 @@ def get_info_movie(customer_id):
         })
     return watched_list
 def get_customer_by_email(email):
-    return Customer.query.filter(Customer.email == email.strip()).first()
+    return db.session.query(Customer).filter(Customer.email == email.strip()).first()
 
 def send_reset_email(user_email, otp_code):
     msg = Message(
@@ -224,7 +234,7 @@ def send_reset_email(user_email, otp_code):
 
 
 def update_password(customer_id, new_password):
-    customer = Customer.query.get(customer_id)
+    customer = db.session.query(Customer).get(customer_id)
     if len(new_password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
     if not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password):
