@@ -112,16 +112,17 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
 
 
     display: flex;
-    align-items: flex-end;
-    padding: 20px;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
 
-
+    padding: 15px;
     opacity: 0;
-    transition: opacity 0.1s steps(1) !important;
+    transition: opacity 0.2s ease;
     z-index: 10;
     pointer-events: none;
 }
