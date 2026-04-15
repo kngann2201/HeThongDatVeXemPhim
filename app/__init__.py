@@ -6,6 +6,7 @@ import cloudinary
 from flask_mail import Mail
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 app = Flask(__name__)
 
@@ -16,6 +17,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config['SECRET_KEY'] = 'suhtiwnetseveytneewtadyreveeyppahswt'
 
+db = SQLAlchemy(app)
+login = LoginManager(app)
+mail = Mail(app)
+
 # cloudinary.config(cloud_name='dkzxdp1gi',
 #                   api_key='889343733763378',
 #                   api_secret='AfqkwYpSy0i8oRU4XN4bRC-5qIg')
@@ -23,11 +28,6 @@ app.config['SECRET_KEY'] = 'suhtiwnetseveytneewtadyreveeyppahswt'
 app.config["VNPAY_TMN_CODE"] = "SZM44ELG"
 app.config["VNPAY_HASH_SECRET"] = "EMMTSPAWQ3UEWNT9UFMKI32HSLX34238"
 
-db = SQLAlchemy(app)
-babel = Babel(app)
-
-login = LoginManager()
-login.init_app(app)
 
 cloudinary.config(
   cloud_name = "dimiharka",
@@ -42,5 +42,4 @@ app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
-mail = Mail(app)
 
