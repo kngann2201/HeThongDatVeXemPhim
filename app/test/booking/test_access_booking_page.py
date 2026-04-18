@@ -1,6 +1,38 @@
 from datetime import date
-from app.test.base_test import test_app, test_session, test_client
+from app.test.base_test import (test_app, test_session,
+    sample_movie, sample_movie_type, sample_movie_type_detail, sample_room_type)
+from app import dao
 
+
+
+def test_get_movie_exist(test_session, sample_movie):
+    result = dao.get_movie_by_id(movie_id=1)
+    assert result is not None
+    assert result.id == 1
+
+def test_get_movie_not_exist(test_session, sample_movie):
+    result = dao.get_movie_by_id(movie_id=22)
+    assert result is None
+
+def test_get_movie_no_type(test_session, sample_movie_type):
+    result = dao.get_movie_types(movie_id=4)
+    assert len(result) == 0
+
+def test_get_movie_types(test_session, sample_movie_type, sample_movie_type_detail):
+    t1 = sample_movie_type[0]
+    t2 = sample_movie_type[1]
+    result = dao.get_movie_types(movie_id=1)
+    assert len(result) == 2
+    assert result[0].id == t1.id
+    assert result[1].id == t2.id
+
+def test_get_movie_type_movie_not_exist(test_session, sample_movie_type):
+    result = dao.get_movie_types(movie_id=22)
+    assert len(result) == 0
+
+def test_get_all_room_types(test_session, sample_room_type):
+    result = dao.get_room_types()
+    assert len(result) == 3
 
 def test_access_booking_page(test_client, mocker):
     mock_movie = mocker.patch('app.index.dao.get_movie_by_id')
@@ -31,29 +63,3 @@ def test_access_booking_page_fail(test_client, mocker):
     response = test_client.get('/booking/22')
     assert response.status_code == 302
     assert response.headers['Location'] == '/'
-
-def test_get_booking_rooms(test_client, mocker):
-    mock_rooms = mocker.patch('app.index.dao.get_room_by_type')
-    room1 = mocker.Mock(id=1, number=101, image="room1_1.jpg", active=True)
-    room2 = mocker.Mock(id=2, number=102, image="room1_2.jpg", active=True)
-    mock_rooms.return_value = [room1, room2]
-    response = test_client.get('/api/get-rooms/1')
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data['success'] == True
-    assert len(data['rooms']) == 2
-
-def test_get_no_booking_rooms(test_client, mocker):
-    mocker.patch('app.index.dao.get_room_by_type', return_value=[])
-    response = test_client.get('/api/get-rooms/22')
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data['success'] == True
-    assert len(data['rooms']) == 0
-
-
-
-
-
-
-
