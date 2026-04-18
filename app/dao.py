@@ -231,7 +231,7 @@ def send_reset_email(user_email, otp_code):
 
 
 def update_password(customer_id, new_password):
-    customer = db.session.query(Customer).get(customer_id)
+    customer = db.session.get(Customer, customer_id)
     if len(new_password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
     if not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password):

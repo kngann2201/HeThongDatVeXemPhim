@@ -14,34 +14,28 @@ from app.vnpay import build_payment_url
 def register_app(app):
     @app.route("/")
     def index():
-        page = request.args.get('page', 1, type=int)
-        page_size = 8
-        movies = dao.get_movies(page=page, page_size=page_size)
-        total_movies = dao.count_movies()
-        pages = math.ceil(total_movies / page_size)
         keyword = request.args.get('kw', '').strip()
+    
         query = Movie.query
-        msg = get_flashed_messages(with_categories=True)
-
         if keyword:
             query = query.filter(Movie.title.icontains(keyword))
-        movies = query.order_by(Movie.id.desc()).all()
+        movies = query.order_by(Movie.id.desc()).limit(20).all()
+    
+        msg = get_flashed_messages(with_categories=True)
+    
         return render_template('index.html',
                                products=movies,
-                               pages=pages,
-                               current_page=page,
                                keyword=keyword,
                                msg=msg)
-
 
     @app.route("/register", methods=['GET', 'POST'])
     def register():
         err_msg = None
         data = {}
-
+    
         if request.method == 'POST':
             data = request.form.to_dict()
-
+    
             username = data.get('username')
             password = data.get('password')
             confirm = data.get('confirm_password')
@@ -51,11 +45,11 @@ def register_app(app):
             birthday = data.get('birthday')
             avatar = request.files.get('avatar')
             avatar_url = None
-
+    
             if password != confirm:
                 err_msg = "Mật khẩu không khớp!"
                 return render_template('register.html', err_msg=err_msg, data=data)
-
+    
             if avatar:
                 res = cloudinary.uploader.upload(avatar)
                 avatar_url = res.get('secure_url')
@@ -64,14 +58,14 @@ def register_app(app):
                     username=username, password=password, full_name=full_name,
                     phone=phone, email=email, birthday=birthday, avatar=avatar_url
                 )
-                return render_template("login.html", success=True)
+                return render_template("login.html", success=True, data={})
             except ValueError as v:
                 err_msg = str(v)
             except Exception as ex:
                 db.session.rollback()
                 err_msg = "Hệ thống đang lỗi!"
                 print(ex)
-
+    
         return render_template('register.html', err_msg=err_msg, data=data)
 
     @app.route("/login", methods=['GET', 'POST'])
@@ -80,13 +74,13 @@ def register_app(app):
         err_msg = None
         next_page = request.args.get('next') or request.form.get('next')
         data = {}
-
+    
         if request.method == 'POST':
             data = request.form.to_dict()
             username = data.get('username')
             password = data.get('password')
             user = dao.auth_user(username, password)
-
+    
             if user:
                 login_user(user)
                 if next_page and next_page != "None" and next_page.startswith('/'):
@@ -96,8 +90,9 @@ def register_app(app):
                     return redirect(url_for('index'))
             else:
                 err_msg = "Username hoặc password không đúng!!!"
-
+    
         return render_template('login.html', err_msg=err_msg, data=data)
+    
 
     @login.user_loader
     def get_user(user_id):
@@ -334,7 +329,7 @@ def register_app(app):
         if request.method == 'POST':
             identifier = request.form.get('identifier')
             customer = dao.get_customer_by_email(identifier)
-
+    
             if customer:
                 if customer.email:
                     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
@@ -347,7 +342,7 @@ def register_app(app):
                         flash('Lỗi hệ thống khi gửi email. Hãy thử lại!', 'danger')
             else:
                 flash('Email không tồn tại!', 'danger')
-
+    
         return render_template('forgot_password.html')
 
 
@@ -362,10 +357,10 @@ def register_app(app):
                 return redirect(url_for('reset_password'))
             else:
                 flash('Mã OTP không chính xác!', 'danger')
-
+    
         return render_template('verify_otp.html')
-
-
+    
+    
     @app.route('/reset_password', methods=['GET', 'POST'])
     def reset_password():
         if 'reset_otp' not in session:
@@ -373,7 +368,7 @@ def register_app(app):
         if request.method == 'POST':
             password = request.form.get('password')
             confirm = request.form.get('confirm')
-
+    
             if password == confirm:
                 customer_id = session.get('reset_customer_id')
                 try:
@@ -382,21 +377,21 @@ def register_app(app):
                         return redirect(url_for('login_my_user'))
                     else:
                         flash('Không tìm thấy tài khoản hoặc lỗi database!', 'danger')
-
+    
                 except ValueError as e:
                     flash(str(e), 'warning')
             else:
                 flash('Mật khẩu xác nhận không khớp!', 'danger')
-
+    
         return render_template('reset_password.html')
-
+    
     @app.route('/user/change_password', methods=['GET', 'POST'])
     @login_required
     def change_password():
         if request.method == 'POST':
             password = request.form.get('password')
             confirm = request.form.get('confirm')
-
+    
             if password == confirm:
                 customer_id = current_user.id
                 try:
@@ -407,7 +402,7 @@ def register_app(app):
                     flash(str(e), 'warning')
             else:
                 flash('Mật khẩu xác nhận không khớp!', 'danger')
-
+    
         return render_template('user/change_password.html')
 
 if __name__ == "__main__":
