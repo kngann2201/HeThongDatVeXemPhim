@@ -23,7 +23,7 @@ def test_login_fail(test_app, username, password):
     assert test_login is None
 
 
-def test_login_sucess(test_app):
+def test_login_success(test_app):
     birthday_obj = datetime.strptime('1/1/2008', '%d/%m/%Y').date()
     with test_app.app_context():
         add_user(username='a1' * 4, password='Abcd123@', full_name='admin',

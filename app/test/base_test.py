@@ -1,12 +1,15 @@
 import os
 from flask import Flask
-from app import db, dao, login
+from app import db, dao, app, mail, login
 import pytest
 import hashlib
 from datetime import datetime, timedelta
 from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
     ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
 from datetime import date
+from flask_mail import Mail
+from app import mail as flask_mail
+
 
 def create_app():
     test_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,27 +21,37 @@ def create_app():
         template_folder=os.path.join(app_dir, 'app', 'templates'),
         static_folder=os.path.join(app_dir, 'app', 'static')
     )
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    app.config["TESTING"] = True
-    app.secret_key = 'sjkfksgfghsvhvagjdhaldg'
+    app.config.update(
+        SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        TESTING=True,
+        MAIL_SUPPRESS_SEND=True,  #
+        MAIL_DEFAULT_SENDER='test@example.com',
+        SECRET_KEY='sjkfksgfghsvhvagjdhaldg',
+        WTF_CSRF_ENABLED=False
+    )
+
+    from app import db, mail, login
     db.init_app(app)
-    from flask_login import LoginManager
     login.init_app(app)
-
-
+    mail.init_app(app)
     from app.index import register_app
     register_app(app)
 
     return app
 
+
 @pytest.fixture
 def test_app():
     app = create_app()
-
     with app.app_context():
         db.create_all()
         yield app
         db.drop_all()
+
+@pytest.fixture
+def test_mail_object():
+    return flask_mail
 
 @pytest.fixture
 def test_client(test_app):
@@ -208,6 +221,23 @@ def sample_screening_seats(test_session, sample_seats, sample_screening):
     test_session.add_all(ss_list)
     test_session.commit()
     return ss_list
+@pytest.fixture
+def sample_screening_seats_v2(test_session, sample_seats, sample_screening):
+    ss_list = []
+
+    for i, seat in enumerate(sample_seats):
+        is_first = (i == 0)
+        ss = ScreeningSeat(
+            seat_id=seat.id,
+            screening_id=sample_screening[2].id,
+            status=SeatStatus.BOOKED if is_first else SeatStatus.AVAILABLE,
+            holding_user_id=1 if is_first else None
+        )
+        ss_list.append(ss)
+
+    test_session.add_all(ss_list)
+    test_session.commit()
+    return ss_list
 
 @pytest.fixture
 def sample_bill(test_session):
@@ -216,23 +246,42 @@ def sample_bill(test_session):
         status=PaymentStatus.PENDING,
         customer_id=1
     )
-
     test_session.add(bill)
     test_session.commit()
-    return bill
+    return [bill]
 
 @pytest.fixture
-def sample_tickets(test_session, sample_screening_seats, sample_bill):
-    t = Ticket(
+def sample_tickets(test_session, sample_screening_seats,sample_screening_seats_v2, sample_bill):
+    t1 = Ticket(
         price=100000,
         status=TicketStatus.PAID,
-        screening_seat_id=1,
+        screening_seat_id=sample_screening_seats[0].id,
         bill_id=sample_bill[0].id
     )
 
-    test_session.add(t)
+    t2 = Ticket(
+        price=100000,
+        status=TicketStatus.PAID,
+        screening_seat_id=sample_screening_seats_v2[0].id,
+        bill_id=sample_bill[0].id
+    )
+
+    t3 = Ticket(
+        price=100000,
+        status=TicketStatus.USED,
+        screening_seat_id=sample_screening_seats[0].id,
+        bill_id=sample_bill[0].id
+    )
+
+    t4 = Ticket(
+        price=100000,
+        status=TicketStatus.CANCELLED,
+        screening_seat_id=sample_screening_seats[0].id,
+        bill_id=sample_bill[0].id
+    )
+    test_session.add_all([t1,t2, t3,t4])
     test_session.commit()
-    return [t]
+    return [t1,t2, t3,t4]
 
 @pytest.fixture
 def sample_payment(test_session, sample_bill):
@@ -246,5 +295,3 @@ def sample_payment(test_session, sample_bill):
     test_session.add(payment)
     test_session.commit()
     return payment
-
-

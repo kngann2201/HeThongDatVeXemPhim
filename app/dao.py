@@ -158,9 +158,26 @@ def add_payment(bill_id, amount, txn_ref):
     db.session.commit()
     return payment
 
-def get_movies(page=1, page_size=8):
-    start = (page - 1) * page_size
-    return db.session.query(Movie).offset(start).limit(page_size).all()
+def get_movies(keyword=None):
+    query = db.session.query(Movie)
+    if keyword:
+        query = query.filter(Movie.title.contains(keyword))
+    movies = query.order_by(Movie.id.desc()).all()
+
+    results = []
+    for m in movies:
+        genres_list = [detail.type.name for detail in m.movie_type_details]
+
+        results.append({
+            'id': m.id,
+            'title': m.title,
+            'description': m.description,
+            'poster': m.poster,
+            'genres': ", ".join(genres_list) if genres_list else "Đang cập nhật"
+        })
+
+    return results
+
 
 def count_movies():
     return db.session.query(Movie).count()
@@ -189,49 +206,59 @@ def pay_success(payment, bill):
 
     db.session.commit()
 
+def get_info_movie(customer_id, status_enum):
+    target_statuses = [status_enum]
+    if status_enum == TicketStatus.PAID:
+        target_statuses.append(TicketStatus.CANCELLED)
 
-def get_info_movie(customer_id):
-    results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
-        Ticket.price,Ticket.status
+    results = db.session.query(
+        Ticket.id, Movie.title, MovieScreening.start_time,
+        Room.number, Seat.row, Seat.number,
+        Ticket.price, Ticket.status
     ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
      .join(Seat, ScreeningSeat.seat_id == Seat.id)\
      .join(Room, Seat.room_id == Room.id)\
      .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)\
      .join(Movie, MovieScreening.movie_id == Movie.id)\
      .join(Bill, Ticket.bill_id == Bill.id)\
-     .filter(Bill.customer_id == customer_id,
-             Ticket.status == TicketStatus.USED).all()
+     .filter(
+         Bill.customer_id == customer_id,
+         Ticket.status.in_(target_statuses)
+     ).all()
 
-    watched_list = []
+    ticket_list = []
     for r in results:
-        watched_list.append({
+        ticket_list.append({
             'id': r[0],
             'movie_name': r[1],
             'show_time': r[2].strftime('%H:%M - %d/%m/%Y'),
             'room_number': r[3],
             'seat_number': f"{r[4]}{r[5]}",
             'price': r[6],
-            'status': r[7]
+            'status': r[7].name
         })
-    return watched_list
+    return ticket_list
 def get_customer_by_email(email):
     return db.session.query(Customer).filter(Customer.email == email.strip()).first()
 
+
+# app/dao.py
 def send_reset_email(user_email, otp_code):
+    from flask_mail import Message
+    from app import mail
+
     msg = Message(
         subject='Mã xác nhận đặt lại mật khẩu',
         recipients=[user_email]
     )
-    msg.body = f"Mã OTP của bạn là: {otp_code}. Vui lòng không chia sẻ mã này cho bất kỳ ai."
+    msg.body = f"Mã OTP của bạn là: {otp_code}."
 
     try:
-        with current_app.app_context():
-            mail.send(msg)
+        mail.send(msg)
         return True
     except Exception as e:
         print(f"Lỗi gửi mail: {e}")
         return False
-
 
 def update_password(customer_id, new_password):
     customer = db.session.query(Customer).get(customer_id)
@@ -249,3 +276,37 @@ def update_password(customer_id, new_password):
             db.session.rollback()
             return False
     return False
+
+def cancel_ticket(ticket_id, customer_id):
+    ticket = Ticket.query.join(Bill).filter(
+        Ticket.id == ticket_id,
+        Bill.customer_id == customer_id
+    ).first()
+
+    if not ticket:
+        raise ValueError("Không tìm thấy vé hoặc bạn không có quyền hủy vé này!")
+
+    if ticket.status == TicketStatus.USED:
+        raise ValueError("Vé đã check-in và sử dụng, không thể hủy!")
+
+    if ticket.status == TicketStatus.CANCELLED:
+        raise ValueError("Vé đã hủy!")
+
+    screening = ticket.screening_seat.screening
+    now = datetime.now()
+
+    if screening.start_time - now < timedelta(hours=2):
+        raise ValueError("Quá hạn hủy vé! Chỉ được hủy trước suất chiếu ít nhất 2 tiếng.")
+
+    try:
+        ticket.status = TicketStatus.CANCELLED
+
+        s_seat = ticket.screening_seat
+        s_seat.status = SeatStatus.AVAILABLE
+        s_seat.holding_user_id = None
+        s_seat.hold_expired_at = None
+
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise Exception(f"Lỗi hệ thống khi hủy vé: {str(e)}")
