@@ -27,10 +27,10 @@ def register_app(app):
     def register():
         err_msg = None
         data = {}
-    
+
         if request.method == 'POST':
             data = request.form.to_dict()
-    
+
             username = data.get('username')
             password = data.get('password')
             confirm = data.get('confirm_password')
@@ -40,11 +40,11 @@ def register_app(app):
             birthday = data.get('birthday')
             avatar = request.files.get('avatar')
             avatar_url = None
-    
+
             if password != confirm:
                 err_msg = "Mật khẩu không khớp!"
                 return render_template('register.html', err_msg=err_msg, data=data)
-    
+
             if avatar:
                 res = cloudinary.uploader.upload(avatar)
                 avatar_url = res.get('secure_url')
@@ -60,7 +60,7 @@ def register_app(app):
                 db.session.rollback()
                 err_msg = "Hệ thống đang lỗi!"
                 print(ex)
-    
+
         return render_template('register.html', err_msg=err_msg, data=data)
 
     @app.route("/login", methods=['GET', 'POST'])
@@ -69,13 +69,13 @@ def register_app(app):
         err_msg = None
         next_page = request.args.get('next') or request.form.get('next')
         data = {}
-    
+
         if request.method == 'POST':
             data = request.form.to_dict()
             username = data.get('username')
             password = data.get('password')
             user = dao.auth_user(username, password)
-    
+
             if user:
                 login_user(user)
                 if next_page and next_page != "None" and next_page.startswith('/'):
@@ -85,9 +85,8 @@ def register_app(app):
                     return redirect(url_for('index'))
             else:
                 err_msg = "Username hoặc password không đúng!!!"
-    
+
         return render_template('login.html', err_msg=err_msg, data=data)
-    
 
     @login.user_loader
     def get_user(user_id):
@@ -158,10 +157,13 @@ def register_app(app):
         movie_id = request.args.get("movie_id")
         print("Ngày xem:", watch_date)
         print("Id phòng đã chọn:",room_id)
-        print("Id phim đã chọn:", movie_id)
+        if not watch_date or not room_id or not movie_id:
+            jsonify({"success": False, "message": "Thiếu thông tin để tìm suất chiếu!"})
+
         movie = dao.get_movie_by_id(movie_id)
         screenings = dao.get_movie_screenings(movie_id=movie_id, room_id=room_id, watch_date=watch_date)
-        screenings = [s for s in screenings if s.start_time > datetime.now()]
+        now = datetime.now()
+        screenings = [s for s in screenings if s.start_time > now]
         print("DS suất chiếu phim đã chọn:", screenings)
         screenings_data = []
         for s in screenings:
@@ -176,7 +178,16 @@ def register_app(app):
 
     @app.route("/api/get-seats/<int:screening_id>", methods=['GET'])
     def get_seats(screening_id):
+        print(screening_id)
         seats = dao.get_seats_by_screening(screening_id=screening_id)
+
+        if not seats:
+            return jsonify({"success": False, "message": "Không tìm thấy ghế phù hợp!"})
+
+        user_used = 0
+        if current_user.is_authenticated:
+            user_used = dao.total_seat_per_screening(screening_id, current_user.id)
+        remaining = max(0, 8 - user_used)
 
         seats_data = {}
         for seat, status in seats:
@@ -190,60 +201,38 @@ def register_app(app):
                 "active": seat.active,
                 "status": status.name
             })
-        return jsonify({"success": True, "seats": seats_data})
+        return jsonify({"success": True, "seats": seats_data, "remaining": remaining})
 
-    @app.route('/booking/submit', methods=['POST', 'GET'])
+    @app.route('/booking/submit', methods=['POST'])
     def booking_submit():
-        if request.method == "POST":
-            seat_ids = request.form.get("seat")
-            screening = request.form.get("screening")
-            session["booking_seats"] = seat_ids
-            session["screening"] = screening
+        seat_ids = request.form.get("seat")
+        screening = request.form.get("screening")
 
-            if not seat_ids or not screening:
-                print("Thiếu thông tin ghế hoặc suất chiếu! - trước khi đăng nhập")
-                flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
-                return redirect(url_for('index'))
-
-        else:
-            seat_ids = session.get("booking_seats")
-            screening = session.get("screening")
-            if not seat_ids or not screening:
-                print("Thiếu thông tin ghế hoặc suất chiếu! - sau khi đăng nhập")
-                flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
-                return redirect(url_for('index'))
-
-        if not current_user.is_authenticated:
-            return redirect(url_for("login_my_user", next=request.url))
+        if not seat_ids or not screening:
+            print("Thiếu thông tin ghế hoặc suất chiếu! - trước khi đăng nhập")
+            flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
+            return redirect(url_for('index'))
 
         seat_ids = [int(id) for id in seat_ids.split(",")]
         print(f"DS ghế nhận được từ trang đặt vé: {seat_ids}, suất chiếu {screening}")
-        now = datetime.now()
-        expired_time = now + timedelta(minutes=10)
 
         try:
-            if screening.start_time <= now:
-                return "Suất chiếu đã bắt đầu, không thể đặt vé", 400
-
             screening_seats = dao.hold_seats(seat_ids, screening)
             print("DS ghế sẽ giữ chỗ trong 10p: ", screening_seats)
 
             if len(screening_seats) != len(seat_ids):
-                return "Một số ghế không tồn tại trong suất chiếu này", 404
+                return "Một số ghế không tồn tại trong suất chiếu này!"
 
             if dao.total_seat_per_screening(screening, current_user.id) + len(seat_ids) > 8:
-                return "Vượt quá số ghế được đặt mỗi suất chiếu", 400
+                return "Vượt quá số ghế được đặt mỗi suất chiếu!"
 
             for s in screening_seats:
-                if s.status == SeatStatus.BOOKED:
-                    return "Ghế đã được đặt", 400
-
-                if s.status == SeatStatus.HOLDING and s.hold_expired_at > now and s.holding_user_id != current_user.id:
-                    return "Ghế đang được giữ bởi người khác!", 400
+                if s.status == SeatStatus.BOOKED or (s.status == SeatStatus.HOLDING and s.holding_user_id != current_user.id):
+                    return "Ghế đã được đặt!"
 
                 else:
                     s.status = SeatStatus.HOLDING
-                    s.hold_expired_at = expired_time
+                    s.hold_expired_at = datetime.now() + timedelta(minutes=10)
                     s.holding_user_id = current_user.id
 
             total = 0
@@ -336,7 +325,7 @@ def register_app(app):
         if request.method == 'POST':
             identifier = request.form.get('identifier')
             customer = dao.get_customer_by_email(identifier)
-    
+
             if customer:
                 if customer.email:
                     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
@@ -349,7 +338,7 @@ def register_app(app):
                         flash('Lỗi hệ thống khi gửi email. Hãy thử lại!', 'danger')
             else:
                 flash('Email không tồn tại!', 'danger')
-    
+
         return render_template('forgot_password.html')
 
 
@@ -364,10 +353,10 @@ def register_app(app):
                 return redirect(url_for('reset_password'))
             else:
                 flash('Mã OTP không chính xác!', 'danger')
-    
+
         return render_template('verify_otp.html')
-    
-    
+
+
     @app.route('/reset_password', methods=['GET', 'POST'])
     def reset_password():
         if 'reset_otp' not in session:
@@ -375,7 +364,7 @@ def register_app(app):
         if request.method == 'POST':
             password = request.form.get('password')
             confirm = request.form.get('confirm')
-    
+
             if password == confirm:
                 customer_id = session.get('reset_customer_id')
                 try:
@@ -384,21 +373,21 @@ def register_app(app):
                         return redirect(url_for('login_my_user'))
                     else:
                         flash('Không tìm thấy tài khoản hoặc lỗi database!', 'danger')
-    
+
                 except ValueError as e:
                     flash(str(e), 'warning')
             else:
                 flash('Mật khẩu xác nhận không khớp!', 'danger')
-    
+
         return render_template('reset_password.html')
-    
+
     @app.route('/user/change_password', methods=['GET', 'POST'])
     @login_required
     def change_password():
         if request.method == 'POST':
             password = request.form.get('password')
             confirm = request.form.get('confirm')
-    
+
             if password == confirm:
                 customer_id = current_user.id
                 try:
@@ -409,7 +398,7 @@ def register_app(app):
                     flash(str(e), 'warning')
             else:
                 flash('Mật khẩu xác nhận không khớp!', 'danger')
-    
+
         return render_template('user/change_password.html')
 
     @app.route("/user/cancel-ticket/<int:ticket_id>", methods=['POST'])

@@ -9,7 +9,7 @@ from app import app
 VNPAY_TMN_CODE = app.config["VNPAY_TMN_CODE"]
 VNPAY_HASH_SECRET = app.config["VNPAY_HASH_SECRET"]
 
-VNPAY_RETURN_URL = "http://127.0.0.1:5001/vnpay_return"
+VNPAY_RETURN_URL = "http://127.0.0.1:5000/vnpay_return"
 VNPAY_PAYMENT_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
 
 # def get_client_ip():

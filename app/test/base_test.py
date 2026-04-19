@@ -44,6 +44,7 @@ def create_app():
 @pytest.fixture
 def test_app():
     app = create_app()
+
     with app.app_context():
         db.create_all()
         yield app
@@ -295,3 +296,5 @@ def sample_payment(test_session, sample_bill):
     test_session.add(payment)
     test_session.commit()
     return payment
+
+

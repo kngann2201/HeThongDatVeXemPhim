@@ -225,3 +225,101 @@
     background-color: #f8f9fa;
     color: #e74c3c;
 }
+
+.movie-title-hover {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+.movie-type-hover {
+    color: #ffc107 !important;
+    font-weight: 500;
+}
+
+
+.slick-prev, .slick-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 50%;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.slick-prev i, .slick-next i {
+    color: #ffffff !important;
+    font-size: 1.2rem;
+}
+
+.slick-prev:hover, .slick-next:hover {
+    background: rgba(231, 76, 60, 0.8) !important;
+}
+
+.slick-prev { left: 10px; }
+.slick-next { right: 10px; }
+
+.slick-prev:before, .slick-next:before {
+    display: none !important;
+}
+
+.btn-red {
+    display: block !important;
+    width: 100% !important;
+    padding: 10px 0 !important;
+    text-align: center !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+
+
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 10px;
+    transition: all 0.3s ease !important;
+}
+
+.btn-red:hover {
+    background: #e74c3c !important;
+    border-color: #e74c3c !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+    transform: translateY(-2px);
+}
+
+
+.password-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+
+.password-group .sign-up__inp {
+    padding-right: 45px; }
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+    z-index: 10;
+}
+
+.toggle-password:hover {
+    color: #333;
+}

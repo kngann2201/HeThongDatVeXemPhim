@@ -48,14 +48,12 @@
     overflow: hidden;
     box-sizing: border-box;
 }
+
 .swiper-wrapper {
     display: flex !important;
     flex-direction: row !important;
     justify-content: start;
     padding: 5px;
-}
-.swiper-slide {
-    width: auto !important;
 }
 .date-card {
     width: 80px;
@@ -82,7 +80,9 @@
     background: #212529;
     color: white;
 }
-
+#date-wrapper > div:last-child {
+    margin-right: 5px;
+}
 
 .d-types {
     display: flex;
@@ -124,6 +124,57 @@
     box-shadow: 0 3px 10px rgba(255, 255, 255, 0.7);
     border-radius: 5px;
 }
+
+.seat-map-wrapper {
+    min-height: 200px;
+    transition: all 0.3s ease;
+}
+
+.seat-map-wrapper.locked #seat-map {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 8px;
+    backdrop-filter: rgba(0,0,0,0.05);
+}
+.overlay-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    max-width: 800px;
+    border: 1px solid #eee;
+    animation: fadeInDown 0.4s ease;
+}
+.overlay-content i {
+    font-size: 2.5rem;
+    color: #ffc107;
+}
+.overlay-content h5 {
+    font-weight: bold;
+    color: #333;
+}
+.overlay-content p {
+    font-size: 0.9rem;
+    color: #666;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 .seat-row {
     display: flex;
     align-items: center;
@@ -136,13 +187,13 @@
     color: #ccc;
 }
 .seat {
-    background-color: green;
+    background-color: #6a6c6fc7;
     margin: 10px !important;
     opacity: 0.7;
     height: 26px;
     width: 32px;
     margin: 3px;
-    color: black;
+    color: white;
     text-align: center;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
@@ -150,21 +201,53 @@
     transition: transform 0.2s;
 }
 .seat.BOOKED, .seat.HOLDING {
-    background-color: red;
+    background-color: #991b1b;
     cursor: not-allowed;
     opacity: 1;
 }
 .seat.selected {
-    background-color: #212529;
-    transform: scale(1.2);
+    background-color: black;
+    transform: scale(1.1);
     opacity: 1;
-    color: white;
+    color: #dc3546;
 }
 .seat.AVAILABLE:hover {
-    transform: scale(1.2);
+    transform: scale(1.1);
+    opacity: 1;
 }
 .color-description {
-    width: 50px;
-    height: 20px;
+    margin-top: 5px;
+    width: 40px;
+    height: 15px;
     display: block;
+}
+
+.booking-summary {
+    background: #f8f9fa;
+    border: 1px dashed #adb5bd;
+    border-radius: 8px;
+    padding: 15px 25px;
+    max-width: 400px;
+    width: 100%;
+    margin: 20px auto;
+    width: 100% !important;
+}
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    color: #495057;
+}
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #212529;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+#btn-submit:hover {
+    background-color: black;
+    color: #dc3546;
 }

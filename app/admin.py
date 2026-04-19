@@ -1,6 +1,6 @@
 import cloudinary.uploader
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
-from flask import redirect
+from flask import redirect, request
 from flask_admin import Admin, AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.theme import Bootstrap4Theme
@@ -9,6 +9,7 @@ from wtforms import FileField
 from app.models import *
 from app import dao
 import re
+from datetime import datetime, timedelta
 import hashlib
 from sqlalchemy import func, case
 
@@ -16,7 +17,7 @@ class MyAdminIndexView(AdminIndexView):
     @expose("/")
     def index(self):
         if current_user.is_authenticated and current_user.role==UserRole.ADMIN:
-            stats = db.session.query(
+            query = db.session.query(
                 Movie.id,
                 Movie.title,
                 func.count(Ticket.id).label("total_tickets"),
@@ -39,6 +40,21 @@ class MyAdminIndexView(AdminIndexView):
                 .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id) \
                 .join(Movie, MovieScreening.movie_id == Movie.id) \
                 .group_by(Movie.id) \
+                .order_by(func.count(Ticket.id).desc())
+
+            from_date = request.args.get("from_date")
+            to_date = request.args.get("to_date")
+
+            if from_date:
+                from_date = datetime.strptime(from_date, "%Y-%m-%d")
+                query = query.filter(Ticket.created_at >= from_date)
+
+            if to_date:
+                to_date = datetime.strptime(to_date, "%Y-%m-%d")
+                to_date = to_date + timedelta(days=1) - timedelta(seconds=1)
+                query = query.filter(Ticket.created_at <= to_date)
+
+            stats = query.group_by(Movie.id) \
                 .order_by(func.count(Ticket.id).desc()) \
                 .all()
 
@@ -162,9 +178,6 @@ class MovieTypeView(AuthenticatedView):
     column_searchable_list = ["name"]
     form_excluded_columns = ["movie_type_details"]
 
-# class MovieTypeDetailView(AuthenticatedView):
-#     column_filters = ["type.name", "movie.title"]
-
 class RoomTypeView(AuthenticatedView):
     column_searchable_list = ["name"]
     column_list = ["name", "active", "created_at", "rooms"]
@@ -173,7 +186,7 @@ class RoomView(AuthenticatedView):
     column_searchable_list = ["number"]
     column_filters = ["room_type"]
 
-    form_excluded_columns = ["image"]
+    form_excluded_columns = ["image", "seats", "movie_screenings"]
     form_extra_fields = {
         "image": FileField("Image")
     }
@@ -187,33 +200,30 @@ class RoomView(AuthenticatedView):
 
 class SeatView(AuthenticatedView):
     column_filters = ["row", "number", "room"]
-
     form_excluded_columns = ["screening_seats"]
 
 class MovieScreeningView(AuthenticatedView):
     form_excluded_columns = ["screening_seats"]
 
     def on_model_change(self, form, model, is_created):
-        if not is_created:
-            return
-
         db.session.flush()
-
         if form.room.data:
             room_id = form.room.data.id
+
+            if not is_created:
+                ScreeningSeat.query.filter_by(screening_id=model.id).delete()
+                db.session.flush()
+
             seats = Seat.query.filter_by(room_id=room_id).all()
 
             for seat in seats:
-                exists = ScreeningSeat.query.filter_by(
+                db.session.add(ScreeningSeat(
                     seat_id=seat.id,
                     screening_id=model.id
-                ).first()
+                ))
 
-                if not exists:
-                    db.session.add(ScreeningSeat(
-                        seat_id=seat.id,
-                        screening_id=model.id
-                    ))
+    def on_model_delete(self, model):
+        ScreeningSeat.query.filter_by(screening_id=model.id).delete()
 
 class ScreeningSeatView(AuthenticatedView):
     form_excluded_columns = ["tickets"]

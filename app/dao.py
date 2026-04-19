@@ -2,7 +2,6 @@ import hashlib
 from datetime import datetime, timedelta
 
 from flask import current_app
-from pymysql import NULL
 from sqlalchemy import cast, Date, or_
 from app.models import (Customer, UserRole, Seat, RoomType, Movie, MovieTypeDetail, MovieType,
     MovieScreening, Room, ScreeningSeat, Bill, Payment, Ticket, TicketStatus, SeatStatus, PaymentStatus)
@@ -84,7 +83,7 @@ def get_admin_by_id(admin_id):
 
 def auth_admin(username, password):
     password = md5_hash(password)
-    return db.session.query(Customer).query.filter_by(username=username, password=password, role=UserRole.ADMIN).first()
+    return db.session.query(Customer).filter_by(username=username, password=password, role=UserRole.ADMIN).first()
 
 def get_movie_by_id(movie_id):
     return db.session.query(Movie).filter_by(id=movie_id).first()
@@ -102,6 +101,7 @@ def get_room_by_type(room_type_id):
     return db.session.query(Room).filter_by(room_type_id=room_type_id).all()
 
 def get_movie_screenings(movie_id, room_id, watch_date):
+    watch_date = datetime.strptime(watch_date, "%Y-%m-%d").date()
     start = datetime.combine(watch_date, datetime.min.time())
     end = start + timedelta(days=1)
     return (db.session.query(MovieScreening)
@@ -120,9 +120,6 @@ def get_seats_by_screening(screening_id):
         .all())
 
 def hold_seats(seat_ids, screening_id):
-    if (len(seat_ids) <= 0 or len(seat_ids) > 8):
-        raise Exception("Số lượng ghế không hợp lệ!")
-
     return db.session.query(ScreeningSeat).filter(
         ScreeningSeat.seat_id.in_(seat_ids),
         ScreeningSeat.screening_id == screening_id
@@ -190,8 +187,8 @@ def pay_fail(payment, bill):
     for ticket in bill.tickets:
         ticket.status = TicketStatus.CANCELLED
         ticket.screening_seat.status = SeatStatus.AVAILABLE
-        ticket.screening_seat.holding_user = NULL
-        ticket.screening_seat.hold_expired_at = NULL
+        ticket.screening_seat.holding_user = None
+        ticket.screening_seat.hold_expired_at = None
 
     db.session.commit()
 
@@ -261,7 +258,7 @@ def send_reset_email(user_email, otp_code):
         return False
 
 def update_password(customer_id, new_password):
-    customer = db.session.query(Customer).get(customer_id)
+    customer = db.session.get(Customer, customer_id)
     if len(new_password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
     if not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password):

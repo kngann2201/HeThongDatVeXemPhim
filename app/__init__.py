@@ -6,6 +6,7 @@ import cloudinary
 from flask_mail import Mail
 from dotenv import load_dotenv
 import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
 load_dotenv()
 app = Flask(__name__)
@@ -19,6 +20,7 @@ app.config['SECRET_KEY'] = 'suhtiwnetseveytneewtadyreveeyppahswt'
 
 db = SQLAlchemy(app)
 login = LoginManager(app)
+babel = Babel(app)
 mail = Mail()
 mail.init_app(app)
 
@@ -44,3 +46,28 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 
+
+
+
+from datetime import datetime
+from app.models import ScreeningSeat, SeatStatus
+
+def release_expired_seats():
+    with app.app_context():
+        now = datetime.now()
+
+        expired_seats = ScreeningSeat.query.filter(
+            ScreeningSeat.status == SeatStatus.HOLDING,
+            ScreeningSeat.hold_expired_at < now
+        ).all()
+
+        for s in expired_seats:
+            s.status = SeatStatus.AVAILABLE
+            # s.hold_expired_at = None
+            s.holding_user_id = None
+
+        db.session.commit()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(release_expired_seats, 'interval', minutes=0.7)
+scheduler.start()

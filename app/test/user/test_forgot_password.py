@@ -35,7 +35,7 @@ def test_update_password_success(test_app):
     result = update_password(customer_id=1, new_password="Password123")
     assert result is True
 
-    updated_cust = db.session.get(Customer, 1)
+    updated_cust = Customer.query.get(1)
     assert updated_cust.password == hashlib.md5('Password123'.encode('utf-8')).hexdigest()
 
 
