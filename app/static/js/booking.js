@@ -90,6 +90,7 @@ async function restoreState() {
         selected_info.screeningId = data.screeningId;
         await loadSeats(data.screeningId);
         document.querySelector(`.screening[data-screening="${data.screeningId}"]`)?.classList.add('active');
+        $('selected-screening').value = data.screeningId;
         const s = selected_info.screenings.find(i => i.id == data.screeningId);
         if (s) selected_info.price = s.base_price;
     }
@@ -117,7 +118,6 @@ async function loadScreenings() {
 
 async function loadSeats(screeningId) {
     const res = await fetch(`/api/get-seats/${screeningId}`).then(r => r.json());
-    console.log("API RESPONSE:", res);
     if (res.success) {
         $('menu-seats').classList.remove('d-none');
         if (res.remaining <= 0) {
@@ -126,7 +126,6 @@ async function loadSeats(screeningId) {
                 <p class="text-danger text-center">
                     Bạn đã đạt giới hạn 8 ghế cho suất chiếu này
                 </p>`;
-//            $('btn-submit').classList.add('d-none');
             return;
         }
         selected_info.remaining = res.remaining;
@@ -138,20 +137,9 @@ async function loadSeats(screeningId) {
 
         if (!available) {
             $('seat-map').innerHTML = `<p class="text-danger">Suất chiếu này đã hết ghế!</p>`;
-//            $('btn-submit').classList.add('d-none');
             return;
         }
         renderSeats();
-//
-//        const wrapper = document.querySelector('.seat-map-wrapper');
-//        const overlay = $('login-overlay');
-//        if (!IS_AUTHENTICATED) {
-//            wrapper.classList.add('locked');
-//            overlay.classList.remove('d-none');
-//        } else {
-//            wrapper.classList.remove('locked');
-//            overlay.classList.add('d-none');
-//        }
     }
 }
 
@@ -305,8 +293,8 @@ $('seat-map').addEventListener('click', (e) => {
 
 $('overlay-login-btn').addEventListener('click', saveState);
 
-$('btn-submit').addEventListener('click', (e) => {
-    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false});
+document.querySelector('form').addEventListener('submit', (e) => {
+    const now = new Date();
     const screeningDateTime = new Date(
         `${selected_info.date}T${selected_info.startTime}:00`
     );
@@ -314,5 +302,11 @@ $('btn-submit').addEventListener('click', (e) => {
         e.preventDefault();
         return alert("Suất chiếu đã bắt đầu!");
     }
+    const diffMinutes = (screeningDateTime - now) / (1000 * 60);
+    if (diffMinutes < 10) {
+        e.preventDefault();
+        return alert("Không thể đặt vé trong vòng 10 phút trước giờ chiếu!");
+    }
+
     localStorage.removeItem('pending_booking');
 });

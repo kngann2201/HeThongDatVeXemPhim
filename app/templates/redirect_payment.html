@@ -1,0 +1,97 @@
+{% extends 'layout/base.html' %}
+{% block title %}Chuyển hướng thanh toán{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="payment-card text-center">
+        <div class="payment-loader">
+            <div class="spinner-ring"></div>
+            <div class="payment-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+        </div>
+
+        <h3 class="mt-4 mb-2">Đang kết nối thanh toán...</h3>
+        <p class="text-muted mb-4">
+            Vui lòng không đóng trình duyệt. Chúng tôi đang chuyển bạn đến cổng thanh toán an toàn <strong>VNPAY</strong>.
+        </p>
+
+        <div class="d-grid gap-3 col-10 mx-auto">
+            <a href="{{ payment_url | safe }}" class="btn btn-vnpay py-2 fw-bold">
+                <i class="fas fa-external-link-alt me-2"></i>Đi đến VNPAY ngay
+            </a>
+            
+            <a href="{{ url_for('history_booking_ticket') }}" class="btn btn-outline-secondary py-2">
+                <i class="fas fa-clock me-2"></i>Thanh toán sau
+            </a>
+        </div>
+        
+        <p class="mt-4 small text-secondary">
+            Tự động chuyển hướng sang trang thanh toán sau <span id="countdown">3</span> giây...
+        </p>
+    </div>
+</div>
+
+<style>
+    .payment-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        max-width: 500px;
+        width: 100%;
+    }
+    .btn-vnpay {
+        background-color: #005baa;
+        color: white;
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+    .btn-vnpay:hover {
+        background-color: #004a8c;
+        color: white;
+        transform: translateY(-2px);
+    }
+    .payment-loader {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+    }
+    .spinner-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #005baa;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    .payment-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 30px;
+        color: #005baa;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    let seconds = 3;
+    const countdownEl = document.getElementById('countdown');
+
+    const timer = setInterval(() => {
+        seconds--;
+        countdownEl.innerText = seconds;
+        if (seconds <= 0) {
+            clearInterval(timer);
+            window.location.href = "{{ payment_url | safe }}";
+        }
+    }, 1000);
+</script>
+{% endblock %}

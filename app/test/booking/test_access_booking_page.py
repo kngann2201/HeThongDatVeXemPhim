@@ -1,6 +1,5 @@
 from datetime import date
-from app.test.base_test import (test_app, test_session,
-    sample_movie, sample_movie_type, sample_movie_type_detail, sample_room_type)
+from app.test.base_test import *
 from app import dao
 
 

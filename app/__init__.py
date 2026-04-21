@@ -50,7 +50,8 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 
 
 from datetime import datetime
-from app.models import ScreeningSeat, SeatStatus
+from app.models import ScreeningSeat, SeatStatus, TicketStatus, PaymentStatus
+
 
 def release_expired_seats():
     with app.app_context():
@@ -63,11 +64,16 @@ def release_expired_seats():
 
         for s in expired_seats:
             s.status = SeatStatus.AVAILABLE
-            # s.hold_expired_at = None
             s.holding_user_id = None
+            for t in s.tickets:
+                t.status = TicketStatus.CANCELLED
+                t.bill.status = PaymentStatus.FAILED
 
         db.session.commit()
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(release_expired_seats, 'interval', minutes=0.7)
-scheduler.start()
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    scheduler.start()
+
+print(scheduler.get_jobs())

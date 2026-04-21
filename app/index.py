@@ -53,7 +53,8 @@ def register_app(app):
                     username=username, password=password, full_name=full_name,
                     phone=phone, email=email, birthday=birthday, avatar=avatar_url
                 )
-                return render_template("login.html", success=True, data={})
+                flash("Đăng ký thành công! Vui lòng đăng nhập.", "success")
+                return redirect(url_for('login_my_user'))
             except ValueError as v:
                 err_msg = str(v)
             except Exception as ex:
@@ -122,9 +123,7 @@ def register_app(app):
 
     @app.route("/booking/<int:movie_id>", methods=['GET'])
     def booking(movie_id):
-        err_msg = None
         movie = dao.get_movie_by_id(movie_id)
-
         if not movie:
             flash("Phim không tồn tại hoặc đã bị gỡ bỏ!", "fail")
             return redirect(url_for('index'))
@@ -132,7 +131,7 @@ def register_app(app):
         movie_types = dao.get_movie_types(movie_id)
         room_types = dao.get_room_types()
 
-        return render_template('booking.html', err_msg=err_msg,
+        return render_template('booking.html',
             movie=movie, movie_types=movie_types, room_types=room_types)
 
     @app.route("/api/get-rooms/<int:room_type_id>", methods=['GET'])
@@ -164,7 +163,7 @@ def register_app(app):
         screenings = dao.get_movie_screenings(movie_id=movie_id, room_id=room_id, watch_date=watch_date)
         now = datetime.now()
         screenings = [s for s in screenings if s.start_time > now]
-        print("DS suất chiếu phim đã chọn:", screenings)
+        print("DS suất chiếu từ phim đã chọn:", screenings)
         screenings_data = []
         for s in screenings:
             screenings_data.append({
@@ -207,14 +206,25 @@ def register_app(app):
     def booking_submit():
         seat_ids = request.form.get("seat")
         screening = request.form.get("screening")
+        print("Bắt lỗi submit:")
+        print(seat_ids)
+        print(screening)
 
         if not seat_ids or not screening:
-            print("Thiếu thông tin ghế hoặc suất chiếu! - trước khi đăng nhập")
+            print("Thiếu thông tin ghế hoặc suất chiếu!")
             flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
             return redirect(url_for('index'))
 
         seat_ids = [int(id) for id in seat_ids.split(",")]
         print(f"DS ghế nhận được từ trang đặt vé: {seat_ids}, suất chiếu {screening}")
+
+        now = datetime.now()
+        scr = dao.get_screening_by_id(screening)
+        if scr.start_time <= now:
+            return "Phim đã bắt đầu, không thể đặt vé!"
+
+        if scr.start_time - now < timedelta(minutes=10):
+            return "Không thể đặt vé sát giờ chiếu!"
 
         try:
             screening_seats = dao.hold_seats(seat_ids, screening)
@@ -246,7 +256,12 @@ def register_app(app):
             session.pop("booking_seats", None)
             db.session.commit()
 
-            return redirect(url_for("payment", bill_id=bill.id))
+            txn_ref = f"{bill.id}_{int(time.time())}"
+            dao.add_payment(bill_id=bill.id, txn_ref=txn_ref, amount=bill.total_amount)
+            payment_url = build_payment_url(amount=bill.total_amount, txn_ref=txn_ref)
+            return render_template('redirect_payment.html',
+                                   payment_url=payment_url,
+                                   bill=bill)
 
         except Exception as e:
             db.session.rollback()
@@ -258,19 +273,30 @@ def register_app(app):
     def payment(bill_id):
         try:
             bill = dao.get_bill_by_id(bill_id)
-            txn_ref = f"{bill.id}_{int(time.time())}"
-            payment = dao.add_payment(bill_id=bill_id, txn_ref=txn_ref, amount=bill.total_amount)
-            payment_url = build_payment_url(amount=payment.amount, txn_ref=txn_ref)
+            if not bill:
+                return "Hóa đơn không tồn tại", 404
+            payment = dao.get_payment_by_bill_id(bill_id)
+
+            if not payment:
+                txn_ref = f"{bill.id}_{int(time.time())}"
+                payment = dao.add_payment(bill_id=bill_id, txn_ref=txn_ref, amount=bill.total_amount)
+            else:
+                txn_ref = payment.txn_ref
+
+            payment_url = build_payment_url(amount=bill.total_amount, txn_ref=txn_ref)
             return redirect(payment_url)
 
         except Exception as e:
-            return jsonify({"success": False, "error": str(e)})
+            print(f"Lỗi thanh toán: {e}")
+            return redirect(url_for('index'))
 
     @app.route("/vnpay_return")
     def vnpay_return():
         res_code = request.args.get("vnp_ResponseCode")
         trans_id = request.args.get("vnp_TransactionNo")
         txn_ref = request.args.get("vnp_TxnRef")
+        msg=None
+        success = False
 
         print("Kết quả trả về từ VNPAY")
         print(res_code)
@@ -278,22 +304,42 @@ def register_app(app):
         print(txn_ref)
 
         payment = Payment.query.filter_by(txn_ref=txn_ref).first()
-
+        if not payment:
+            return "Không tìm thấy thông tin thanh toán!"
         if payment.status != PaymentStatus.PENDING:
             return "Đã xử lý trước đó"
 
         payment.vnp_transaction_id = trans_id
         bill = payment.bill
 
-        if not payment:
-            return 404
+        for ticket in bill.tickets:
+            seat = ticket.screening_seat
+            if seat.status != SeatStatus.HOLDING:
+                dao.pay_fail(payment, bill)
+                msg = 'Ghế đã bị huỷ trong khi thanh toán!'
+                return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg))
+            if seat.hold_expired_at < datetime.now():
+                dao.pay_fail(payment, bill)
+                msg = "Ghế đã hết hạn! Vui lòng đặt mới và thanh toán trong thời gian quy định!"
+                return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg))
         if res_code != '00':
             dao.pay_fail(payment, bill)
-            return redirect("/fail")
+            msg = 'Thanh toán thất bại!'
+            return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg))
 
         dao.pay_success(payment, bill)
+        msg = 'Thanh toán thành công!'
+        success = True
+        return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg, success=success))
 
-        return redirect("/")
+    @app.route("/payment-return")
+    def payment_return():
+        txn_ref = request.args.get('txn_ref')
+        amount = request.args.get('amount')
+        amount = int(amount)
+        msg = request.args.get('msg')
+        success = request.args.get('success')
+        return render_template("return_payment.html", txn_ref=txn_ref, amount=amount, msg=msg, success=success)
 
 
     @app.route("/user/profile")
@@ -311,8 +357,8 @@ def register_app(app):
     @app.route("/user/history_booking")
     @login_required
     def history_booking_ticket():
-        data = dao.get_info_movie(current_user.id, TicketStatus.PAID)
-        return render_template('user/history_booking.html', ticket_list=data)
+        data = dao.get_all_info_movie(current_user.id)
+        return render_template('user/history_booking.html', bookings=data)
 
     @app.route("/user/history_watched")
     @login_required

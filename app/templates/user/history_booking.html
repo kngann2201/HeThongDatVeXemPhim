@@ -12,39 +12,32 @@
                 <th>Suất chiếu</th>
                 <th>Ghế</th>
                 <th>Giá vé</th>
-                <th>Trạng thái</th> <th>Thao tác</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
             </tr>
             </thead>
             <tbody>
-            {% for t in ticket_list %}
-            {# Thêm class table-secondary nếu vé đã hủy để dễ phân biệt #}
-            <tr class="{% if t.status == 'CANCELLED' %}table-secondary text-muted{% endif %}">
-                <td>#{{ t.id }}</td>
-                <td>{{ t.movie_name }}</td>
-                <td>{{ t.show_time }}</td>
-                <td>{{ t.seat_number }}</td>
-                <td>{{ "{:,.0f}".format(t.price) }}đ</td>
-
+            {% for b in bookings %}
+            <tr>
+                <td>#{{ b.id }}</td>
+                <td>{{ b.movie_name }}</td>
+                <td>{{ b.show_time }}</td>
+                <td>{{ b.seat_number }}</td>
+                <td>{{ "{:,.0f}".format(b.price) }}đ</td>
                 <td>
-                    {% if t.status == "PAID" %}
-                        <span class="badge bg-success">Sắp xem</span>
-                    {% elif t.status == "CANCELLED" %}
-                        <span class="badge bg-danger">Đã hủy</span>
-                    {% else %}
-                        <span class="badge bg-info text-dark">{{ t.status }}</span>
-                    {% endif %}
-                </td>
-
-                <td>
-                    {% if t.status == "PAID" %}
-                    <form action="{{ url_for('cancel_ticket_route', ticket_id=t.id) }}" method="POST"
-                          onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?')">
-                        <button type="submit" class="btn btn-sm btn-danger">
-                            <i class="fa-solid fa-trash-can me-1"></i> Hủy vé
-                        </button>
-                    </form>
+                    {% if b.status.value == 3 %} <span>Đã sử dụng</span>
+                    {% elif b.status.value == 1 %} <span>Vé đã thanh toán</span>
+                    {% elif b.status.value == 2 %} <span>Vé đã bị hủy</span>
                     {% else %}
                     <small class="fst-italic"></small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if b.status.value == 0 %}
+                        <a class="badge btn-success text-decoration-none"  href="/payment/{{ b.bill_id }}">Thanh toán</a>
+                        <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
+                    {% elif b.status.value == 1 %}
+                        <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
                     {% endif %}
                 </td>
             </tr>
