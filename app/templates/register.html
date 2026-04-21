@@ -25,12 +25,11 @@
             </div>
             <div class="input-field">
                 <label for="birthday" class="input-label">Ngày sinh</label>
-                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31"
-                       value="{{ data.get('birthday', '') }}" required>
+                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31" value="{{ data.get('birthday', '') }}"required>
                 <small id="birthday-error" class="error-text"></small>
             </div>
             <div class="input-field">
-                <input class="form-control" type="text" name="phone" id="phone" placeholder="Số điện thoại"
+                <input class="form-control" type="text" name="phone" id="phone" maxlength="10" placeholder="Số điện thoại"
                        value="{{ data.get('phone', '') }}" required>
                 <small id="phone-error" class="error-text"></small>
             </div>
@@ -169,5 +168,4 @@
         cursor: not-allowed;
     }
 </style>
-<script src="{{ url_for('static', filename='js/login_register.js') }}"></script>
 {% endblock %}

@@ -20,8 +20,9 @@ app.config['SECRET_KEY'] = 'suhtiwnetseveytneewtadyreveeyppahswt'
 
 db = SQLAlchemy(app)
 login = LoginManager(app)
-mail = Mail(app)
 babel = Babel(app)
+mail = Mail()
+mail.init_app(app)
 
 # cloudinary.config(cloud_name='dkzxdp1gi',
 #                   api_key='889343733763378',

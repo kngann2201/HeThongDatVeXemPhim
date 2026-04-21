@@ -17,15 +17,18 @@
                 <div class="px-2">
                     <div class="movie-card-minimal shadow">
                         <div class="poster-wrapper">
+                            {# Kiểm tra poster từ link tuyệt đối hoặc file static #}
                             <img class="poster-img"
                                  src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
                                  alt="{{ p.title }}">
+
                             <div class="movie-hover-instant">
                                 <div class="movie-info-content w-100 mb-2">
-                                    <h6 class="movie-title-hover">{{ p.title }}</h6>
-                                    <p class="movie-type-hover">{{ p.type }}</p></div>
+                                    <h6 class="movie-title-hover text-uppercase fw-bold">{{ p.title }}</h6>
+                                    <p class="movie-type-hover small">{{ p.genres }}</p>
+                                </div>
                                 <div class="btn-group-hover w-100">
-                                    <a class="btn-red" href="/booking/{{ p.id }}">Đặt vé</a>
+                                    <a class="btn-red" href="/booking/{{ p.id }}">Đặt vé ngay</a>
                                 </div>
                             </div>
                         </div>
@@ -36,9 +39,9 @@
         </div>
         {% else %}
         <div class="col-12 text-center py-5">
-            <i class="fa-solid fa-magnifying-glass fa-3x text-secondary mb-3"></i>
-            <h4 class="text-dark">Không tìm thấy phim nào khớp với "{{ keyword }}"</h4>
-            <a href="/" class="btn btn-outline-danger mt-3">Quay lại trang chủ</a>
+            <i class="fa-solid fa-face-frown fa-3x text-secondary mb-3"></i>
+            <h4 class="text-dark">Rất tiếc, không tìm thấy phim nào khớp với "{{ keyword }}"</h4>
+            <a href="/" class="btn btn-outline-danger mt-3">Xem tất cả phim</a>
         </div>
         {% endif %}
     </div>
