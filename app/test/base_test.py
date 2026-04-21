@@ -1,13 +1,12 @@
 import os
 from flask import Flask
-from app import db, login
+from app import db
 import pytest
 import hashlib
 from datetime import datetime, timedelta
 from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
     ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
 from datetime import date
-from flask_mail import Mail
 from app import mail as flask_mail
 
 
@@ -222,23 +221,6 @@ def sample_screening_seats(test_session, sample_seats, sample_screening):
     test_session.add_all(ss_list)
     test_session.commit()
     return ss_list
-@pytest.fixture
-def sample_screening_seats_v2(test_session, sample_seats, sample_screening):
-    ss_list = []
-
-    for i, seat in enumerate(sample_seats):
-        is_first = (i == 0)
-        ss = ScreeningSeat(
-            seat_id=seat.id,
-            screening_id=sample_screening[2].id,
-            status=SeatStatus.BOOKED if is_first else SeatStatus.AVAILABLE,
-            holding_user_id=1 if is_first else None
-        )
-        ss_list.append(ss)
-
-    test_session.add_all(ss_list)
-    test_session.commit()
-    return ss_list
 
 @pytest.fixture
 def sample_bill(test_session):
@@ -252,18 +234,18 @@ def sample_bill(test_session):
     return [bill]
 
 @pytest.fixture
-def sample_tickets(test_session, sample_screening_seats,sample_screening_seats_v2, sample_bill):
+def sample_tickets(test_session, sample_screening_seats, sample_bill):
     t1 = Ticket(
         price=100000,
         status=TicketStatus.PAID,
         screening_seat_id=1,
-        bill_id=sample_bill.id
+        bill_id=sample_bill[0].id
     )
 
     t2 = Ticket(
         price=100000,
         status=TicketStatus.PAID,
-        screening_seat_id=sample_screening_seats_v2[0].id,
+        screening_seat_id=sample_screening_seats[0].id,
         bill_id=sample_bill[0].id
     )
 
@@ -287,7 +269,7 @@ def sample_tickets(test_session, sample_screening_seats,sample_screening_seats_v
 @pytest.fixture
 def sample_payment(test_session, sample_bill):
     payment = Payment(
-        bill_id=sample_bill.id,
+        bill_id=sample_bill[0].id,
         amount=100000,
         status=PaymentStatus.PENDING,
         txn_ref="TEST123"

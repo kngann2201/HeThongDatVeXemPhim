@@ -36,6 +36,12 @@
                     <strong>Ngày chiếu</strong><br>
                     <span>{{movie.release_date.strftime('%d/%m/%Y')}}</span>
                 </div>
+                {% if view != 0 %}
+                 <div class="d-flex gap-3 flex-wrap align-items-center mb-3">
+                    <strong>Lượt xem</strong><br>
+                     <span>{{ view }} lượt đặt vé<br></span>
+                </div>
+                {% endif %}
 
                 <div class="row">
                     <div class="col text-center text-sm-left">

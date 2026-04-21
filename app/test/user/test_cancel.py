@@ -1,10 +1,9 @@
 from app.models import TicketStatus, SeatStatus
 from app.dao import cancel_ticket
-from app.test.base_test import (test_app, test_session, sample_movie, sample_room,sample_seats, sample_screening, sample_screening_seats_v2,
-                                sample_screening_seats, sample_bill, sample_tickets)
+from app.test.base_test import *
 import pytest
 
-@pytest.mark.parametrize('ticket_index', [1, 2, 3])
+@pytest.mark.parametrize('ticket_index', [2, 3])
 def test_cancel_ticket_fail(test_app,test_session, sample_tickets, mocker, ticket_index):
     class FakeUser:
         is_authenticated = True

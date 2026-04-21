@@ -33,3 +33,4 @@ def test_total_seat_per_invalid_screening(test_session, sample_screening_seats):
 def test_total_seat_per_screening_invalid_user(test_session, sample_screening_seats):
     result = dao.total_seat_per_screening(screening_id=1, user_id=11)
     assert result == 0
+

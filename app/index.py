@@ -128,11 +128,12 @@ def register_app(app):
             flash("Phim không tồn tại hoặc đã bị gỡ bỏ!", "fail")
             return redirect(url_for('index'))
 
+        view = dao.ticket_count_by_movie_id(movie_id)
         movie_types = dao.get_movie_types(movie_id)
         room_types = dao.get_room_types()
 
         return render_template('booking.html',
-            movie=movie, movie_types=movie_types, room_types=room_types)
+            movie=movie, movie_types=movie_types, room_types=room_types, view=view)
 
     @app.route("/api/get-rooms/<int:room_type_id>", methods=['GET'])
     def get_rooms(room_type_id):

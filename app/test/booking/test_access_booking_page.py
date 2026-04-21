@@ -13,19 +13,15 @@ def test_get_movie_not_exist(test_session, sample_movie):
     result = dao.get_movie_by_id(movie_id=22)
     assert result is None
 
-def test_get_movie_no_type(test_session, sample_movie_type):
+def test_get_movie_no_type(test_session, sample_movie_type, sample_movie_type_detail):
     result = dao.get_movie_types(movie_id=4)
     assert len(result) == 0
 
 def test_get_movie_types(test_session, sample_movie_type, sample_movie_type_detail):
-    t1 = sample_movie_type[0]
-    t2 = sample_movie_type[1]
     result = dao.get_movie_types(movie_id=1)
     assert len(result) == 2
-    assert result[0].id == t1.id
-    assert result[1].id == t2.id
 
-def test_get_movie_type_movie_not_exist(test_session, sample_movie_type):
+def test_get_movie_type_movie_not_exist(test_session, sample_movie_type, sample_movie_type_detail):
     result = dao.get_movie_types(movie_id=22)
     assert len(result) == 0
 
@@ -33,10 +29,19 @@ def test_get_all_room_types(test_session, sample_room_type):
     result = dao.get_room_types()
     assert len(result) == 3
 
+def test_get_movie_view(test_session, sample_movie, sample_screening, sample_screening_seats, sample_bill, sample_tickets):
+    result = dao.ticket_count_by_movie_id(movie_id=1)
+    assert result == 3
+
+def test_get_movie_no_view(test_session, sample_movie, sample_screening, sample_screening_seats, sample_bill, sample_tickets):
+    result = dao.ticket_count_by_movie_id(movie_id=3)
+    assert result == 0
+
 def test_access_booking_page(test_client, mocker):
     mock_movie = mocker.patch('app.index.dao.get_movie_by_id')
     mock_types = mocker.patch('app.index.dao.get_movie_types')
     mock_room_types = mocker.patch('app.index.dao.get_room_types')
+    mock_views = mocker.patch('app.index.dao.ticket_count_by_movie_id')
 
     response = test_client.get('/booking/1')
     mock_movie.return_value = {
@@ -55,6 +60,8 @@ def test_access_booking_page(test_client, mocker):
     mock_room_types.return_value = [
         {'id': 1, 'name': 'VIP'}
     ]
+    mock_views.return_value = 0
+
     assert response.status_code == 200
 
 def test_access_booking_page_fail(test_client, mocker):

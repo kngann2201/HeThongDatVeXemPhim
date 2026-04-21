@@ -37,11 +37,9 @@ pytz==2026.1.post1
 six==1.17.0
 SQLAlchemy==2.0.48
 typing_extensions==4.15.0
+tzdata==2026.1
 tzlocal==5.3.1
 urllib3==2.6.3
 Werkzeug==3.1.6
 WTForms==3.2.1
 WTForms-SQLAlchemy==0.4.2
-APScheduler==3.11.2
-tzdata==2026.1
-tzlocal==5.3.1

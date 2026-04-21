@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime, timedelta
 
 from flask import current_app
-from sqlalchemy import cast, Date, or_
+from sqlalchemy import cast, Date, or_, func
 from app.models import (Customer, UserRole, Seat, RoomType, Movie, MovieTypeDetail, MovieType,
     MovieScreening, Room, ScreeningSeat, Bill, Payment, Ticket, TicketStatus, SeatStatus, PaymentStatus)
 from app import db
@@ -181,9 +181,17 @@ def get_movies(keyword=None):
 
     return results
 
-
 def count_movies():
     return db.session.query(Movie).count()
+
+def ticket_count_by_movie_id(movie_id):
+    ticket_count = (
+        db.session.query(func.count(Ticket.id))
+        .join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)
+        .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)
+        .filter(MovieScreening.movie_id == movie_id, Ticket.status != TicketStatus.CANCELLED)
+    ).scalar()
+    return ticket_count
 
 def pay_fail(payment, bill):
     payment.status = PaymentStatus.FAILED
@@ -231,7 +239,7 @@ def get_info_movie(customer_id, status_enum):
             'price': r[6],
             'status': r[7].name
         })
-    return watched_list
+    return ticket_list
 
 def get_all_info_movie(customer_id):
     results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
