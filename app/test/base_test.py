@@ -1,6 +1,6 @@
 import os
 from flask import Flask
-from app import db, dao, app, mail, login
+from app import db, login
 import pytest
 import hashlib
 from datetime import datetime, timedelta
@@ -172,7 +172,7 @@ def sample_seats(test_session, sample_room):
     return seats
 
 @pytest.fixture
-def sample_screening(test_session, sample_movie, sample_room):
+def sample_screening(test_session):
     scr1 = MovieScreening(
         start_time=datetime.now() + timedelta(days=1),
         base_price=100000,
@@ -238,7 +238,7 @@ def sample_tickets(test_session, sample_screening_seats, sample_bill):
         price=100000,
         status=TicketStatus.PAID,
         screening_seat_id=1,
-        bill_id=sample_bill[0].id
+        bill_id=sample_bill.id
     )
 
     test_session.add(t)

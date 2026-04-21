@@ -101,7 +101,7 @@ def get_room_by_type(room_type_id):
     return db.session.query(Room).filter_by(room_type_id=room_type_id).all()
 
 def get_movie_screenings(movie_id, room_id, watch_date):
-    watch_date = datetime.strptime(watch_date, "%Y-%m-%d").date()
+    watch_date = datetime.strptime(str(watch_date), "%Y-%m-%d").date()
     start = datetime.combine(watch_date, datetime.min.time())
     end = start + timedelta(days=1)
     return (db.session.query(MovieScreening)
@@ -135,8 +135,14 @@ def total_seat_per_screening(screening_id, user_id):
         )
     ).count()
 
+def get_screening_by_id(screening_id):
+    return db.session.query(MovieScreening).filter_by(screening_id=screening_id).first()
+
 def get_bill_by_id(bill_id):
     return db.session.query(Bill).filter_by(id=bill_id).first()
+
+def get_payment_by_bill_id(bill_id):
+    return db.session.query(Payment).filter_by(bill_id=bill_id).first()
 
 def add_bill(customer_id, total=0):
     bill = Bill(customer_id=customer_id, total_amount=total)
@@ -164,15 +170,6 @@ def count_movies():
 
 def pay_fail(payment, bill):
     payment.status = PaymentStatus.FAILED
-    bill.status = PaymentStatus.FAILED
-    bill.pay_time = datetime.now()
-
-    for ticket in bill.tickets:
-        ticket.status = TicketStatus.CANCELLED
-        ticket.screening_seat.status = SeatStatus.AVAILABLE
-        ticket.screening_seat.holding_user = None
-        ticket.screening_seat.hold_expired_at = None
-
     db.session.commit()
 
 def pay_success(payment, bill):
@@ -185,7 +182,6 @@ def pay_success(payment, bill):
         ticket.screening_seat.status = SeatStatus.BOOKED
 
     db.session.commit()
-
 
 def get_info_movie(customer_id):
     results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
@@ -211,6 +207,32 @@ def get_info_movie(customer_id):
             'status': r[7]
         })
     return watched_list
+
+def get_all_info_movie(customer_id):
+    results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
+        Ticket.price,Ticket.status, Bill.id
+    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
+     .join(Seat, ScreeningSeat.seat_id == Seat.id)\
+     .join(Room, Seat.room_id == Room.id)\
+     .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)\
+     .join(Movie, MovieScreening.movie_id == Movie.id)\
+     .join(Bill, Ticket.bill_id == Bill.id)\
+     .filter(Bill.customer_id == customer_id).all()
+
+    watched_list = []
+    for r in results:
+        watched_list.append({
+            'id': r[0],
+            'movie_name': r[1],
+            'show_time': r[2].strftime('%H:%M - %d/%m/%Y'),
+            'room_number': r[3],
+            'seat_number': f"{r[4]}{r[5]}",
+            'price': r[6],
+            'status': r[7],
+            'bill_id': r[8]
+        })
+    return watched_list
+
 def get_customer_by_email(email):
     return db.session.query(Customer).filter(Customer.email == email.strip()).first()
 

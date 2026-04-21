@@ -138,7 +138,6 @@ class PaymentStatus(CustomEnum):
     FAILED = 2
 
 class Bill(Base):
-    pay_time = Column(DateTime, nullable=True)
     total_amount = Column(Integer, nullable=False)
     status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     customer_id = Column(Integer, ForeignKey(Customer.id), nullable=False, index=True)

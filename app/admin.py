@@ -227,10 +227,12 @@ class MovieScreeningView(AuthenticatedView):
 
 class ScreeningSeatView(AuthenticatedView):
     form_excluded_columns = ["tickets"]
+    column_filters = ["screening", "holding_user", "status"]
 
 class TicketView(AuthenticatedView):
-    column_list = ["bill.customer", "price", "status", "pay_time", "screening_seat", "active", "created_at"]
+    column_list = ["bill.customer", "price", "status", "screening_seat", "active", "created_at"]
     form_excluded_columns = ["bill"]
+    column_filters = ["status"]
     column_labels = {
         "bill.customer": "Customer"
     }

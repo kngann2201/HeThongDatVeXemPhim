@@ -1,4 +1,4 @@
-from app.test.base_test import test_app, test_session, test_client
+from app.test.base_test import *
 from app import dao
 from datetime import datetime, timedelta
 

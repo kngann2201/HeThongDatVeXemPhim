@@ -1,6 +1,5 @@
-from app.test.base_test import test_app, test_session, test_client
+from app.test.base_test import *
 from app import dao
-
 
 def test_get_seats_by_screening(test_session, sample_seats, sample_screening_seats):
     result = dao.get_seats_by_screening(screening_id=1)

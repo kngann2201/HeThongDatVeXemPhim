@@ -13,6 +13,7 @@
                 <th>Ghế</th>
                 <th>Giá vé</th>
                 <th>Trạng thái</th>
+                <th>Thao tác</th>
             </tr>
             </thead>
             <tbody>
@@ -22,13 +23,21 @@
                 <td>{{ b.movie_name }}</td>
                 <td>{{ b.show_time }}</td>
                 <td>{{ b.seat_number }}</td>
-                <td>{{ "{:,.0f}".format(w.price) }}đ</td>
+                <td>{{ "{:,.0f}".format(b.price) }}đ</td>
                 <td>
-                    {% if w.status.value == 3 %} <span class="badge bg-secondary">Đã xem</span>
-                    {% elif w.status.value == 1 %} <span class="badge bg-success">Sắp xem</span>
-                    {% elif w.status.value == 2 %} <span class="badge bg-danger">Đã hủy</span>
+                    {% if b.status.value == 3 %} <span>Đã sử dụng</span>
+                    {% elif b.status.value == 1 %} <span>Vé đã thanh toán</span>
+                    {% elif b.status.value == 2 %} <span>Vé đã bị hủy</span>
                     {% else %}
                     <span class="badge bg-warning">Đang giữ</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if b.status.value == 0 %}
+                        <a class="badge btn-success text-decoration-none"  href="/payment/{{ b.bill_id }}">Thanh toán</a>
+                        <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
+                    {% elif b.status.value == 1 %}
+                        <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
                     {% endif %}
                 </td>
             </tr>
