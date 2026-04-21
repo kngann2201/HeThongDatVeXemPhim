@@ -35,7 +35,7 @@
                 <td>
                     {% if b.status.value == 0 %}
                         <a class="badge btn-success text-decoration-none"  href="/payment/{{ b.bill_id }}">Thanh toán</a>
-                        <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
+                        <a class="badge btn-danger text-decoration-none" href="/user/cancel-ticket/{{ b.id }}">Huỷ vé</a>
                     {% elif b.status.value == 1 %}
                         <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
                     {% endif %}
