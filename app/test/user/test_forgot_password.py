@@ -35,7 +35,7 @@ def test_update_password_success(test_app):
     result = update_password(customer_id=1, new_password="Password123")
     assert result is True
 
-    updated_cust = db.session.get(Customer, 1)
+    updated_cust = Customer.query.get(1)
     assert updated_cust.password == hashlib.md5('Password123'.encode('utf-8')).hexdigest()
 
 
@@ -64,16 +64,18 @@ def test_send_reset_email_failure(test_app, monkeypatch):
         assert result is False
 
 
-# def test_send_reset_email_success(test_app):
-#     from app.dao import send_reset_email
-#     from app import mail
-#
-#     email = "ngan@example.com"
-#     otp = "123456"
-#
-#     with mail.record_messages() as outbox:
-#         result = send_reset_email(email, otp)
-#
-#         assert result is True
-#         assert len(outbox) == 1
-#         assert outbox[0].subject == 'Mã xác nhận đặt lại mật khẩu'
+def test_send_reset_email_success(test_app):
+    from app import mail
+    from app.dao import send_reset_email
+
+    email = "ngan@example.com"
+    otp = "123456"
+
+    with test_app.app_context():
+        with mail.record_messages() as outbox:
+            result = send_reset_email(email, otp)
+
+            assert result is True
+            assert len(outbox) == 1
+            assert outbox[0].subject == 'Mã xác nhận đặt lại mật khẩu'
+            assert email in outbox[0].recipients

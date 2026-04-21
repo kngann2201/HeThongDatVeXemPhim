@@ -29,7 +29,7 @@
                     {% elif b.status.value == 1 %} <span>Vé đã thanh toán</span>
                     {% elif b.status.value == 2 %} <span>Vé đã bị hủy</span>
                     {% else %}
-                    <span class="badge bg-warning">Đang giữ</span>
+                    <small class="fst-italic"></small>
                     {% endif %}
                 </td>
                 <td>
@@ -43,7 +43,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" class="text-center py-4">Bạn chưa đặt vé nào!!!</td>
+                <td colspan="7" class="text-center py-4">Bạn chưa có vé nào trong danh sách này!!!</td>
             </tr>
             {% endfor %}
             </tbody>
