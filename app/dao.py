@@ -136,7 +136,7 @@ def total_seat_per_screening(screening_id, user_id):
     ).count()
 
 def get_screening_by_id(screening_id):
-    return db.session.query(MovieScreening).filter_by(screening_id=screening_id).first()
+    return db.session.query(MovieScreening).filter_by(id=screening_id).first()
 
 def get_bill_by_id(bill_id):
     return db.session.query(Bill).filter_by(id=bill_id).first()
@@ -332,7 +332,6 @@ def cancel_ticket(ticket_id, customer_id):
         s_seat = ticket.screening_seat
         s_seat.status = SeatStatus.AVAILABLE
         s_seat.holding_user_id = None
-        s_seat.hold_expired_at = None
 
         db.session.commit()
     except Exception as e:
