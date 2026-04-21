@@ -35,9 +35,21 @@
                 <td>
                     {% if b.status.value == 0 %}
                         <a class="badge btn-success text-decoration-none"  href="/payment/{{ b.bill_id }}">Thanh toán</a>
-                        <a class="badge btn-danger text-decoration-none" href="/user/cancel-ticket/{{ b.id }}">Huỷ vé</a>
+                        <form action="/user/cancel-ticket/{{ b.id }}" method="POST" style="display:inline;"
+                              onsubmit="return confirm('Bạn có chắc muốn huỷ vé này không?');">
+
+                            <button type="submit" class="badge btn-danger text-decoration-none">
+                                Huỷ vé
+                            </button>
+                        </form>
                     {% elif b.status.value == 1 %}
-                        <a class="badge btn-danger text-decoration-none">Huỷ vé</a>
+                        <form action="/user/cancel-ticket/{{ b.id }}" method="POST" style="display:inline;"
+                              onsubmit="return confirm('Bạn có chắc muốn huỷ vé này không?');">
+
+                            <button type="submit" class="badge btn-danger text-decoration-none">
+                                Huỷ vé
+                            </button>
+                        </form>
                     {% endif %}
                 </td>
             </tr>
@@ -51,3 +63,9 @@
     </div>
 </div>
 {% endblock %}
+
+<style>
+    a {
+        cursor: pointer;
+    }
+</style>
