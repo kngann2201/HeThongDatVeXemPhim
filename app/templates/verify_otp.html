@@ -13,15 +13,6 @@
                     <p class="text-center text-muted small mb-4">
                         Nhập mã 6 chữ số đã được gửi đến email của bạn.
                     </p>
-
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, msg in messages %}
-                        <div class="alert alert-{{ category }} small py-2">{{ msg }}</div>
-                        {% endfor %}
-                    {% endif %}
-                    {% endwith %}
-
                     <form method="POST" action="/verify_otp">
                         <div class="mb-4">
                             <div class="input-group input-group-lg">

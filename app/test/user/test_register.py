@@ -25,8 +25,8 @@ def test_success(test_app, test_session):
 
 @pytest.mark.parametrize('password', [
     '1' * 7, '1a' * 3 + 'A',
-    'A1' * 4, 'Aa' * 4, 'a1' * 4,
-    '1' * 8, 'a' * 8, 'A' * 8
+    'A1' * 4, 'Aa' * 4, 'a1' * 4,'Ha11'*4,
+    '1' * 8, 'a' * 8, 'A' * 8,
 ])
 def test_invalid_password(test_app, password):
     birthday_obj = datetime.strptime('1/1/2008', '%d/%m/%Y').date()
@@ -134,3 +134,4 @@ def test_invalid_phone(test_app, phone):
             birthday_obj = datetime.strptime('1/1/2008', '%d/%m/%Y').date()
             add_user(username='a1' * 4, password='Abc1234@', full_name='admin',
                      phone=phone, birthday=birthday_obj, email='admin123@gmail.com', avatar=None)
+

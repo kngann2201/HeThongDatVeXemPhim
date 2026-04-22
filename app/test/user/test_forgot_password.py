@@ -32,11 +32,11 @@ def test_update_password_success(test_app):
                  phone_number='0323456789', birthday=birthday_obj, email='admin123@gmail.com', avatar=None)
     db.session.add(new_cust)
     db.session.commit()
-    result = update_password(customer_id=1, new_password="Password123")
+    result = update_password(customer_id=1, new_password="Password123@")
     assert result is True
 
     updated_cust = Customer.query.get(1)
-    assert updated_cust.password == hashlib.md5('Password123'.encode('utf-8')).hexdigest()
+    assert updated_cust.password == hashlib.md5('Password123@'.encode('utf-8')).hexdigest()
 
 
 def test_update_password_fail(test_app):
@@ -48,9 +48,11 @@ def test_update_password_fail(test_app):
 
     with pytest.raises(ValueError):
         update_password(customer_id=1, new_password="alllowercase123")
-        update_password(customer_id=1, new_password="Short1")
+        update_password(customer_id=1, new_password="Short221")
+        update_password(customer_id=1, new_password="Short21@")
+        update_password(customer_id=1, new_password="Shorthh@")
 
-    result_update = update_password(customer_id=999, new_password="ValidPassword123")
+    result_update = update_password(customer_id=999, new_password="ValidPassword123@")
     assert result_update is False
 
 def test_send_reset_email_failure(test_app, monkeypatch):

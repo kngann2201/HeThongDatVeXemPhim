@@ -6,18 +6,6 @@
 <div class="register-wrapper">
     <div class="register-box">
         <h2 class="register-title">ĐĂNG KÝ</h2>
-
-        {% if err_msg %}
-        <div class="alert alert-danger">{{ err_msg }}</div>
-        {% endif %}
-
-        {% if success %}
-        <script>
-            alert("Đăng ký tài khoản thành công! Nhấn OK để đăng nhập ngay!");
-            window.location.href = "{{ url_for('login_my_user') }}";
-        </script>
-        {% endif %}
-
         <form class="register-form" method="POST" enctype="multipart/form-data">
             <div class="input-field">
                 <input class="form-control" type="text" placeholder="Họ và tên" name="full_name"
@@ -25,11 +13,13 @@
             </div>
             <div class="input-field">
                 <label for="birthday" class="input-label">Ngày sinh</label>
-                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31" value="{{ data.get('birthday', '') }}"required>
+                <input class="form-control" type="date" name="birthday" id="birthday" max="2011-12-31"
+                       value="{{ data.get('birthday', '') }}" required>
                 <small id="birthday-error" class="error-text"></small>
             </div>
             <div class="input-field">
-                <input class="form-control" type="text" name="phone" id="phone" maxlength="10" placeholder="Số điện thoại"
+                <input class="form-control" type="text" name="phone" id="phone" maxlength="10"
+                       placeholder="Số điện thoại"
                        value="{{ data.get('phone', '') }}" required>
                 <small id="phone-error" class="error-text"></small>
             </div>
@@ -48,13 +38,13 @@
 
             <div class="input-field password-group">
                 <input class="form-control" type="password" name="password" id="password" placeholder="Mật khẩu"
-                       required>
+                       value="{{ data.get('password', '') }}" required>
                 <i class="fas fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
             </div>
 
             <div class="input-field password-group">
                 <input class="form-control" type="password" name="confirm_password" id="confirm_password"
-                       placeholder="Xác nhận mật khẩu" required>
+                       value="{{ data.get('confirm_password', '') }}" placeholder="Xác nhận mật khẩu" required>
                 <i class="fas fa-eye toggle-password" onclick="togglePassword('confirm_password', this)"></i>
                 <small id="confirm-error" class="error-text"></small>
             </div>
@@ -64,6 +54,7 @@
                     <li id="rule-length">• Ít nhất 8 ký tự</li>
                     <li id="rule-upper">• Có chữ hoa (A-Z)</li>
                     <li id="rule-lower">• Có chữ thường (a-z)</li>
+                    <li id="rule-special">• Có kí tự đặc biệt</li>
                     <li id="rule-number">• Có số (0-9)</li>
                 </ul>
             </div>

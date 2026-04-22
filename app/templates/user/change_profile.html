@@ -1,10 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'layout/base.html' %}
 
-</body>
-</html>
+{% block title %}Chỉnh sửa thông tin{% endblock %}
+
+{% block content %}
+<div class="register-wrapper">
+    <div class="register-box">
+        <h2 class="register-title">CHỈNH SỬA THÔNG TIN</h2>
+        <form class="register-form" method="POST" enctype="multipart/form-data">
+            <div class="input-field">
+                <label class="input-label small text-secondary">Họ và tên</label>
+                <input class="form-control" type="text" placeholder="Họ và tên" name="full_name"
+                       value="{{ customer.full_name }}" required/>
+            </div>
+
+            <div class="input-field">
+                <label for="birthday" class="input-label">Ngày sinh</label>
+                <input class="form-control" type="date" name="birthday" id="birthday"
+                       value="{{ customer.birthday.strftime('%Y-%m-%d') if customer.birthday else '' }}" required>
+                <small id="birthday-error" class="error-text"></small>
+            </div>
+
+            <div class="input-field">
+                <label class="input-label small text-secondary">Số điện thoại</label>
+                <input class="form-control" type="text" name="phone" id="phone" maxlength="10"
+                       placeholder="Số điện thoại" value="{{ customer.phone_number }}" required>
+                <small id="phone-error" class="error-text"></small>
+            </div>
+
+            <div class="input-field">
+                <label class="input-label small text-secondary">Email</label>
+                <input class="form-control" type="email" name="email" id="email" value="{{ customer.email }}"
+                       placeholder="Email">
+                <small id="email-error" class="error-text"></small>
+            </div>
+
+            <div class="input-field">
+                <label for="avatar" class="input-label">Ảnh đại diện mới</label>
+                <input class="form-control" type="file" name="avatar" id="avatar" accept="image/*">
+            </div>
+
+            <button class="btn-submit" type="submit" id="submit-btn">Cập nhật thông tin</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .register-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 40px 20px;
+        background-color: #f8f9fa;
+        min-height: 90vh;
+    }
+
+    .register-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        width: 100%;
+        max-width: 450px;
+    }
+
+    .register-title {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    .input-field {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    .form-control {
+        width: 100% !important;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        display: block;
+    }
+
+    .error-text {
+        color: #dc3545;
+        font-size: 12px;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .password-requirements {
+        margin-top: 10px;
+        padding: 15px;
+        background-color: #f1f8ff; /* Màu xanh nhạt giống ảnh 2 */
+        border-radius: 4px;
+    }
+
+    .req-title {
+        font-weight: bold;
+        font-size: 13px;
+        color: #00aeef; /* Màu xanh cyan giống ảnh */
+        margin-bottom: 5px;
+    }
+
+    .rule-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 13px;
+    }
+
+    .rule-list li {
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+
+    .text-success { color: #28a745 !important; font-weight: bold; }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background-color: #448aff; /* Màu xanh giống ảnh 2 */
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .btn-submit:disabled {
+        background-color: #a0c4ff;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
