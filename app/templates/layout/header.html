@@ -4,6 +4,8 @@
 </head>
 
 {% set current_path = request.path %}
+{% set current_type = request.args.get('type_id') %}
+
 <nav id="mainNav" class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark border-bottom border-secondary">
     <div class="container-fluid px-4">
         <a class="navbar-brand fw-bold text-danger fs-3" href="/">CINEMA</a>
@@ -13,15 +15,31 @@
         </button>
 
         <div class="collapse navbar-collapse" id="mynavbar">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-3">
+
                 <li class="nav-item">
-                    <a class="nav-link {% if current_path == '/' %}active{% endif %}" href="/">Trang chủ</a>
+                    <a class="nav-link {% if current_path == '/' and not current_type %}active{% endif %}"
+                       href="/">Trang chủ</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle no-caret {% if current_type %}active{% endif %}"
+                       href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        Thể loại
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg">
+                        {% for t in movie_types %}
+                        <li>
+                            <a class="dropdown-item {% if current_type == t.id|string %}active{% endif %}"
+                               href="/?type_id={{ t.id }}{% if keyword %}&kw={{ keyword }}{% endif %}">
+                                {{ t.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Phim mới</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Bảng xếp hạng</a>
+                    <a class="nav-link" href="/#ranking_list" style="cursor: pointer;">Bảng xếp hạng</a>
                 </li>
                 {% for i in items %}
                 <li class="nav-item">
@@ -32,31 +50,36 @@
             </ul>
 
             <div class="d-flex align-items-center gap-3">
-
                 <form action="/" method="get" class="nav-search-glass">
                     <input type="text" name="kw" value="{{ keyword }}" placeholder="Tìm phim...">
                 </form>
 
                 {% if current_user.is_authenticated %}
                 <div class="dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center text-white p-0"
-                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center text-white p-0 no-caret"
+                       href="#" role="button" data-bs-toggle="dropdown">
                         <div class="user-avatar-container me-2">
-                            <img src="{{ current_user.avatar }}" alt="Avatar" class="user-avatar-img">
+                            <img src="{{ current_user.avatar }}" alt="Avatar"
+                                 class="user-avatar-img border border-secondary">
                         </div>
                         <span class="fw-semibold d-none d-sm-inline">{{ current_user.username }}</span>
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2">
-                        <li><a class="dropdown-item py-2" href="{{ url_for('profile') }}">
+                        <li><a class="dropdown-item py-2 {% if current_path == url_for('profile') %}active{% endif %}"
+                               href="{{ url_for('profile') }}">
                             <i class="fa-solid fa-circle-user me-2"></i> Hồ sơ cá nhân
                         </a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('history_booking_ticket') }}">
-                            <i class="fa-solid fa-ticket me-2"></i> Vé của tôi
-                        </a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('history_watched') }}">
-                            <i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử xem
-                        </a></li>
+                        <li>
+                            <a class="dropdown-item py-2 {% if current_path == url_for('history_booking_ticket') %}active{% endif %}"
+                               href="{{ url_for('history_booking_ticket') }}">
+                                <i class="fa-solid fa-ticket me-2"></i> Vé của tôi
+                            </a></li>
+                        <li>
+                            <a class="dropdown-item py-2 {% if current_path == url_for('history_watched') %}active{% endif %}"
+                               href="{{ url_for('history_watched') }}">
+                                <i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử xem
+                            </a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>

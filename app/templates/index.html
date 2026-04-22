@@ -17,7 +17,13 @@
                 <div class="px-2">
                     <div class="movie-card-minimal shadow">
                         <div class="poster-wrapper">
-                            {# Kiểm tra poster từ link tuyệt đối hoặc file static #}
+                            <div class="position-absolute top-0 start-0 m-2" style="z-index: 11;">
+                                <span class="badge bg-danger shadow-sm py-2 px-2"
+                                      style="background: rgba(231, 76, 60, 0.9) !important; backdrop-filter: blur(4px); border-radius: 6px;">
+                                    <i class="fa-solid fa-fire me-1"></i> {{ "{:,}".format(p.ticket_count if p.ticket_count else 0) }} vé
+                                </span>
+                            </div>
+
                             <img class="poster-img"
                                  src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
                                  alt="{{ p.title }}">
@@ -45,6 +51,128 @@
         </div>
         {% endif %}
     </div>
+    <div>
+        <div class="mb-5 border-top pt-5" id="all-movies-section">
+            <h3 class="section-title mb-0">TẤT CẢ PHIM</h3>
+        </div>
+
+        <div class="row g-4"> {% for p in all_movies %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="movie-card-minimal shadow">
+                    <div class="poster-wrapper">
+                        <img class="poster-img"
+                             src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
+                             alt="{{ p.title }}">
+                        <div class="movie-hover-instant">
+                            <div class="movie-info-content w-100 mb-2">
+                                <h6 class="movie-title-hover text-uppercase fw-bold">{{ p.title }}</h6>
+                                <p class="movie-type-hover small">{{ p.genres }}</p>
+                            </div>
+                            <div class="btn-group-hover w-100">
+                                <a class="btn-red" href="/booking/{{ p.id }}">Đặt vé</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if pages > 1 %}
+        <nav class="mt-5 mb-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {{ 'disabled' if current_page == 1 }}">
+                    <a class="page-link"
+                       href="{% if current_page > 1 %}{{ url_for('index', page=current_page-1, kw=keyword) }}#all-movies-section{% else %}javascript:void(0){% endif %}">
+                        <i class="fa-solid fa-angles-left me-1"></i>
+                    </a>
+                </li>
+
+                {% for i in range(1, pages + 1) %}
+                <li class="page-item {{ 'active' if i == current_page }}">
+                    <a class="page-link" href="{{ url_for('index', page=i, kw=keyword) }}#all-movies-section">{{ i
+                        }}</a>
+                </li>
+                {% endfor %}
+
+                <li class="page-item {{ 'disabled' if current_page == pages }}">
+                    <a class="page-link"
+                       href="{% if current_page < pages %}{{ url_for('index', page=current_page+1, kw=keyword) }}#all-movies-section{% else %}javascript:void(0){% endif %}">
+                        <i class="fa-solid fa-angles-right ms-1"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+
+    {% if not keyword and ranking_movies %}
+    <div id="ranking_list" class="mb-5 mt-5">
+        <div class="d-flex align-items-center mb-5 border-top pt-5">
+            <h3 class="section-title mb-0">BẢNG XẾP HẠNG</h3>
+        </div>
+
+        <div class="ranking-table-container shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th class="text-center" style="width: 80px;">Hạng</th>
+                    <th>Phim</th>
+                    <th class="d-none d-md-table-cell">Thể loại</th>
+                    <th class="text-center">Số vé đã bán</th>
+                    <th class="text-center"></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for p in ranking_movies %}
+                <tr>
+                    <td class="text-center">
+                        {% if loop.index == 1 %}
+                        <div class="rank-circle rank-1"><i class="fa-solid fa-crown"></i></div>
+                        {% elif loop.index == 2 %}
+                        <div class="rank-circle rank-2">2</div>
+                        {% elif loop.index == 3 %}
+                        <div class="rank-circle rank-3">3</div>
+                        {% else %}
+                        <span class="fw-bold text-muted">{{ loop.index }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
+                                 alt="{{ p.title }}" class="rounded me-3"
+                                 style="width: 45px; height: 65px; object-fit: cover;">
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ p.title }}</h6>
+                                <small class="text-muted d-md-none">{{ p.genres }}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="d-none d-md-table-cell">
+                        <span class="text-secondary small">{{ p.genres }}</span>
+                    </td>
+
+                    <td class="text-center">
+                        <span class="fw-bold text-danger">
+                            <i class="fa-solid fa-fire-flame-simple me-1"></i>
+                            {{ "{:,}".format(p.ticket_count if p.ticket_count else 0) }}
+                        </span>
+                    </td>
+
+                    <td class="text-center">
+                        <a href="/booking/{{ p.id }}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                            Đặt ngay
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
@@ -58,25 +186,27 @@
             autoplay: true,
             autoplaySpeed: 3000,
             arrows: true,
-            dots: false,
-            /* Tùy chỉnh mũi tên dùng icon FontAwesome */
             prevArrow: '<button type="button" class="slick-prev shadow-sm"><i class="fa-solid fa-chevron-left"></i></button>',
             nextArrow: '<button type="button" class="slick-next shadow-sm"><i class="fa-solid fa-chevron-right"></i></button>',
             responsive: [
-                {
-                    breakpoint: 1024,
-                    settings: { slidesToShow: 3 }
-                },
-                {
-                    breakpoint: 768,
-                    settings: { slidesToShow: 2, arrows: false }
-                },
-                {
-                    breakpoint: 480,
-                    settings: { slidesToShow: 1, arrows: false }
-                }
+                { breakpoint: 1024, settings: { slidesToShow: 3 } },
+                { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } }
+            ]
+        });
+
+        $('.ranking-slider').slick({
+            infinite: false,
+            slidesToShow: 4,
+            slidesToScroll: 1,
+            arrows: true,
+            prevArrow: '<button type="button" class="slick-prev shadow-sm"><i class="fa-solid fa-chevron-left"></i></button>',
+            nextArrow: '<button type="button" class="slick-next shadow-sm"><i class="fa-solid fa-chevron-right"></i></button>',
+            responsive: [
+                { breakpoint: 1024, settings: { slidesToShow: 3 } },
+                { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } }
             ]
         });
     });
 </script>
+</div>
 {% endblock %}

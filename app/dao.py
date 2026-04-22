@@ -42,7 +42,7 @@ def add_user(username, password, full_name, phone, email, birthday, avatar):
         raise ValueError("Không đúng định dạng hoặc email đã tồn tại")
 
     if len(username) <6:
-        raise ValueError("Username phải trên 6 kí tự")
+        raise ValueError("Username phải từ 6 kí tự trở lên")
 
     if is_username_exists(username):
         raise ValueError("Tên đăng nhập đã tồn tại")
@@ -50,8 +50,8 @@ def add_user(username, password, full_name, phone, email, birthday, avatar):
     if len(password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
 
-    if not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password):
-        raise ValueError("Mật khẩu phải có chữ hoa, chữ thường và số")
+    if not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        raise ValueError("Mật khẩu phải có chữ hoa, chữ thường, kí tự đặc biệt và số")
 
     password = md5_hash(password)
     c = Customer(username=username, password=password, full_name=full_name, phone_number=phone, email=email, birthday=birthday, avatar=avatar)
@@ -161,25 +161,41 @@ def add_payment(bill_id, amount, txn_ref):
     db.session.commit()
     return payment
 
-def get_movies(keyword=None):
-    query = db.session.query(Movie)
+def get_movies(keyword=None, type_id=None):
+    ticket_subquery = db.session.query(
+        MovieScreening.movie_id,
+        func.count(Ticket.id).label('t_count')
+    ).join(ScreeningSeat, MovieScreening.id == ScreeningSeat.screening_id) \
+        .join(Ticket, ScreeningSeat.id == Ticket.screening_seat_id) \
+        .filter(Ticket.status != TicketStatus.CANCELLED) \
+        .group_by(MovieScreening.movie_id).subquery()
+
+    query = db.session.query(
+        Movie,
+        func.coalesce(ticket_subquery.c.t_count, 0).label('total_tickets')
+    ).outerjoin(ticket_subquery, Movie.id == ticket_subquery.c.movie_id)
+    if type_id:
+        query = query.join(MovieTypeDetail).filter(MovieTypeDetail.type_id == type_id)
+
     if keyword:
         query = query.filter(Movie.title.contains(keyword))
-    movies = query.order_by(Movie.id.desc()).all()
+
+    movies_with_counts = query.order_by(Movie.id.desc()).all()
 
     results = []
-    for m in movies:
+    for m, count in movies_with_counts:
         genres_list = [detail.type.name for detail in m.movie_type_details]
-
         results.append({
             'id': m.id,
             'title': m.title,
-            'description': m.description,
             'poster': m.poster,
-            'genres': ", ".join(genres_list) if genres_list else "Đang cập nhật"
+            'genres': ", ".join(genres_list),
+            'ticket_count': count
         })
-
     return results
+
+def get_all_genres():
+    return db.session.query(MovieType).all()
 
 def count_movies():
     return db.session.query(Movie).count()
@@ -292,7 +308,7 @@ def update_password(customer_id, new_password):
     customer = db.session.get(Customer, customer_id)
     if len(new_password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
-    if not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password):
+    if not re.search(r'[A-Z]', new_password) or not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", new_password):
         raise ValueError("Mật khẩu phải có chữ hoa và số")
     if customer:
         password_hashed = md5_hash(new_password)

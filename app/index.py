@@ -17,11 +17,30 @@ from app.vnpay import build_payment_url
 def register_app(app):
     @app.route("/")
     def index():
-        keyword = request.args.get('kw', '').strip()
-        movies = dao.get_movies(keyword=keyword)
-        msg = get_flashed_messages(with_categories=True)
 
-        return render_template('index.html',products=movies,keyword=keyword,msg=msg)
+        keyword = request.args.get('kw','')
+        type_id = request.args.get('type_id')
+        page = request.args.get('page', 1, type=int)
+        page_size = 8
+        products = dao.get_movies(keyword=keyword, type_id=type_id)
+        all_movies = dao.get_movies()
+        total_movies = dao.count_movies()
+        pages = math.ceil(total_movies / page_size)
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated_movies = all_movies[start:end]
+        ranking_movies = sorted(all_movies, key=lambda x: x.get('ticket_count', 0), reverse=True)[:5]
+
+        movie_types = dao.get_all_genres()
+
+        return render_template('index.html',
+                               products=products,
+                               ranking_movies=ranking_movies,
+                               pages=pages,
+                               all_movies=paginated_movies,
+                               current_page=page,
+                               keyword=keyword,
+                               movie_types=movie_types)
 
     @app.route("/register", methods=['GET', 'POST'])
     def register():
@@ -53,7 +72,6 @@ def register_app(app):
                     username=username, password=password, full_name=full_name,
                     phone=phone, email=email, birthday=birthday, avatar=avatar_url
                 )
-                flash("Đăng ký thành công! Vui lòng đăng nhập.", "success")
                 return redirect(url_for('login_my_user'))
             except ValueError as v:
                 err_msg = str(v)
@@ -447,6 +465,52 @@ def register_app(app):
                 flash('Mật khẩu xác nhận không khớp!', 'danger')
 
         return render_template('user/change_password.html')
+
+    @app.route('/user/change_profile', methods=['GET', 'POST'])
+    @login_required
+    def change_profile():
+        user = current_user
+        if not user.is_authenticated:
+            return redirect(url_for("login"))
+
+        if request.method == "POST":
+            has_changed = False
+
+            full_name = request.form.get("full_name")
+            if user.full_name != full_name:
+                user.full_name = full_name
+                has_changed = True
+
+            birthday = request.form.get("birthday")
+            if birthday:
+                user.birthday = birthday
+                has_changed = True
+
+            email = request.form.get("email")
+            if user.email != email:
+                user.email = email
+                has_changed = True
+
+            phone = request.form.get("phone")
+            if user.phone_number != phone:
+                user.phone_number = phone
+                has_changed = True
+            avatar_file = request.files.get("avatar")
+            if avatar_file and avatar_file.filename:
+                res = cloudinary.uploader.upload(avatar_file)
+                user.avatar = res['secure_url']
+                has_changed = True
+
+            if has_changed:
+                try:
+                    db.session.commit()
+                    return render_template("user/change_profile.html", customer=user, success=True)
+                except Exception as ex:
+                    db.session.rollback()
+                    return render_template("user/change_profile.html", customer=user, err_msg="Lỗi lưu DB!")
+            else:
+                return render_template("user/change_profile.html", customer=user, err_msg="Không có gì thay đổi")
+        return render_template("user/change_profile.html", customer=user)
 
     @app.route("/user/cancel-ticket/<int:ticket_id>", methods=['POST'])
     @login_required
