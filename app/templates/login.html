@@ -1,26 +1,11 @@
 {% extends 'layout/base.html' %}
 
-{% block title %}{{ ("Đăng nhập - Garage Center") }}{% endblock %}
+{% block title %}{{ ("Đăng nhập - Cinema Center") }}{% endblock %}
 
 {% block content %}
 <div class="login-wrapper">
     <div class="login-container">
         <h2 class="sign-up__title">{{ ("ĐĂNG NHẬP") }}</h2>
-
-        {% if err_msg %}
-        <div class="alert alert-danger" style="color: red; text-align: center; margin-bottom: 15px;">
-            {{ err_msg }}
-        </div>
-        {% endif %}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} custom-alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
         <form class="sign-up__form" method="POST" action="{{ url_for('login_my_user') }}">
             <div class="sign-up__content">
                 <div class="form-group">

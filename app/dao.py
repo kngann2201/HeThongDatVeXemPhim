@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime, timedelta
 
-from flask import current_app
+from flask import current_app, flash
 from sqlalchemy import cast, Date, or_, func
 from app.models import (Customer, UserRole, Seat, RoomType, Movie, MovieTypeDetail, MovieType,
     MovieScreening, Room, ScreeningSeat, Bill, Payment, Ticket, TicketStatus, SeatStatus, PaymentStatus)
@@ -285,8 +285,6 @@ def get_all_info_movie(customer_id):
 def get_customer_by_email(email):
     return db.session.query(Customer).filter(Customer.email == email.strip()).first()
 
-
-# app/dao.py
 def send_reset_email(user_email, otp_code):
     from flask_mail import Message
     from app import mail
@@ -308,7 +306,7 @@ def update_password(customer_id, new_password):
     customer = db.session.get(Customer, customer_id)
     if len(new_password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
-    if not re.search(r'[A-Z]', new_password) or not re.search(r'[A-Z]', new_password) or not re.search(r'\d', new_password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", new_password):
+    if not re.search(r'[A-Z]', new_password) or not re.search(r'[a-z]', new_password) or not re.search(r'\d', new_password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", new_password):
         raise ValueError("Mật khẩu phải có chữ hoa và số")
     if customer:
         password_hashed = md5_hash(new_password)

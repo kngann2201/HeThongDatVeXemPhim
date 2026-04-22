@@ -44,7 +44,6 @@ def register_app(app):
 
     @app.route("/register", methods=['GET', 'POST'])
     def register():
-        err_msg = None
         data = {}
 
         if request.method == 'POST':
@@ -61,8 +60,8 @@ def register_app(app):
             avatar_url = None
 
             if password != confirm:
-                err_msg = "Mật khẩu không khớp!"
-                return render_template('register.html', err_msg=err_msg, data=data)
+                flash("Mật khẩu không khớp!!","danger")
+                return render_template('register.html', data=data)
 
             if avatar:
                 res = cloudinary.uploader.upload(avatar)
@@ -72,15 +71,14 @@ def register_app(app):
                     username=username, password=password, full_name=full_name,
                     phone=phone, email=email, birthday=birthday, avatar=avatar_url
                 )
+                flash("Đăng ký thành công!!!", "success")
                 return redirect(url_for('login_my_user'))
             except ValueError as v:
-                err_msg = str(v)
+                flash(str(v), "danger")
             except Exception as ex:
                 db.session.rollback()
-                err_msg = "Hệ thống đang lỗi!"
-                print(ex)
-
-        return render_template('register.html', err_msg=err_msg, data=data)
+                flash("Hệ thống đang lỗi, vui lòng thử lại sau!", "danger")
+        return render_template('register.html', data=data)
 
     @app.route("/login", methods=['GET', 'POST'])
     @anonymous_required
@@ -470,46 +468,53 @@ def register_app(app):
     @login_required
     def change_profile():
         user = current_user
-        if not user.is_authenticated:
-            return redirect(url_for("login"))
 
         if request.method == "POST":
             has_changed = False
+            data = request.form
 
-            full_name = request.form.get("full_name")
-            if user.full_name != full_name:
-                user.full_name = full_name
+            # 1. Kiểm tra thay đổi văn bản
+            if data.get("full_name") and user.full_name != data.get("full_name"):
+                user.full_name = data.get("full_name")
                 has_changed = True
 
-            birthday = request.form.get("birthday")
-            if birthday:
-                user.birthday = birthday
+            if data.get("birthday") and str(user.birthday) != data.get("birthday"):
+                user.birthday = data.get("birthday")
                 has_changed = True
 
-            email = request.form.get("email")
-            if user.email != email:
-                user.email = email
+            if data.get("email") and user.email != data.get("email"):
+                user.email = data.get("email")
                 has_changed = True
 
-            phone = request.form.get("phone")
-            if user.phone_number != phone:
-                user.phone_number = phone
+            if data.get("phone") and user.phone_number != data.get("phone"):
+                user.phone_number = data.get("phone")
                 has_changed = True
+
+            # 2. Kiểm tra thay đổi ảnh đại diện
             avatar_file = request.files.get("avatar")
             if avatar_file and avatar_file.filename:
-                res = cloudinary.uploader.upload(avatar_file)
-                user.avatar = res['secure_url']
-                has_changed = True
+                try:
+                    res = cloudinary.uploader.upload(avatar_file)
+                    user.avatar = res['secure_url']
+                    has_changed = True
+                except Exception as e:
+                    flash("Lỗi khi tải ảnh lên Cloudinary!", "danger")
+                    return render_template("user/change_profile.html", customer=user)
 
+            # 3. Thực thi lưu vào Database
             if has_changed:
                 try:
                     db.session.commit()
-                    return render_template("user/change_profile.html", customer=user, success=True)
+                    flash("Cập nhật thông tin thành công!", "success")
+                    # Dùng redirect để chuyển hướng hẳn sang trang profile
+                    return redirect(url_for('profile'))
                 except Exception as ex:
                     db.session.rollback()
-                    return render_template("user/change_profile.html", customer=user, err_msg="Lỗi lưu DB!")
+                    flash("Lỗi hệ thống khi lưu dữ liệu!", "danger")
             else:
-                return render_template("user/change_profile.html", customer=user, err_msg="Không có gì thay đổi")
+                flash("Bạn chưa thay đổi thông tin nào.", "warning")
+
+        # Trường hợp GET hoặc POST nhưng không có thay đổi/bị lỗi
         return render_template("user/change_profile.html", customer=user)
 
     @app.route("/user/cancel-ticket/<int:ticket_id>", methods=['POST'])
