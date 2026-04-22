@@ -250,6 +250,7 @@ document.querySelector('.screenings').addEventListener('click', (e) => {
     const btn = e.target.closest('.screening');
     if (!btn) return;
     resetStateFrom('seat');
+    document.querySelector('.screening.active')?.classList.remove('active');
     btn.classList.add('active');
     selected_info.screeningId = btn.dataset.screening;
     selected_info.startTime = btn.dataset.start;
@@ -272,9 +273,8 @@ document.querySelector('.screenings').addEventListener('click', (e) => {
 
 $('seat-map').addEventListener('click', (e) => {
     const seat = e.target.closest('.seat');
-    document.getElementById('btn-submit').classList.remove('d-none');
     if (!seat || seat.classList.contains('BOOKED') || seat.classList.contains('HOLDING')) return;
-
+    document.getElementById('btn-submit').classList.remove('d-none');
     const id = seat.dataset.seat;
     if (selected_info.seats.includes(id)) {
         selected_info.seats = selected_info.seats.filter(s => s !== id);
@@ -293,7 +293,7 @@ $('seat-map').addEventListener('click', (e) => {
 
 $('overlay-login-btn').addEventListener('click', saveState);
 
-document.querySelector('form').addEventListener('submit', (e) => {
+$('btn-submit').addEventListener('click', (e) => {
     const now = new Date();
     const screeningDateTime = new Date(
         `${selected_info.date}T${selected_info.startTime}:00`
@@ -301,6 +301,10 @@ document.querySelector('form').addEventListener('submit', (e) => {
     if (screeningDateTime <= now) {
         e.preventDefault();
         return alert("Suất chiếu đã bắt đầu!");
+    }
+    if (selected_info.seats.length == 0) {
+        e.preventDefault();
+        return alert("Vui lòng chọn tối thiểu 1 ghế!");
     }
     const diffMinutes = (screeningDateTime - now) / (1000 * 60);
     if (diffMinutes < 10) {
