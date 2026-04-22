@@ -276,14 +276,9 @@ def register_app(app):
             bill = dao.get_bill_by_id(bill_id)
             if not bill:
                 return "Hóa đơn không tồn tại", 404
-            payment = dao.get_payment_by_bill_id(bill_id)
 
-            if not payment:
-                txn_ref = f"{bill.id}_{int(time.time())}"
-                payment = dao.add_payment(bill_id=bill_id, txn_ref=txn_ref, amount=bill.total_amount)
-            else:
-                txn_ref = payment.txn_ref
-
+            txn_ref = f"{bill.id}_{int(time.time())}"
+            dao.add_payment(bill_id=bill_id, txn_ref=txn_ref, amount=bill.total_amount)
             payment_url = build_payment_url(amount=bill.total_amount, txn_ref=txn_ref)
             return redirect(payment_url)
 
@@ -296,19 +291,21 @@ def register_app(app):
         res_code = request.args.get("vnp_ResponseCode")
         trans_id = request.args.get("vnp_TransactionNo")
         txn_ref = request.args.get("vnp_TxnRef")
-        msg=None
-        success = False
 
         print("Kết quả trả về từ VNPAY")
         print(res_code)
         print(trans_id)
         print(txn_ref)
 
+        if not res_code:
+            msg = 'Thanh toán thất bại!'
+            return redirect(url_for('payment_return', txn_ref=txn_ref, amount=0, msg=msg))
+
         payment = Payment.query.filter_by(txn_ref=txn_ref).first()
         if not payment:
             return "Không tìm thấy thông tin thanh toán!"
-        if payment.status != PaymentStatus.PENDING:
-            return "Đã xử lý trước đó"
+        if payment.status == PaymentStatus.SUCCESS:
+            return "Đã xử lý trước đó!"
 
         payment.vnp_transaction_id = trans_id
         bill = payment.bill
@@ -323,6 +320,7 @@ def register_app(app):
                 dao.pay_fail(payment, bill)
                 msg = "Ghế đã hết hạn! Vui lòng đặt mới và thanh toán trong thời gian quy định!"
                 return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg))
+
         if res_code != '00':
             dao.pay_fail(payment, bill)
             msg = 'Thanh toán thất bại!'
