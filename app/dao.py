@@ -307,7 +307,7 @@ def update_password(customer_id, new_password):
     if len(new_password) < 8:
         raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
     if not re.search(r'[A-Z]', new_password) or not re.search(r'[a-z]', new_password) or not re.search(r'\d', new_password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", new_password):
-        raise ValueError("Mật khẩu phải có chữ hoa và số")
+        raise ValueError("Mật khẩu phải có chữ hoa, chữ thường, kí tự đặc biệt và số")
     if customer:
         password_hashed = md5_hash(new_password)
         customer.password = password_hashed
@@ -351,3 +351,8 @@ def cancel_ticket(ticket_id, customer_id):
     except Exception as e:
         db.session.rollback()
         raise Exception(f"Lỗi hệ thống khi hủy vé: {str(e)}")
+
+def get_genre_by_id(genre_id):
+    if not genre_id:
+        return None
+    return MovieType.query.get(genre_id)
