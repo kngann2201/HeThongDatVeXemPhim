@@ -17,20 +17,27 @@ from app.vnpay import build_payment_url
 def register_app(app):
     @app.route("/")
     def index():
-
-        keyword = request.args.get('kw','')
+        keyword = request.args.get('kw', '')
         type_id = request.args.get('type_id')
         page = request.args.get('page', 1, type=int)
         page_size = 8
+
         products = dao.get_movies(keyword=keyword, type_id=type_id)
+        type_name = ""
+        if type_id:
+            genre = dao.get_genre_by_id(type_id)
+            if genre:
+                type_name = genre.name
+
         all_movies = dao.get_movies()
         total_movies = dao.count_movies()
         pages = math.ceil(total_movies / page_size)
+
         start = (page - 1) * page_size
         end = start + page_size
         paginated_movies = all_movies[start:end]
-        ranking_movies = sorted(all_movies, key=lambda x: x.get('ticket_count', 0), reverse=True)[:5]
 
+        ranking_movies = sorted(all_movies, key=lambda x: x.get('ticket_count', 0), reverse=True)[:5]
         movie_types = dao.get_all_genres()
 
         return render_template('index.html',
@@ -40,6 +47,8 @@ def register_app(app):
                                all_movies=paginated_movies,
                                current_page=page,
                                keyword=keyword,
+                               type_id=type_id,
+                               type_name=type_name,
                                movie_types=movie_types)
 
     @app.route("/register", methods=['GET', 'POST'])
@@ -101,9 +110,9 @@ def register_app(app):
                     flash("Đăng nhập thành công!", "success")
                     return redirect(url_for('index'))
             else:
-                err_msg = "Username hoặc password không đúng!!!"
+                flash("Tên đăng nhập hoặc mật khẩu không đúng", "danger")
 
-        return render_template('login.html', err_msg=err_msg, data=data)
+        return render_template('login.html', data=data)
 
     @login.user_loader
     def get_user(user_id):
@@ -445,9 +454,12 @@ def register_app(app):
     @app.route('/user/change_password', methods=['GET', 'POST'])
     @login_required
     def change_password():
+        data = {}
+
         if request.method == 'POST':
-            password = request.form.get('password')
-            confirm = request.form.get('confirm')
+            data = request.form
+            password = data.get('password')
+            confirm = data.get('confirm')
 
             if password == confirm:
                 customer_id = current_user.id
@@ -457,10 +469,12 @@ def register_app(app):
                         return redirect(url_for('profile'))
                 except ValueError as e:
                     flash(str(e), 'warning')
+                    return render_template('user/change_password.html', data=data)
             else:
                 flash('Mật khẩu xác nhận không khớp!', 'danger')
+                return render_template('user/change_password.html', data=data)
 
-        return render_template('user/change_password.html')
+        return render_template('user/change_password.html', data=data)
 
     @app.route('/user/change_profile', methods=['GET', 'POST'])
     @login_required
@@ -470,8 +484,6 @@ def register_app(app):
         if request.method == "POST":
             has_changed = False
             data = request.form
-
-            # 1. Kiểm tra thay đổi văn bản
             if data.get("full_name") and user.full_name != data.get("full_name"):
                 user.full_name = data.get("full_name")
                 has_changed = True
@@ -488,7 +500,6 @@ def register_app(app):
                 user.phone_number = data.get("phone")
                 has_changed = True
 
-            # 2. Kiểm tra thay đổi ảnh đại diện
             avatar_file = request.files.get("avatar")
             if avatar_file and avatar_file.filename:
                 try:
@@ -498,13 +509,10 @@ def register_app(app):
                 except Exception as e:
                     flash("Lỗi khi tải ảnh lên Cloudinary!", "danger")
                     return render_template("user/change_profile.html", customer=user)
-
-            # 3. Thực thi lưu vào Database
             if has_changed:
                 try:
                     db.session.commit()
                     flash("Cập nhật thông tin thành công!", "success")
-                    # Dùng redirect để chuyển hướng hẳn sang trang profile
                     return redirect(url_for('profile'))
                 except Exception as ex:
                     db.session.rollback()
@@ -512,7 +520,6 @@ def register_app(app):
             else:
                 flash("Bạn chưa thay đổi thông tin nào.", "warning")
 
-        # Trường hợp GET hoặc POST nhưng không có thay đổi/bị lỗi
         return render_template("user/change_profile.html", customer=user)
 
     @app.route("/user/cancel-ticket/<int:ticket_id>", methods=['POST'])

@@ -2,61 +2,29 @@
 
 {% block content %}
 <div class="container mt-4">
+    {% set current_type = request.args.get('type_id') %}
+    {% set is_filtering = keyword or current_type %}
+
+    {% if is_filtering %}
     <div class="mb-5">
-        {% if keyword %}
-        <h3 class="section-title">KẾT QUẢ TÌM KIẾM CHO: "<span class="text-danger">{{ keyword }}</span>"</h3>
+        <h3 class="section-title">
+            {% if keyword and current_type %}
+            <div class="mb-2">KẾT QUẢ TÌM KIẾM: "<span class="text-danger">{{ keyword }}</span>"</div>
+            <div class="fs-5 text-secondary text-uppercase">Thể loại: <span class="text-danger">{{ type_name }}</span>
+            </div>
+            {% elif keyword %}
+            <div class="mb-2">KẾT QUẢ TÌM KIẾM: "<span class="text-danger">{{ keyword }}</span>"</div>
+            {% elif current_type %}
+            <div class="fs-5 text-secondary text-uppercase">Thể loại: <span class="text-danger">{{ type_name }}</span>
+            </div>
+            {% endif %}
+        </h3>
+
         <p class="text-secondary">Tìm thấy {{ products|length }} phim phù hợp</p>
-        {% else %}
-        <h3 class="section-title">PHIM ĐANG CHIẾU</h3>
-        {% endif %}
 
         {% if products|length > 0 %}
-        <div class="slider-container">
-            <div class="movie-slider">
-                {% for p in products %}
-                <div class="px-2">
-                    <div class="movie-card-minimal shadow">
-                        <div class="poster-wrapper">
-                            <div class="position-absolute top-0 start-0 m-2" style="z-index: 11;">
-                                <span class="badge bg-danger shadow-sm py-2 px-2"
-                                      style="background: rgba(231, 76, 60, 0.9) !important; backdrop-filter: blur(4px); border-radius: 6px;">
-                                    <i class="fa-solid fa-fire me-1"></i> {{ "{:,}".format(p.ticket_count if p.ticket_count else 0) }} vé
-                                </span>
-                            </div>
-
-                            <img class="poster-img"
-                                 src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
-                                 alt="{{ p.title }}">
-
-                            <div class="movie-hover-instant">
-                                <div class="movie-info-content w-100 mb-2">
-                                    <h6 class="movie-title-hover text-uppercase fw-bold">{{ p.title }}</h6>
-                                    <p class="movie-type-hover small">{{ p.genres }}</p>
-                                </div>
-                                <div class="btn-group-hover w-100">
-                                    <a class="btn-red" href="/booking/{{ p.id }}">Đặt vé ngay</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% else %}
-        <div class="col-12 text-center py-5">
-            <i class="fa-solid fa-face-frown fa-3x text-secondary mb-3"></i>
-            <h4 class="text-dark">Rất tiếc, không tìm thấy phim nào khớp với "{{ keyword }}"</h4>
-            <a href="/" class="btn btn-outline-danger mt-3">Xem tất cả phim</a>
-        </div>
-        {% endif %}
-    </div>
-    <div>
-        <div class="mb-5 border-top pt-5" id="all-movies-section">
-            <h3 class="section-title mb-0">TẤT CẢ PHIM</h3>
-        </div>
-
-        <div class="row g-4"> {% for p in all_movies %}
+        <div class="row g-4 mt-2">
+            {% for p in products %}
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="movie-card-minimal shadow">
                     <div class="poster-wrapper">
@@ -64,12 +32,12 @@
                              src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
                              alt="{{ p.title }}">
                         <div class="movie-hover-instant">
-                            <div class="movie-info-content w-100 mb-2">
-                                <h6 class="movie-title-hover text-uppercase fw-bold">{{ p.title }}</h6>
-                                <p class="movie-type-hover small">{{ p.genres }}</p>
+                            <div class="movie-info-content w-100 mb-2 text-start px-3">
+                                <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title }}</h6>
+                                <p class="movie-type-hover small mb-0">{{ p.genres }}</p>
                             </div>
-                            <div class="btn-group-hover w-100">
-                                <a class="btn-red" href="/booking/{{ p.id }}">Đặt vé</a>
+                            <div class="btn-group-hover w-100 px-3">
+                                <a class="btn-red w-100" href="/booking/{{ p.id }}">Đặt vé ngay</a>
                             </div>
                         </div>
                     </div>
@@ -77,41 +45,83 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fa-solid fa-face-frown fa-3x text-secondary mb-3"></i>
+            <h4>Không tìm thấy phim nào khớp với yêu cầu</h4>
+            <a href="/" class="btn btn-outline-danger mt-3">Quay lại trang chính</a>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
 
+    <div class="mb-5">
+        <h3 class="section-title">PHIM ĐANG CHIẾU</h3>
+        <div class="slider-container">
+            <div class="movie-slider">
+                {% for p in products %}
+                <div class="px-2">
+                    <div class="movie-card-minimal shadow">
+                        <div class="poster-wrapper">
+                            <img class="poster-img"
+                                 src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
+                            <div class="movie-hover-instant">
+                                <div class="movie-info-content w-100 mb-2 text-start px-3">
+                                    <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title
+                                        }}</h6>
+                                    <p class="movie-type-hover small mb-0">{{ p.genres }}</p>
+                                </div>
+                                <div class="btn-group-hover w-100 px-3">
+                                    <a class="btn-red w-100" href="/booking/{{ p.id }}">Đặt vé</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="all-movies-section" class="mb-5 border-top pt-5">
+        <h3 class="section-title mb-4">TẤT CẢ PHIM</h3>
+        <div class="row g-4">
+            {% for p in all_movies %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="movie-card-minimal shadow">
+                    <div class="poster-wrapper">
+                        <img class="poster-img"
+                             src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
+                        <div class="movie-hover-instant">
+                            <div class="movie-info-content w-100 mb-2 text-start px-3">
+                                <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title }}</h6>
+                                <p class="movie-type-hover small mb-0">{{ p.genres }}</p>
+                            </div>
+                            <div class="btn-group-hover w-100 px-3">
+                                <a class="btn-red w-100" href="/booking/{{ p.id }}">Đặt vé</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         {% if pages > 1 %}
         <nav class="mt-5 mb-5">
             <ul class="pagination justify-content-center">
-                <li class="page-item {{ 'disabled' if current_page == 1 }}">
-                    <a class="page-link"
-                       href="{% if current_page > 1 %}{{ url_for('index', page=current_page-1, kw=keyword) }}#all-movies-section{% else %}javascript:void(0){% endif %}">
-                        <i class="fa-solid fa-angles-left me-1"></i>
-                    </a>
-                </li>
-
                 {% for i in range(1, pages + 1) %}
                 <li class="page-item {{ 'active' if i == current_page }}">
-                    <a class="page-link" href="{{ url_for('index', page=i, kw=keyword) }}#all-movies-section">{{ i
-                        }}</a>
+                    <a class="page-link" href="{{ url_for('index', page=i) }}#all-movies-section">{{ i }}</a>
                 </li>
                 {% endfor %}
-
-                <li class="page-item {{ 'disabled' if current_page == pages }}">
-                    <a class="page-link"
-                       href="{% if current_page < pages %}{{ url_for('index', page=current_page+1, kw=keyword) }}#all-movies-section{% else %}javascript:void(0){% endif %}">
-                        <i class="fa-solid fa-angles-right ms-1"></i>
-                    </a>
-                </li>
             </ul>
         </nav>
         {% endif %}
     </div>
 
-    {% if not keyword and ranking_movies %}
-    <div id="ranking_list" class="mb-5 mt-5">
-        <div class="d-flex align-items-center mb-5 border-top pt-5">
-            <h3 class="section-title mb-0">BẢNG XẾP HẠNG</h3>
-        </div>
-
+    {% if ranking_movies %}
+    <div id="ranking_list" class="mb-5 border-top pt-5">
+        <h3 class="section-title mb-4">BẢNG XẾP HẠNG</h3>
         <div class="ranking-table-container shadow-sm">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
@@ -120,7 +130,7 @@
                     <th>Phim</th>
                     <th class="d-none d-md-table-cell">Thể loại</th>
                     <th class="text-center">Số vé đã bán</th>
-                    <th class="text-center"></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -137,34 +147,21 @@
                         <span class="fw-bold text-muted">{{ loop.index }}</span>
                         {% endif %}
                     </td>
-
                     <td>
                         <div class="d-flex align-items-center">
                             <img src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
-                                 alt="{{ p.title }}" class="rounded me-3"
-                                 style="width: 45px; height: 65px; object-fit: cover;">
-                            <div>
-                                <h6 class="mb-0 fw-bold">{{ p.title }}</h6>
-                                <small class="text-muted d-md-none">{{ p.genres }}</small>
-                            </div>
+                                 class="rounded me-3" style="width: 45px; height: 65px; object-fit: cover;">
+                            <h6 class="mb-0 fw-bold text-start">{{ p.title }}</h6>
                         </div>
                     </td>
-
-                    <td class="d-none d-md-table-cell">
-                        <span class="text-secondary small">{{ p.genres }}</span>
+                    <td class="d-none d-md-table-cell text-secondary small text-start">{{ p.genres }}</td>
+                    <td class="text-center text-danger fw-bold">
+                        <i class="fa-solid fa-fire-flame-simple me-1"></i>
+                        {{ "{:,}".format(p.ticket_count or 0) }}
                     </td>
-
                     <td class="text-center">
-                        <span class="fw-bold text-danger">
-                            <i class="fa-solid fa-fire-flame-simple me-1"></i>
-                            {{ "{:,}".format(p.ticket_count if p.ticket_count else 0) }}
-                        </span>
-                    </td>
-
-                    <td class="text-center">
-                        <a href="/booking/{{ p.id }}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                            Đặt ngay
-                        </a>
+                        <a href="/booking/{{ p.id }}" class="btn btn-sm btn-outline-danger rounded-pill px-3">Đặt
+                            ngay</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -173,9 +170,10 @@
         </div>
     </div>
     {% endif %}
+
+    {% endif %}
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     $(document).ready(function(){

@@ -51,6 +51,10 @@
 
             <div class="d-flex align-items-center gap-3">
                 <form action="/" method="get" class="nav-search-glass">
+                    {% if current_type %}
+                    <input type="hidden" name="type_id" value="{{ current_type }}">
+                    {% endif %}
+
                     <input type="text" name="kw" value="{{ keyword }}" placeholder="Tìm phim...">
                 </form>
 
