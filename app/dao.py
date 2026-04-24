@@ -356,3 +356,34 @@ def get_genre_by_id(genre_id):
     if not genre_id:
         return None
     return MovieType.query.get(genre_id)
+
+def validate_user_update(user, data):
+
+    errors = []
+
+    birthday_str = data.get("birthday")
+    if not birthday_str:
+        return False, "Vui lòng chọn ngày sinh", None
+    try:
+        birthday_date = date.fromisoformat(birthday_str)
+        age = relativedelta(date.today(), birthday_date).years
+        if age < 13:
+            return False, "Bạn phải từ 13 tuổi trở lên.", None
+        if age > 100:
+            return False, "Ngày sinh không hợp lệ.", None
+    except ValueError:
+        return False, "Định dạng ngày sinh không đúng.", None
+
+    email = data.get("email", "").strip()
+    if email and email != user.email:
+        if not re.search(r'^\S+@\S+\.\S+$', email):
+            return False, "Định dạng email không hợp lệ.", None
+        if is_email_exists(email):
+            return False, "Email này đã được sử dụng bởi tài khoản khác.", None
+    phone = data.get("phone", "").strip()
+    if phone and phone != user.phone_number:
+        if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
+            return False, "Số điện thoại không hợp lệ.", None
+        if is_phone_exists(phone):
+            return False, "Số điện thoại đã được sử dụng bởi tài khoản khác.", None
+    return True, None, {"full_name": data.get("full_name", "").strip(),"birthday": birthday_date,"email": email,"phone": phone}

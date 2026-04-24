@@ -29,8 +29,8 @@
                 <div class="movie-card-minimal shadow">
                     <div class="poster-wrapper">
                         <img class="poster-img"
-                             src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
-                             alt="{{ p.title }}">
+                             src="{{ p.poster if p.poster and p.poster.startswith('http') else url_for('static', filename='images/default-poster.jpg') }}"
+                             loading="lazy" alt="{{ p.title }}">
                         <div class="movie-hover-instant">
                             <div class="movie-info-content w-100 mb-2 text-start px-3">
                                 <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title }}</h6>
@@ -64,7 +64,8 @@
                     <div class="movie-card-minimal shadow">
                         <div class="poster-wrapper">
                             <img class="poster-img"
-                                 src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
+                                 src="{{ p.poster if p.poster and p.poster.startswith('http') else url_for('static', filename='images/default-poster.jpg') }}"
+                                 loading="lazy" alt="{{ p.title }}">
                             <div class="movie-hover-instant">
                                 <div class="movie-info-content w-100 mb-2 text-start px-3">
                                     <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title
@@ -85,38 +86,43 @@
 
     <div id="all-movies-section" class="mb-5 border-top pt-5">
         <h3 class="section-title mb-4">TẤT CẢ PHIM</h3>
-        <div class="row g-4">
-            {% for p in all_movies %}
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="movie-card-minimal shadow">
-                    <div class="poster-wrapper">
-                        <img class="poster-img"
-                             src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}">
-                        <div class="movie-hover-instant">
-                            <div class="movie-info-content w-100 mb-2 text-start px-3">
-                                <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title }}</h6>
-                                <p class="movie-type-hover small mb-0">{{ p.genres }}</p>
-                            </div>
-                            <div class="btn-group-hover w-100 px-3">
-                                <a class="btn-red w-100" href="/booking/{{ p.id }}">Đặt vé</a>
+        <div id="movie-grid-container">
+            <div class="row g-4">
+                {% for p in all_movies %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="movie-card-minimal shadow">
+                        <div class="poster-wrapper">
+                            <img class="poster-img"
+                                 src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
+                                 loading="lazy">
+                            <div class="movie-hover-instant">
+                                <div class="movie-info-content w-100 mb-2 text-start px-3">
+                                    <h6 class="movie-title-hover text-uppercase fw-bold text-truncate">{{ p.title
+                                        }}</h6>
+                                    <p class="movie-type-hover small mb-0">{{ p.genres }}</p>
+                                </div>
+                                <div class="btn-group-hover w-100 px-3">
+                                    <a class="btn-red w-100" href="/booking/{{ p.id }}">Đặt vé</a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% if pages > 1 %}
-        <nav class="mt-5 mb-5">
-            <ul class="pagination justify-content-center">
-                {% for i in range(1, pages + 1) %}
-                <li class="page-item {{ 'active' if i == current_page }}">
-                    <a class="page-link" href="{{ url_for('index', page=i) }}#all-movies-section">{{ i }}</a>
-                </li>
                 {% endfor %}
-            </ul>
-        </nav>
-        {% endif %}
+            </div>
+
+            {% if pages > 1 %}
+            <nav class="mt-5 mb-5">
+                <ul class="pagination justify-content-center">
+                    {% for i in range(1, pages + 1) %}
+                    <li class="page-item {{ 'active' if i == current_page }}">
+                        <a class="page-link" href="{{ url_for('index', page=i) }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
     </div>
 
     {% if ranking_movies %}
@@ -150,7 +156,8 @@
                     <td>
                         <div class="d-flex align-items-center">
                             <img src="{{ p.poster if p.poster.startswith('http') else url_for('static', filename='images/' + p.poster) }}"
-                                 class="rounded me-3" style="width: 45px; height: 65px; object-fit: cover;">
+                                 loading="lazy" class="rounded me-3"
+                                 style="width: 45px; height: 65px; object-fit: cover;">
                             <h6 class="mb-0 fw-bold text-start">{{ p.title }}</h6>
                         </div>
                     </td>
@@ -205,6 +212,111 @@
             ]
         });
     });
+(function() {
+    if (window.isManualScroll) return;
+
+    const hash = window.location.hash;
+    const search = window.location.search;
+
+   if (hash || search.includes('page=')) {
+
+        const instantJump = () => {
+            let targetId = hash.replace('#', '');
+
+            if (targetId === 'view-all') targetId = 'all-movies-section';
+            if (targetId === 'ranking') targetId = 'ranking_list';
+
+            if (!targetId && search.includes('page=')) {
+                targetId = 'all-movies-section';
+            }
+
+            const el = document.getElementById(targetId);
+
+            if (el) {
+                const navHeight = document.querySelector('.navbar')?.offsetHeight || 80;
+
+                window.scrollTo(0, el.offsetTop - navHeight);
+
+            } else {
+                requestAnimationFrame(instantJump);
+            }
+        };
+
+        requestAnimationFrame(instantJump);
+    }
+})();
+$(document).on('click', '.pagination a', function () {
+    const scrollY = window.scrollY;
+    sessionStorage.setItem('scrollPos', scrollY);
+});
+
+   $(document).on('click', 'a[href*="#"]', function(e) {
+    let anchorHash = this.hash;
+
+    // FIX mapping
+    if (anchorHash === '#view-all') anchorHash = '#all-movies-section';
+    if (anchorHash === '#ranking') anchorHash = '#ranking_list';
+
+    const $target = $(anchorHash);
+
+    if ($target.length) {
+        e.preventDefault();
+
+        const navHeight = $('.navbar').outerHeight() || 80;
+        const pos = $target.offset().top - navHeight;
+
+        $('html, body').stop(true).animate({
+            scrollTop: pos
+        }, 100);
+
+        history.replaceState(null, null, anchorHash);
+    }
+});
+
+    $(document).ready(function(){
+        $('.movie-slider').slick({
+            infinite: true, slidesToShow: 4, slidesToScroll: 1, autoplay: true,
+            autoplaySpeed: 3000, arrows: true,
+            prevArrow: '<button type="button" class="slick-prev shadow-sm"><i class="fa-solid fa-chevron-left"></i></button>',
+            nextArrow: '<button type="button" class="slick-next shadow-sm"><i class="fa-solid fa-chevron-right"></i></button>',
+            responsive: [
+                { breakpoint: 1024, settings: { slidesToShow: 3 } },
+                { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } }
+            ]
+        });
+    });
+$(document).ready(function() {
+    $(document).on('click', '.pagination .page-link', function(e) {
+        e.preventDefault();
+
+        let url = $(this).attr('href');
+        if (!url || url.indexOf('page=') === -1) return;
+        $('#movie-grid-container').animate({ opacity: 0.5 }, 200);
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(response) {
+                let newHtml = $(response).find('#movie-grid-container').html();
+
+                if (newHtml) {
+                    $('#movie-grid-container').html(newHtml);
+                    $('#movie-grid-container').animate({ opacity: 1 }, 200);
+                    history.pushState(null, null, url);
+                    const navHeight = $('.navbar').outerHeight() || 80;
+                    $('html, body').animate({
+                        scrollTop: $('#all-movies-section').offset().top - navHeight
+                    }, 400);
+                } else {
+                    window.location.href = url;
+                }
+            },
+            error: function() {
+                window.location.href = url;
+            }
+        });
+    });
+});
 </script>
 </div>
 {% endblock %}
