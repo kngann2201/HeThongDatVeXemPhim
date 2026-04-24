@@ -141,9 +141,6 @@ def get_screening_by_id(screening_id):
 def get_bill_by_id(bill_id):
     return db.session.query(Bill).filter_by(id=bill_id).first()
 
-def get_payment_by_bill_id(bill_id):
-    return db.session.query(Payment).filter_by(bill_id=bill_id).first()
-
 def add_bill(customer_id, total=0):
     bill = Bill(customer_id=customer_id, total_amount=total)
     db.session.add(bill)

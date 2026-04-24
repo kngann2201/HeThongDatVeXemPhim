@@ -12,9 +12,6 @@ VNPAY_HASH_SECRET = app.config["VNPAY_HASH_SECRET"]
 VNPAY_RETURN_URL = "http://127.0.0.1:5000/vnpay_return"
 VNPAY_PAYMENT_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
 
-# def get_client_ip():
-#     return request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
-
 def build_payment_url(amount, txn_ref, order_info = 'Movie Ticket Payment'):
     vnpay_amount = int(amount*100)
     expire_date = datetime.now() + timedelta(minutes=1)

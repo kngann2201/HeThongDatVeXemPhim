@@ -140,14 +140,11 @@ class MovieView(AuthenticatedView):
         "types": _format_types
     }
 
-    def _get_types(self):
-        return db.session.query(MovieType).all()
-
     form_extra_fields = {
         "poster": FileField("Poster"),
         "movie_type_list": QuerySelectMultipleField(
             "Thể loại",
-            query_factory=_get_types,
+            query_factory=lambda: db.session.query(MovieType).all(),
             get_label="name"
         )
     }
@@ -185,10 +182,18 @@ class RoomTypeView(AuthenticatedView):
 class RoomView(AuthenticatedView):
     column_searchable_list = ["number"]
     column_filters = ["room_type"]
+    column_list = ["room_type", "number", "seat_count", "image"]
 
     form_excluded_columns = ["image", "seats", "movie_screenings"]
     form_extra_fields = {
         "image": FileField("Image")
+    }
+
+    def _seat_count(view, context, model, name):
+        return len(model.seats)
+
+    column_formatters = {
+        "seat_count": _seat_count
     }
 
     def on_model_change(self, form, model, is_created):
@@ -209,6 +214,37 @@ class MovieScreeningView(AuthenticatedView):
         db.session.flush()
         if form.room.data:
             room_id = form.room.data.id
+            new_start = model.start_time
+            duration = model.movie.duration
+            new_end = new_start + timedelta(minutes=duration)
+
+            screenings = MovieScreening.query.filter(
+                MovieScreening.room_id == room_id,
+                MovieScreening.id != model.id
+            ).all()
+
+            for s in screenings:
+                existing_start = s.start_time
+                existing_end = s.start_time + timedelta(minutes=s.movie.duration)
+
+                if not (new_end <= existing_start or new_start >= existing_end):
+                    raise ValueError("Suất chiếu bị trùng thời gian với suất khác trong cùng phòng!")
+
+            new_start = model.start_time
+            duration = model.movie.duration
+            new_end = new_start + timedelta(minutes=duration)
+
+            screenings = MovieScreening.query.filter(
+                MovieScreening.room_id == room_id,
+                MovieScreening.id != model.id
+            ).all()
+
+            for s in screenings:
+                existing_start = s.start_time
+                existing_end = s.start_time + timedelta(minutes=s.movie.duration)
+
+                if not (new_end <= existing_start or new_start >= existing_end):
+                    raise ValueError("Suất chiếu bị trùng thời gian với suất khác trong cùng phòng!")
 
             if not is_created:
                 ScreeningSeat.query.filter_by(screening_id=model.id).delete()

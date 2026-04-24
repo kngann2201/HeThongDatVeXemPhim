@@ -240,6 +240,7 @@ document.querySelector('.rooms').addEventListener('click', (e) => {
     const btn = e.target.closest('.room');
     if (!btn) return;
     resetStateFrom('screening');
+    document.querySelector('.room.active')?.classList.remove('active');
     btn.classList.add('active');
     selected_info.roomId = btn.dataset.room;
     hideAllFrom('menu-screenings');
