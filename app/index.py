@@ -1,17 +1,15 @@
 from datetime import timedelta, datetime
 import time
-
-from alembic.util import status
-
-from app import app, db, login, dao
+from app import app, db, login, dao, admin
 from flask import render_template, request, redirect, url_for, flash, jsonify, session, get_flashed_messages
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
 import cloudinary.uploader
 import math
 import secrets
-from app.models import SeatStatus, Payment, PaymentStatus, Movie, TicketStatus
+from app.models import SeatStatus, Payment, PaymentStatus, TicketStatus
 from app.vnpay import build_payment_url
+from app.schedule import start_scheduler
 
 
 def register_app(app):
@@ -194,7 +192,7 @@ def register_app(app):
 
     @app.route("/api/get-seats/<int:screening_id>", methods=['GET'])
     def get_seats(screening_id):
-        print(screening_id)
+        print('Suất chiếu nhận được từ front-end: ', screening_id)
         seats = dao.get_seats_by_screening(screening_id=screening_id)
 
         if not seats:
@@ -223,9 +221,8 @@ def register_app(app):
     def booking_submit():
         seat_ids = request.form.get("seat")
         screening = request.form.get("screening")
-        print("Bắt lỗi submit:")
-        print(seat_ids)
-        print(screening)
+        print('DS ghế muốn đặt: ', seat_ids)
+        print('Suất chiếu muốn đặt:', screening)
 
         if not seat_ids or not screening:
             print("Thiếu thông tin ghế hoặc suất chiếu!")
@@ -233,30 +230,27 @@ def register_app(app):
             return redirect(url_for('index'))
 
         seat_ids = [int(id) for id in seat_ids.split(",")]
-        print(f"DS ghế nhận được từ trang đặt vé: {seat_ids}, suất chiếu {screening}")
-
         now = datetime.now()
         scr = dao.get_screening_by_id(screening)
         if scr.start_time <= now:
-            return "Phim đã bắt đầu, không thể đặt vé!"
+            return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Suất chiếu đã bắt đầu, không thể đặt vé!'))
 
         if scr.start_time - now < timedelta(minutes=10):
-            return "Không thể đặt vé sát giờ chiếu!"
+            return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Không thể đặt vé sát giờ chiếu!'))
 
         try:
             screening_seats = dao.hold_seats(seat_ids, screening)
             print("DS ghế sẽ giữ chỗ trong 10p: ", screening_seats)
 
             if len(screening_seats) != len(seat_ids):
-                return "Một số ghế không tồn tại trong suất chiếu này!"
+                return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Một số ghế không tồn tại trong suất chiếu này!'))
 
             if dao.total_seat_per_screening(screening, current_user.id) + len(seat_ids) > 8:
-                return "Vượt quá số ghế được đặt mỗi suất chiếu!"
+                return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Vượt quá số ghế được đặt mỗi suất chiếu!'))
 
             for s in screening_seats:
                 if s.status == SeatStatus.BOOKED or (s.status == SeatStatus.HOLDING and s.holding_user_id != current_user.id):
-                    return "Ghế đã được đặt!"
-
+                    return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Ghế đã được đặt bởi người khác!"'))
                 else:
                     s.status = SeatStatus.HOLDING
                     s.hold_expired_at = datetime.now() + timedelta(minutes=10)
@@ -300,6 +294,7 @@ def register_app(app):
 
         except Exception as e:
             print(f"Lỗi thanh toán: {e}")
+            flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
             return redirect(url_for('index'))
 
     @app.route("/vnpay_return")
@@ -319,9 +314,11 @@ def register_app(app):
 
         payment = Payment.query.filter_by(txn_ref=txn_ref).first()
         if not payment:
-            return "Không tìm thấy thông tin thanh toán!"
+            msg = "Không tìm thấy thông tin thanh toán!"
+            return redirect(url_for('payment_return', txn_ref=txn_ref, amount=0, msg=msg))
         if payment.status == PaymentStatus.SUCCESS:
-            return "Đã xử lý trước đó!"
+            msg = "Hoá đơn đã được thanh toán trước đó!"
+            return redirect(url_for('payment_return', txn_ref=txn_ref, amount=0, msg=msg))
 
         payment.vnp_transaction_id = trans_id
         bill = payment.bill
@@ -530,4 +527,5 @@ def register_app(app):
 if __name__ == "__main__":
     from app import admin
     register_app(app=app)
+    start_scheduler(app, db)
     app.run(debug=True)

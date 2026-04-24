@@ -6,7 +6,7 @@ import cloudinary
 from flask_mail import Mail
 from dotenv import load_dotenv
 import os
-from apscheduler.schedulers.background import BackgroundScheduler
+
 
 load_dotenv()
 app = Flask(__name__)
@@ -49,31 +49,3 @@ cloudinary.config(
 
 
 
-from datetime import datetime
-from app.models import ScreeningSeat, SeatStatus, TicketStatus, PaymentStatus
-
-
-def release_expired_seats():
-    with app.app_context():
-        now = datetime.now()
-
-        expired_seats = ScreeningSeat.query.filter(
-            ScreeningSeat.status == SeatStatus.HOLDING,
-            ScreeningSeat.hold_expired_at < now
-        ).all()
-
-        for s in expired_seats:
-            s.status = SeatStatus.AVAILABLE
-            s.holding_user_id = None
-            for t in s.tickets:
-                t.status = TicketStatus.CANCELLED
-                t.bill.status = PaymentStatus.FAILED
-
-        db.session.commit()
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(release_expired_seats, 'interval', minutes=0.7)
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    scheduler.start()
-
-print(scheduler.get_jobs())
