@@ -20,7 +20,7 @@ def register_app(app):
         keyword = request.args.get('kw', '')
         type_id = request.args.get('type_id')
         page = request.args.get('page', 1, type=int)
-        page_size = 8
+        page_size = 4
 
         products = dao.get_movies(keyword=keyword, type_id=type_id)
         type_name = ""
@@ -480,45 +480,48 @@ def register_app(app):
     @login_required
     def change_profile():
         user = current_user
-
         if request.method == "POST":
-            has_changed = False
-            data = request.form
-            if data.get("full_name") and user.full_name != data.get("full_name"):
-                user.full_name = data.get("full_name")
-                has_changed = True
+            is_valid, error_msg, cleaned_data = dao.validate_user_update(user, request.form)
 
-            if data.get("birthday") and str(user.birthday) != data.get("birthday"):
-                user.birthday = data.get("birthday")
-                has_changed = True
+            if not is_valid:
+                flash(error_msg, "danger")
+                return render_template("user/change_profile.html", customer=user)
 
-            if data.get("email") and user.email != data.get("email"):
-                user.email = data.get("email")
-                has_changed = True
+            try:
+                has_changed = False
 
-            if data.get("phone") and user.phone_number != data.get("phone"):
-                user.phone_number = data.get("phone")
-                has_changed = True
+                if user.full_name != cleaned_data['full_name']:
+                    user.full_name = cleaned_data['full_name']
+                    has_changed = True
 
-            avatar_file = request.files.get("avatar")
-            if avatar_file and avatar_file.filename:
-                try:
+                if user.birthday != cleaned_data['birthday']:
+                    user.birthday = cleaned_data['birthday']
+                    has_changed = True
+
+                if user.email != cleaned_data['email']:
+                    user.email = cleaned_data['email']
+                    has_changed = True
+
+                if user.phone_number != cleaned_data['phone']:
+                    user.phone_number = cleaned_data['phone']
+                    has_changed = True
+
+                avatar_file = request.files.get("avatar")
+                if avatar_file and avatar_file.filename:
                     res = cloudinary.uploader.upload(avatar_file)
                     user.avatar = res['secure_url']
                     has_changed = True
-                except Exception as e:
-                    flash("Lỗi khi tải ảnh lên Cloudinary!", "danger")
-                    return render_template("user/change_profile.html", customer=user)
-            if has_changed:
-                try:
+
+                if has_changed:
                     db.session.commit()
                     flash("Cập nhật thông tin thành công!", "success")
                     return redirect(url_for('profile'))
-                except Exception as ex:
-                    db.session.rollback()
-                    flash("Lỗi hệ thống khi lưu dữ liệu!", "danger")
-            else:
-                flash("Bạn chưa thay đổi thông tin nào.", "warning")
+                else:
+                    flash("Bạn chưa thay đổi thông tin nào.", "warning")
+
+            except Exception as ex:
+                db.session.rollback()
+                flash(f"Lỗi hệ thống: {str(ex)}", "danger")
 
         return render_template("user/change_profile.html", customer=user)
 
