@@ -18,6 +18,14 @@ def md5_hash(password: str):
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
 def add_user(username, password, full_name, phone, email, birthday, avatar):
+    username = (username or "").strip()
+    full_name = (full_name or "").strip()
+    email = (email or "").strip()
+    phone = (phone or "").strip()
+
+    if not all([username, password, full_name, phone, email, birthday]):
+        raise ValueError("Tất cả các trường thông tin đều là bắt buộc.")
+
     if birthday and isinstance(birthday, str):
         birthday = date.fromisoformat(birthday)
     if birthday:
@@ -357,13 +365,20 @@ def get_genre_by_id(genre_id):
         return None
     return MovieType.query.get(genre_id)
 
+
 def validate_user_update(user, data):
-
-    errors = []
-
+    full_name = data.get("full_name", "").strip()
+    email = data.get("email", "").strip()
+    phone = data.get("phone", "").strip()
     birthday_str = data.get("birthday")
+
+    if not full_name:
+        return False, "Họ tên không được để trống.", None
+    if len(full_name) < 2:
+        return False, "Họ tên quá ngắn.", None
+
     if not birthday_str:
-        return False, "Vui lòng chọn ngày sinh", None
+        return False, "Vui lòng chọn ngày sinh.", None
     try:
         birthday_date = date.fromisoformat(birthday_str)
         age = relativedelta(date.today(), birthday_date).years
@@ -374,16 +389,22 @@ def validate_user_update(user, data):
     except ValueError:
         return False, "Định dạng ngày sinh không đúng.", None
 
-    email = data.get("email", "").strip()
-    if email and email != user.email:
+    if not email:
+        return False, "Email không được để trống.", None
+
+    if email != user.email:
         if not re.search(r'^\S+@\S+\.\S+$', email):
             return False, "Định dạng email không hợp lệ.", None
         if is_email_exists(email):
             return False, "Email này đã được sử dụng bởi tài khoản khác.", None
-    phone = data.get("phone", "").strip()
-    if phone and phone != user.phone_number:
+
+    if not phone:
+        return False, "Số điện thoại không được để trống.", None
+
+    if phone != user.phone_number:
         if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
             return False, "Số điện thoại không hợp lệ.", None
         if is_phone_exists(phone):
             return False, "Số điện thoại đã được sử dụng bởi tài khoản khác.", None
-    return True, None, {"full_name": data.get("full_name", "").strip(),"birthday": birthday_date,"email": email,"phone": phone}
+
+    return True, None, { "full_name": full_name,"birthday": birthday_date,"email": email,"phone": phone}
