@@ -29,6 +29,8 @@
         <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
             {% if category == 'danger' %}
             <i class="fa-solid fa-circle-exclamation me-2"></i>
+            {% elif category == 'error' %}
+            <i class="fa-solid fa-circle-exclamation me-2"></i>
             {% elif category == 'success' %}
             <i class="fa-solid fa-circle-check me-2"></i>
             {% endif %}

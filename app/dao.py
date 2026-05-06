@@ -93,6 +93,139 @@ def auth_admin(username, password):
     password = md5_hash(password)
     return db.session.query(Customer).filter_by(username=username, password=password, role=UserRole.ADMIN).first()
 
+def get_customer_by_email(email):
+    return db.session.query(Customer).filter(Customer.email == email.strip()).first()
+
+def send_reset_email(user_email, otp_code):
+    from flask_mail import Message
+    from app import mail
+
+    msg = Message(
+        subject='Mã xác nhận đặt lại mật khẩu',
+        recipients=[user_email]
+    )
+    msg.body = f"Mã OTP của bạn là: {otp_code}."
+
+    try:
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Lỗi gửi mail: {e}")
+        return False
+
+def update_password(customer_id, new_password):
+    customer = db.session.get(Customer, customer_id)
+    if len(new_password) < 8:
+        raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
+    if not re.search(r'[A-Z]', new_password) or not re.search(r'[a-z]', new_password) or not re.search(r'\d', new_password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", new_password):
+        raise ValueError("Mật khẩu phải có chữ hoa, chữ thường, kí tự đặc biệt và số")
+    if customer:
+        password_hashed = md5_hash(new_password)
+        customer.password = password_hashed
+        try:
+            db.session.commit()
+            return True
+        except:
+            db.session.rollback()
+            return False
+    return False
+
+def validate_user_update(user, data):
+    full_name = data.get("full_name", "").strip()
+    email = data.get("email", "").strip()
+    phone = data.get("phone", "").strip()
+    birthday_str = data.get("birthday")
+
+    if not full_name:
+        return False, "Họ tên không được để trống.", None
+    if len(full_name) < 2:
+        return False, "Họ tên quá ngắn.", None
+
+    if not birthday_str:
+        return False, "Vui lòng chọn ngày sinh.", None
+    try:
+        birthday_date = date.fromisoformat(birthday_str)
+        age = relativedelta(date.today(), birthday_date).years
+        if age < 13:
+            return False, "Bạn phải từ 13 tuổi trở lên.", None
+        if age > 100:
+            return False, "Ngày sinh không hợp lệ.", None
+    except ValueError:
+        return False, "Định dạng ngày sinh không đúng.", None
+
+    if not email:
+        return False, "Email không được để trống.", None
+
+    if email != user.email:
+        if not re.search(r'^\S+@\S+\.\S+$', email):
+            return False, "Định dạng email không hợp lệ.", None
+        if is_email_exists(email):
+            return False, "Email này đã được sử dụng bởi tài khoản khác.", None
+
+    if not phone:
+        return False, "Số điện thoại không được để trống.", None
+
+    if phone != user.phone_number:
+        if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
+            return False, "Số điện thoại không hợp lệ.", None
+        if is_phone_exists(phone):
+            return False, "Số điện thoại đã được sử dụng bởi tài khoản khác.", None
+
+    return True, None, { "full_name": full_name,"birthday": birthday_date,"email": email,"phone": phone}
+
+def get_movies(keyword=None, type_id=None):
+    ticket_subquery = db.session.query(
+        MovieScreening.movie_id,
+        func.count(Ticket.id).label('t_count')
+    ).join(ScreeningSeat, MovieScreening.id == ScreeningSeat.screening_id) \
+        .join(Ticket, ScreeningSeat.id == Ticket.screening_seat_id) \
+        .filter(Ticket.status != TicketStatus.CANCELLED) \
+        .group_by(MovieScreening.movie_id).subquery()
+
+    query = db.session.query(
+        Movie,
+        func.coalesce(ticket_subquery.c.t_count, 0).label('total_tickets')
+    ).outerjoin(ticket_subquery, Movie.id == ticket_subquery.c.movie_id)
+    if type_id:
+        query = query.join(MovieTypeDetail).filter(MovieTypeDetail.type_id == type_id)
+
+    if keyword:
+        query = query.filter(Movie.title.contains(keyword))
+
+    movies_with_counts = query.order_by(Movie.id.desc()).all()
+
+    results = []
+    for m, count in movies_with_counts:
+        genres_list = [detail.type.name for detail in m.movie_type_details]
+        results.append({
+            'id': m.id,
+            'title': m.title,
+            'poster': m.poster,
+            'genres': ", ".join(genres_list),
+            'ticket_count': count
+        })
+    return results
+
+def get_all_genres():
+    return db.session.query(MovieType).all()
+
+def get_genre_by_id(genre_id):
+    if not genre_id:
+        return None
+    return MovieType.query.get(genre_id)
+
+def count_movies():
+    return db.session.query(Movie).count()
+
+def ticket_count_by_movie_id(movie_id):
+    ticket_count = (
+        db.session.query(func.count(Ticket.id))
+        .join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)
+        .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)
+        .filter(MovieScreening.movie_id == movie_id, Ticket.status != TicketStatus.CANCELLED)
+    ).scalar()
+    return ticket_count
+
 def get_movie_by_id(movie_id):
     return db.session.query(Movie).filter_by(id=movie_id).first()
 
@@ -150,69 +283,39 @@ def get_bill_by_id(bill_id):
     return db.session.query(Bill).filter_by(id=bill_id).first()
 
 def add_bill(customer_id, total=0):
+    if not customer_id:
+        raise ValueError("Mã khách không được trống!")
+
     bill = Bill(customer_id=customer_id, total_amount=total)
     db.session.add(bill)
     db.session.flush()
     return bill
 
 def add_ticket(bill_id, ss_id, price):
+    if not bill_id:
+        raise ValueError("Mã hoá đơn không được trống!")
+    if not ss_id:
+        raise ValueError("Mã suất chiếu không được trống!")
+    if not price:
+        raise ValueError("Giá vé không được trống!")
+
     ticket = Ticket(bill_id=bill_id, screening_seat_id=ss_id, price=price)
     db.session.add(ticket)
     db.session.commit()
+    return ticket
 
 def add_payment(bill_id, amount, txn_ref):
+    if not bill_id:
+        raise ValueError("Mã hoá đơn không được trống!")
+    if not txn_ref:
+        raise ValueError("Mã txn_ref không được trống!")
+    if not amount:
+        raise ValueError("Số tiền không được trống!")
+
     payment = Payment(bill_id=bill_id, amount=amount, txn_ref=txn_ref)
     db.session.add(payment)
     db.session.commit()
     return payment
-
-def get_movies(keyword=None, type_id=None):
-    ticket_subquery = db.session.query(
-        MovieScreening.movie_id,
-        func.count(Ticket.id).label('t_count')
-    ).join(ScreeningSeat, MovieScreening.id == ScreeningSeat.screening_id) \
-        .join(Ticket, ScreeningSeat.id == Ticket.screening_seat_id) \
-        .filter(Ticket.status != TicketStatus.CANCELLED) \
-        .group_by(MovieScreening.movie_id).subquery()
-
-    query = db.session.query(
-        Movie,
-        func.coalesce(ticket_subquery.c.t_count, 0).label('total_tickets')
-    ).outerjoin(ticket_subquery, Movie.id == ticket_subquery.c.movie_id)
-    if type_id:
-        query = query.join(MovieTypeDetail).filter(MovieTypeDetail.type_id == type_id)
-
-    if keyword:
-        query = query.filter(Movie.title.contains(keyword))
-
-    movies_with_counts = query.order_by(Movie.id.desc()).all()
-
-    results = []
-    for m, count in movies_with_counts:
-        genres_list = [detail.type.name for detail in m.movie_type_details]
-        results.append({
-            'id': m.id,
-            'title': m.title,
-            'poster': m.poster,
-            'genres': ", ".join(genres_list),
-            'ticket_count': count
-        })
-    return results
-
-def get_all_genres():
-    return db.session.query(MovieType).all()
-
-def count_movies():
-    return db.session.query(Movie).count()
-
-def ticket_count_by_movie_id(movie_id):
-    ticket_count = (
-        db.session.query(func.count(Ticket.id))
-        .join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)
-        .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)
-        .filter(MovieScreening.movie_id == movie_id, Ticket.status != TicketStatus.CANCELLED)
-    ).scalar()
-    return ticket_count
 
 def pay_fail(payment, bill):
     payment.status = PaymentStatus.FAILED
@@ -287,43 +390,6 @@ def get_all_info_movie(customer_id):
         })
     return watched_list
 
-def get_customer_by_email(email):
-    return db.session.query(Customer).filter(Customer.email == email.strip()).first()
-
-def send_reset_email(user_email, otp_code):
-    from flask_mail import Message
-    from app import mail
-
-    msg = Message(
-        subject='Mã xác nhận đặt lại mật khẩu',
-        recipients=[user_email]
-    )
-    msg.body = f"Mã OTP của bạn là: {otp_code}."
-
-    try:
-        mail.send(msg)
-        return True
-    except Exception as e:
-        print(f"Lỗi gửi mail: {e}")
-        return False
-
-def update_password(customer_id, new_password):
-    customer = db.session.get(Customer, customer_id)
-    if len(new_password) < 8:
-        raise ValueError("Mật khẩu phải có ít nhất 8 ký tự")
-    if not re.search(r'[A-Z]', new_password) or not re.search(r'[a-z]', new_password) or not re.search(r'\d', new_password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", new_password):
-        raise ValueError("Mật khẩu phải có chữ hoa, chữ thường, kí tự đặc biệt và số")
-    if customer:
-        password_hashed = md5_hash(new_password)
-        customer.password = password_hashed
-        try:
-            db.session.commit()
-            return True
-        except:
-            db.session.rollback()
-            return False
-    return False
-
 def cancel_ticket(ticket_id, customer_id):
     ticket = Ticket.query.join(Bill).filter(
         Ticket.id == ticket_id,
@@ -357,51 +423,4 @@ def cancel_ticket(ticket_id, customer_id):
         db.session.rollback()
         raise Exception(f"Lỗi hệ thống khi hủy vé: {str(e)}")
 
-def get_genre_by_id(genre_id):
-    if not genre_id:
-        return None
-    return MovieType.query.get(genre_id)
 
-
-def validate_user_update(user, data):
-    full_name = data.get("full_name", "").strip()
-    email = data.get("email", "").strip()
-    phone = data.get("phone", "").strip()
-    birthday_str = data.get("birthday")
-
-    if not full_name:
-        return False, "Họ tên không được để trống.", None
-    if len(full_name) < 2:
-        return False, "Họ tên quá ngắn.", None
-
-    if not birthday_str:
-        return False, "Vui lòng chọn ngày sinh.", None
-    try:
-        birthday_date = date.fromisoformat(birthday_str)
-        age = relativedelta(date.today(), birthday_date).years
-        if age < 13:
-            return False, "Bạn phải từ 13 tuổi trở lên.", None
-        if age > 100:
-            return False, "Ngày sinh không hợp lệ.", None
-    except ValueError:
-        return False, "Định dạng ngày sinh không đúng.", None
-
-    if not email:
-        return False, "Email không được để trống.", None
-
-    if email != user.email:
-        if not re.search(r'^\S+@\S+\.\S+$', email):
-            return False, "Định dạng email không hợp lệ.", None
-        if is_email_exists(email):
-            return False, "Email này đã được sử dụng bởi tài khoản khác.", None
-
-    if not phone:
-        return False, "Số điện thoại không được để trống.", None
-
-    if phone != user.phone_number:
-        if not re.match(r'^(0)(3|5|7|8|9)\d{8}$', phone):
-            return False, "Số điện thoại không hợp lệ.", None
-        if is_phone_exists(phone):
-            return False, "Số điện thoại đã được sử dụng bởi tài khoản khác.", None
-
-    return True, None, { "full_name": full_name,"birthday": birthday_date,"email": email,"phone": phone}
