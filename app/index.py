@@ -294,7 +294,8 @@ def register_app(app):
         try:
             bill = dao.get_bill_by_id(bill_id)
             if not bill:
-                return "Hóa đơn không tồn tại", 404
+                flash("Hoá đơn không tồn tại!", "error")
+                return redirect(url_for('index'))
 
             txn_ref = f"{bill.id}_{int(time.time())}"
             dao.add_payment(bill_id=bill_id, txn_ref=txn_ref, amount=bill.total_amount)
@@ -318,7 +319,7 @@ def register_app(app):
         print(txn_ref)
 
         if not res_code:
-            msg = 'Thanh toán thất bại!'
+            msg = 'Không có mã trả về từ vnpay!'
             return redirect(url_for('payment_return', txn_ref=txn_ref, amount=0, msg=msg))
 
         payment = Payment.query.filter_by(txn_ref=txn_ref).first()
@@ -337,10 +338,6 @@ def register_app(app):
             if seat.status != SeatStatus.HOLDING:
                 dao.pay_fail(payment, bill)
                 msg = 'Ghế đã bị huỷ trong khi thanh toán!'
-                return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg))
-            if seat.hold_expired_at < datetime.now():
-                dao.pay_fail(payment, bill)
-                msg = "Ghế đã hết hạn! Vui lòng đặt mới và thanh toán trong thời gian quy định!"
                 return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg))
 
         if res_code != '00':
@@ -407,7 +404,6 @@ def register_app(app):
                 flash('Email không tồn tại!', 'danger')
 
         return render_template('forgot_password.html')
-
 
     @app.route('/verify_otp', methods=['GET', 'POST'])
     def verify_otp():

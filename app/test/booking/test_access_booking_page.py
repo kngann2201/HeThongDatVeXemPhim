@@ -60,7 +60,6 @@ def test_access_booking_page(test_client, mocker):
         {'id': 1, 'name': 'VIP'}
     ]
     mock_views.return_value = 0
-
     assert response.status_code == 200
 
 def test_access_booking_page_fail(test_client, mocker):
