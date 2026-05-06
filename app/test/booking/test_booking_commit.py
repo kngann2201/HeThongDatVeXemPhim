@@ -3,6 +3,14 @@ from app.test.base_test import *
 from app import dao
 
 
+def test_get_exist_screening_by_id(test_session, sample_screening):
+    result = dao.get_screening_by_id(screening_id=1)
+    assert result is not None
+    assert result.id == 1
+
+def test_get_not_exist_screening_by_id(test_session, sample_screening):
+    result = dao.get_screening_by_id(screening_id=22)
+    assert result is None
 
 def test_hold_one_seat(test_session, sample_screening_seats):
     seat_ids = ['1']
@@ -33,4 +41,8 @@ def test_total_seat_per_invalid_screening(test_session, sample_screening_seats):
 def test_total_seat_per_screening_invalid_user(test_session, sample_screening_seats):
     result = dao.total_seat_per_screening(screening_id=1, user_id=11)
     assert result == 0
+
+def test_user_total_seat_per_screening(test_session, sample_seats, sample_screening_seats):
+    result = dao.total_seat_per_screening(screening_id=1, user_id=1)
+    assert result == 1
 

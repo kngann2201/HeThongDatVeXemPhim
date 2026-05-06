@@ -31,20 +31,13 @@ babel = Babel(app)
 mail = Mail()
 mail.init_app(app)
 
-# cloudinary.config(cloud_name='dkzxdp1gi',
-#                   api_key='889343733763378',
-#                   api_secret='AfqkwYpSy0i8oRU4XN4bRC-5qIg')
+cloudinary.config(cloud_name=os.getenv('cloudinary_cloud_name'),
+                  api_key=os.getenv('cloudinary_api_key'),
+                  api_secret=os.getenv('cloudinary_api_secret'))
 
-app.config["VNPAY_TMN_CODE"] = "SZM44ELG"
-app.config["VNPAY_HASH_SECRET"] = "EMMTSPAWQ3UEWNT9UFMKI32HSLX34238"
+app.config["VNPAY_TMN_CODE"] = os.getenv('VNPAY_TMN_CODE')
+app.config["VNPAY_HASH_SECRET"] = os.getenv('VNPAY_HASH_SECRET')
 
-
-cloudinary.config(
-  cloud_name = "dimiharka",
-  api_key = "333172498898523",
-  api_secret = "7CtvguA8K-0A92T5Zp3BkiB_440",
-  secure = True
-)
 
 
 

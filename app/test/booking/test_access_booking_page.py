@@ -1,4 +1,3 @@
-from datetime import date
 from app.test.base_test import *
 from app import dao
 
