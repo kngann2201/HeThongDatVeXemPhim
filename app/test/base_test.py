@@ -205,14 +205,14 @@ def sample_screening(test_session):
     return [scr1, scr2, scr3, scr4]
 
 @pytest.fixture
-def sample_screening_seats(test_session, sample_seats, sample_screening):
+def sample_screening_seats(test_session, sample_seats):
     ss_list = []
 
     for i, seat in enumerate(sample_seats):
         is_first = (i == 0)
         ss = ScreeningSeat(
             seat_id=seat.id,
-            screening_id=sample_screening[0].id,
+            screening_id=1,
             status=SeatStatus.BOOKED if is_first else SeatStatus.AVAILABLE,
             holding_user_id=1 if is_first else None
         )
