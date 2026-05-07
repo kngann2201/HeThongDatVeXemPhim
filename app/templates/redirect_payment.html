@@ -21,8 +21,8 @@
                 <i class="fas fa-external-link-alt me-2"></i>Đi đến VNPAY ngay
             </a>
             
-            <a href="{{ url_for('history_booking_ticket') }}" class="btn btn-outline-secondary py-2">
-                <i class="fas fa-clock me-2"></i>Thanh toán sau
+            <a href="/" class="btn btn-outline-secondary py-2">
+                <i class="fas fa-clock me-2"></i>Thanh toán sau (Về trang chủ)
             </a>
         </div>
         
@@ -82,12 +82,12 @@
 </style>
 
 <script>
-    let seconds = 3;
-    const countdownEl = document.getElementById('countdown');
+    let seconds = 5;
+    const countdown = document.getElementById('countdown');
 
     const timer = setInterval(() => {
         seconds--;
-        countdownEl.innerText = seconds;
+        countdown.innerText = seconds;
         if (seconds <= 0) {
             clearInterval(timer);
             window.location.href = "{{ payment_url | safe }}";

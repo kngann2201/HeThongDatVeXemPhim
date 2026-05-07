@@ -1,13 +1,12 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import os
+from app.models import ScreeningSeat, SeatStatus, TicketStatus, PaymentStatus, Ticket, MovieScreening
 
 def start_scheduler(app, db):
     scheduler = BackgroundScheduler()
 
     def release_expired_seats():
-        from app.models import ScreeningSeat, SeatStatus, TicketStatus, PaymentStatus
-
         with app.app_context():
             now = datetime.now()
 
@@ -25,6 +24,23 @@ def start_scheduler(app, db):
 
             db.session.commit()
 
+    def checkin_tickets():
+        with app.app_context():
+            now = datetime.now()
+            tickets = (db.session.query(Ticket)
+                .join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)
+                .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)
+                .filter(
+                    Ticket.status == TicketStatus.PAID,
+                    MovieScreening.start_time <= now)
+                .all())
+
+            for t in tickets:
+                t.status = TicketStatus.USED
+            db.session.commit()
+
+
     scheduler.add_job(release_expired_seats, 'interval', minutes=0.8)
+    scheduler.add_job(checkin_tickets, 'interval', minutes=0.8)
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         scheduler.start()

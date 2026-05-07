@@ -238,28 +238,28 @@ def sample_tickets(test_session, sample_screening_seats, sample_bill):
     t1 = Ticket(
         price=100000,
         status=TicketStatus.PAID,
-        screening_seat_id=1,
+        screening_seat_id=sample_screening_seats[0].id,
         bill_id=sample_bill[0].id
     )
 
     t2 = Ticket(
         price=100000,
         status=TicketStatus.PAID,
-        screening_seat_id=sample_screening_seats[0].id,
+        screening_seat_id=sample_screening_seats[1].id,
         bill_id=sample_bill[0].id
     )
 
     t3 = Ticket(
         price=100000,
         status=TicketStatus.USED,
-        screening_seat_id=sample_screening_seats[0].id,
+        screening_seat_id=sample_screening_seats[2].id,
         bill_id=sample_bill[0].id
     )
 
     t4 = Ticket(
         price=100000,
         status=TicketStatus.CANCELLED,
-        screening_seat_id=sample_screening_seats[0].id,
+        screening_seat_id=sample_screening_seats[3].id,
         bill_id=sample_bill[0].id
     )
     test_session.add_all([t1,t2, t3,t4])
