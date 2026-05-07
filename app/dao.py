@@ -367,7 +367,7 @@ def get_info_movie(customer_id, status_enum):
 
 def get_all_info_movie(customer_id):
     results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
-        Ticket.price,Ticket.status, Bill.id
+        Ticket.price,Ticket.status, Bill.id, ScreeningSeat.hold_expired_at
     ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
      .join(Seat, ScreeningSeat.seat_id == Seat.id)\
      .join(Room, Seat.room_id == Room.id)\
@@ -386,7 +386,8 @@ def get_all_info_movie(customer_id):
             'seat_number': f"{r[4]}{r[5]}",
             'price': r[6],
             'status': r[7],
-            'bill_id': r[8]
+            'bill_id': r[8],
+            'expired_time': r[9]
         })
     return watched_list
 

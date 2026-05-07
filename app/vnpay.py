@@ -14,7 +14,7 @@ VNPAY_PAYMENT_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
 
 def build_payment_url(amount, txn_ref, order_info = 'Movie Ticket Payment'):
     vnpay_amount = int(amount*100)
-    expire_date = datetime.now() + timedelta(minutes=1)
+    expire_date = datetime.now() + timedelta(minutes=10)
     str_txn_ref = str(txn_ref)[:20]
 
     params = {

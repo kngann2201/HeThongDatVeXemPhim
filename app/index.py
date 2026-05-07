@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime
 import time
 from app import app, db, login, dao, admin
-from flask import render_template, request, redirect, url_for, flash, jsonify, session, get_flashed_messages
+from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from app.decorators import anonymous_required
 from flask_login import login_user, current_user, login_required, logout_user
 import cloudinary.uploader
@@ -83,6 +83,7 @@ def register_app(app):
             except ValueError as v:
                 flash(str(v), "danger")
             except Exception as ex:
+                print(ex)
                 db.session.rollback()
                 flash("Hệ thống đang lỗi, vui lòng thử lại sau!", "danger")
         return render_template('register.html', data=data)
@@ -90,7 +91,6 @@ def register_app(app):
     @app.route("/login", methods=['GET', 'POST'])
     @anonymous_required
     def login_my_user():
-        err_msg = None
         next_page = request.args.get('next') or request.form.get('next')
         data = {}
 
@@ -136,11 +136,8 @@ def register_app(app):
             username = request.form.get("username")
             password = request.form.get("password")
             user = dao.auth_admin(username, password)
-
             if user:
                 login_user(user)
-            else:
-                err_msg = "Tài khoản hoặc mật khẩu không đúng!"
 
         return redirect("/admin")
 
@@ -238,7 +235,7 @@ def register_app(app):
             flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
             return redirect(url_for('index'))
 
-        seat_ids = [int(id) for id in seat_ids.split(",")]
+        seat_ids = [int(i) for i in seat_ids.split(",")]
         now = datetime.now()
         scr = dao.get_screening_by_id(screening)
         if scr.start_time <= now:
@@ -357,20 +354,15 @@ def register_app(app):
         amount = int(amount)
         msg = request.args.get('msg')
         success = request.args.get('success')
-        return render_template("return_payment.html", txn_ref=txn_ref, amount=amount, msg=msg, success=success)
+        p = Payment.query.filter_by(txn_ref=txn_ref).first()
+        bill = p.bill
+        return render_template("return_payment.html", txn_ref=txn_ref, amount=amount, msg=msg, success=success, bill=bill)
 
 
     @app.route("/user/profile")
     @login_required
     def profile():
         return render_template('user/profile.html', user=current_user)
-
-    @app.route('/user/bookings')
-    @login_required
-    def history_booking():
-        customer = current_user.customer
-        bookings = customer.bookings if customer else []
-        return render_template('user_bookings.html', bookings=bookings)
 
     @app.route("/user/history_booking")
     @login_required

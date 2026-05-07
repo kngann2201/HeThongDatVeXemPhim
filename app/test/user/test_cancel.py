@@ -17,14 +17,14 @@ def test_cancel_ticket_fail(test_app,test_session, sample_tickets, mocker, ticke
 
 
 
-def test_cancel_ticket_success(test_app, test_session, sample_tickets, mocker):
+def test_cancel_ticket_success(test_app, test_session, sample_tickets, sample_screening, mocker):
     class FakeUser:
         is_authenticated = True
         id = 1
 
     user = FakeUser()
     mocker.patch('flask_login.utils._get_user', return_value=user)
-    ticket = sample_tickets[0]
+    ticket = sample_tickets[1]
     cancel_ticket(ticket_id=ticket.id, customer_id=user.id)
     test_session.refresh(ticket)
     assert ticket.status == TicketStatus.CANCELLED
