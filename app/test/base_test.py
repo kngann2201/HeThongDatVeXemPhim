@@ -286,7 +286,7 @@ def driver():
     base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
     driver_path = os.path.join(base, ".venv", driver_name)
-    if driver_path:
+    if os.path.exists(driver_path):
         service = Service(executable_path=driver_path)
         driver = webdriver.Chrome(service=service)
     else:
