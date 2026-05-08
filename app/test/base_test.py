@@ -1,5 +1,8 @@
 import os
+import platform
 from flask import Flask
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from app import db
 import pytest
 import hashlib
@@ -24,7 +27,7 @@ def create_app():
         SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         TESTING=True,
-        MAIL_SUPPRESS_SEND=True,  #
+        MAIL_SUPPRESS_SEND=True,
         MAIL_DEFAULT_SENDER='test@example.com',
         SECRET_KEY='sjkfksgfghsvhvagjdhaldg',
         WTF_CSRF_ENABLED=False
@@ -36,7 +39,6 @@ def create_app():
     mail.init_app(app)
     from app.index import register_app
     register_app(app)
-
     return app
 
 
@@ -278,5 +280,15 @@ def sample_payment(test_session, sample_bill):
     test_session.add(payment)
     test_session.commit()
     return payment
+
+@pytest.fixture
+def driver():
+    base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
+    driver_path = os.path.join(base, ".venv", driver_name)
+    service = Service(executable_path=driver_path)
+    driver = webdriver.Chrome(service=service)
+    yield driver
+    driver.quit()
 
 
