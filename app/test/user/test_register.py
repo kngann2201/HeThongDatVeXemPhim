@@ -24,9 +24,9 @@ def test_success(test_app, test_session):
 
 
 @pytest.mark.parametrize('password', [
-    '1' * 7, '1a' * 3 + 'A',
-    'A1' * 4, 'Aa' * 4, 'a1' * 4,'Ha11'*4,
-    '1' * 8, 'a' * 8, 'A' * 8,
+    '1' * 7, '1a' * 3 + 'A','@'*7,'Ab1'*2+'@',
+    'A1' * 4, 'Aa' * 4, 'a1' * 4,'1@'*4,'a@'*4,'@A'*4,'Ha11'*4,'Aau@'*2,'@a1a'*2,'@AA1'*2,
+    '1' * 8, 'a' * 8, 'A' * 8,'@'*8
 ])
 def test_invalid_password(test_app, password):
     birthday_obj = datetime.strptime('1/1/2008', '%d/%m/%Y').date()

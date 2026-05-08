@@ -38,8 +38,13 @@ def test_update_password_success(test_app):
     updated_cust = Customer.query.get(1)
     assert updated_cust.password == hashlib.md5('Password123@'.encode('utf-8')).hexdigest()
 
+@pytest.mark.parametrize('password', [
+    '1' * 7, '1a' * 3 + 'A','@'*7,'Ab1'*2+'@',
+    'A1' * 4, 'Aa' * 4, 'a1' * 4,'1@'*4,'a@'*4,'@A'*4,'Ha11'*4,'Aau@'*2,'@a1a'*2,'@AA1'*2,
+    '1' * 8, 'a' * 8, 'A' * 8,'@'*8
 
-def test_update_password_fail(test_app):
+])
+def test_update_password_fail(test_app,password):
     birthday_obj = datetime.strptime('1/1/2008', '%d/%m/%Y').date()
     new_cust = Customer(id=1, username='a1' * 4, password='Abcd123@', full_name='admin',
                         phone_number='0323456789', birthday=birthday_obj, email='admin123@gmail.com', avatar=None)
@@ -47,11 +52,7 @@ def test_update_password_fail(test_app):
     db.session.commit()
 
     with pytest.raises(ValueError):
-        update_password(customer_id=1, new_password="alllowercase123")
-        update_password(customer_id=1, new_password="Short221")
-        update_password(customer_id=1, new_password="Short21@")
-        update_password(customer_id=1, new_password="Shorthh@")
-
+        update_password(customer_id=1, new_password=password)
     result_update = update_password(customer_id=999, new_password="ValidPassword123@")
     assert result_update is False
 

@@ -366,15 +366,19 @@ def get_info_movie(customer_id, status_enum):
     return ticket_list
 
 def get_all_info_movie(customer_id):
-    results = db.session.query(Ticket.id,Movie.title,MovieScreening.start_time,Room.number,Seat.row,Seat.number,
-        Ticket.price,Ticket.status, Bill.id, ScreeningSeat.hold_expired_at
-    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
-     .join(Seat, ScreeningSeat.seat_id == Seat.id)\
-     .join(Room, Seat.room_id == Room.id)\
-     .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)\
-     .join(Movie, MovieScreening.movie_id == Movie.id)\
-     .join(Bill, Ticket.bill_id == Bill.id)\
-     .filter(Bill.customer_id == customer_id).all()
+    results = db.session.query(
+        Ticket.id, Movie.title, MovieScreening.start_time, Room.number,
+        Seat.row, Seat.number, Ticket.price, Ticket.status,
+        Bill.id, ScreeningSeat.hold_expired_at
+    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id) \
+        .join(Seat, ScreeningSeat.seat_id == Seat.id) \
+        .join(Room, Seat.room_id == Room.id) \
+        .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id) \
+        .join(Movie, MovieScreening.movie_id == Movie.id) \
+        .join(Bill, Ticket.bill_id == Bill.id) \
+        .filter(Bill.customer_id == customer_id) \
+        .order_by(Bill.id.desc()) \
+        .all()
 
     watched_list = []
     for r in results:
@@ -404,32 +408,31 @@ def cancel_ticket(ticket_id, customer_id):
         raise ValueError("Vé đã check-in và sử dụng, không thể hủy!")
 
     if ticket.status == TicketStatus.CANCELLED:
-        raise ValueError("Vé đã được hủy trước đó!")
+        raise ValueError("Vé này đã được hủy trước đó!")
 
     screening = ticket.screening_seat.screening
-    now = datetime.now()
-
-    if screening.start_time - now < timedelta(hours=2):
-        raise ValueError("Quá hạn hủy vé! Chỉ được hủy trước suất chiếu ít nhất 2 tiếng.")
+    if screening.start_time - datetime.now() < timedelta(hours=2):
+        raise ValueError("Quá hạn hủy vé! Bạn chỉ có thể hủy trước giờ chiếu ít nhất 2 tiếng.")
 
     try:
         ticket.status = TicketStatus.CANCELLED
 
         s_seat = ticket.screening_seat
-        s_seat.status = SeatStatus.AVAILABLE
-        s_seat.holding_user_id = None
+        if s_seat:
+            s_seat.status = SeatStatus.AVAILABLE
+            s_seat.holding_user_id = None
 
         bill = ticket.bill
         if bill:
-            bill.total_amount -= ticket.price
-            if bill.total_amount < 0:
-                bill.total_amount = 0
+            active_total = sum(t.price for t in bill.tickets if t.status != TicketStatus.CANCELLED)
+            bill.total_amount = active_total
 
-            all_cancelled = all(t.status == TicketStatus.CANCELLED for t in bill.tickets)
-            if all_cancelled:
+            all_tickets_cancelled = all(t.status == TicketStatus.CANCELLED for t in bill.tickets)
+            if all_tickets_cancelled:
                 bill.status = PaymentStatus.CANCELLED
 
         db.session.commit()
+        return True
     except Exception as e:
         db.session.rollback()
         raise Exception(f"Lỗi hệ thống khi hủy vé: {str(e)}")
