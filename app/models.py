@@ -136,6 +136,7 @@ class PaymentStatus(CustomEnum):
     PENDING = 0
     SUCCESS = 1
     FAILED = 2
+    CANCELLED = 3
 
 class Bill(Base):
     total_amount = Column(Integer, nullable=False)
@@ -171,38 +172,125 @@ class Payment(Base):
 
 if __name__ == '__main__':
     with app.app_context():
-        # db.drop_all()
-        # db.create_all()
+        db.drop_all()
+        db.create_all()
         print("Tạo DB thành công!")
-        #
-        # import hashlib
-        # admin = Customer(
-        #     full_name = "Admin",
-        #     username='admin',
-        #     password=hashlib.md5("123".encode("utf-8")).hexdigest(),
-        #     email='admin@gmail.com',
-        #     phone_number='0357899304',
-        #     role=UserRole.ADMIN
-        # )
-        # db.session.add(admin)
-        # db.session.commit()
 
-        # import string
-        # def create_seats(room_id, num_rows, num_cols):
-        #     rows = list(string.ascii_uppercase)[:num_rows]
-        #
-        #     for r in rows:
-        #         for c in range(1, num_cols + 1):
-        #             seat = Seat(
-        #                 row=r,
-        #                 number=c,
-        #                 room_id=room_id
-        #             )
-        #             db.session.add(seat)
-        #
-        # for i in range(1, 12):
-        #     create_seats(room_id=i, num_rows=10, num_cols=10)
-        # db.session.commit()
-        print("thêm ghế thành công!")
+        import hashlib
+        admin = Customer(
+            full_name = "Admin",
+            username='admin',
+            password=hashlib.md5("123".encode("utf-8")).hexdigest(),
+            email='admin@gmail.com',
+            phone_number='0357899304',
+            role=UserRole.ADMIN
+        )
+        db.session.add(admin)
+        db.session.commit()
+
+        movies = [
+            Movie(id=1, title='PHÍ PHÔNG: QUỶ MÁU RỪNG THIÊNG',
+                  description='Phí Phông, loài quỷ khát máu trong truyền thuyết dân gian của đồng bào miền núi gây ám ảnh bao đời nay. Phim xoay quanh Còn (Kiều Minh Tuấn) và Dương (Minh Anh), hai pháp sư tập sự lên núi cứu người mẹ đang bị lời nguyền Phí Phông đánh gục. Cùng lúc đó, trong bản sâu cũng xảy ra nhiều cái chết ghê rợn. Mọi nghi ngờ đổ dồn về hai mẹ con Mon (Diệp Bảo Ngọc) và Lua (Nina Nutthacha), những người mang đặc tính y hệt Phí Phông. Thế nhưng, vẫn còn những bí mật động trời bị chôn vùi trong chốn rừng thiêng nước độc, cuốn hai anh em Còn và Dương vào cuộc truy lùng “Phí Phông” không hồi kết.',
+                  age_limit=16, duration=120, release_date=datetime(2026, 4, 24),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777039627/lws5grkuf0z5vgmh21cp.jpg',
+                  active=True),
+            Movie(id=2, title='HẸN EM NGÀY NHẬT THỰC',
+                  description='Năm 1995, khi đang đứng trước một quyết định quan trọng của cuộc đời, Ân bất ngờ bị kéo trở lại quá khứ bởi những bức thư tình chưa từng trao tay. Hành trình tìm gặp Thiên - mối tình đầu từng khắc sâu trong tim - đưa cô về lại thôn xóm Trà Mây năm xưa, nơi những ký ức ngọt ngào xen lẫn tổn thương vẫn chưa hề nguôi ngoai. Trong khoảnh khắc định mệnh khi hai người bất ngờ chạm mặt, những bí mật bị che giấu suốt nhiều năm dần hé lộ, buộc Ân phải đối diện với sự thật và lựa chọn con đường cho riêng mình. “Hẹn Em Ngày Nhật Thực” là câu chuyện tình yêu đầy cảm xúc về những điều chưa nói, về tình yêu vĩnh cửu và câu hỏi day dứt: nếu còn cơ hội, ta có dám tin vào trái tim mình một lần nữa?',
+                  age_limit=16, duration=118, release_date=datetime(2026, 3, 30),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038566/pjmobd3it3dc3ued3ilh.jpg',
+                  active=True),
+            Movie(id=3, title='DỊCH VỤ GIAO HÀNG CỦA PHÙ THỦY KIKI',
+                  description='Theo truyền thống, khi tròn 13 tuổi, con gái của các phù thủy phải rời xa quê hương để học cách tự lập . Kiki cũng thế, cô lên đường cùng chú mèo đen Jiji, bay đến thị trấn ven biển Koriko xa lạ. Tại đây, cô được một bà chủ tiệm bánh tốt bụng cưu mang và bắt đầu làm phụ tá cho bà, đồng thời cũng bắt đầu mở dịch vụ giao hàng mới bằng chổi bay. Cuộc sống mới mang đến cho Kiki những niềm vui, thất bại và thử thách đầu đời. Xen giữa hành trình ấy là tình bạn với Tombo - cậu bé có đam mê mãnh liệt với máy bay chạy bằng sức người. Tất cả đã giúp Kiki từng bước trưởng thành và hòa nhập với thị trấn biển đầy gió này.',
+                  age_limit=3, duration=103, release_date=datetime(2026, 4, 24),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038624/g74kqncjkadfdwhv5rem.jpg',
+                  active=True),
+            Movie(id=4, title='DƯỚI BÓNG ĐIỆN HẠ',
+                  description='Lấy mốc năm 1457 dưới triều đại Joseon, Dưới Bóng Điện Hạ khắc họa số phận nghiệt ngã của vua Danjong - vị quân vương thứ sáu của triều đại (Park Ji-hoon thủ vai). Lên ngôi khi tuổi đời còn non trẻ, Danjong nhanh chóng trở thành quân cờ trong vòng xoáy quyền lực tàn khốc. Bị chính người chú lật đổ, phế truất và đày đến vùng Cheongnyeongpo heo hút, cuộc đời của vị vua trẻ rẽ sang một ngã rẽ đầy u uất. Tại chốn lưu đày, ông gặp trưởng làng Eom Heung Do (Yoo Hai-jin thủ vai) - người đã chủ động biến ngôi làng nghèo thành nơi giam giữ nhà vua, đổi lại hy vọng cứu vãn sinh kế cho dân làng. Từ hai thân phận tưởng chừng đối lập, một cựu đế vương và một thường dân, bộ phim dần hé mở mối liên kết lặng lẽ nhưng sâu sắc - nơi lòng trung thành, sự che chở âm thầm và những phận người nhỏ bé cùng trôi dạt giữa cơn sóng lớn của lịch sử.',
+                  age_limit=16, duration=115, release_date=datetime(2026, 4, 15),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038671/jsu7f3kdmffpood2vpe9.jpg',
+                  active=True),
+            Movie(id=5, title='CÚ SỐC',
+                  description='Chuyện tình hoàn hảo của Emma (Zendaya) và Charlie (Robert Pattinson) bỗng vỡ vụn ngay trước thềm đám cưới. Một biến cố đen tối đột ngột ập đến bóc trần những dối trá kinh hoàng, đẩy cả hai vào mê cung của sự hoang mang và nghi kỵ. Khi sự thật được phơi bày, ranh giới giữa người "bạn đời" lý tưởng và một "kẻ xa lạ" đáng sợ trở nên mỏng manh hơn bao giờ hết.',
+                  age_limit=18, duration=105, release_date=datetime(2026, 4, 1),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038719/aoh4smbvyp6fm5snotvw.jpg',
+                  active=True),
+            Movie(id=6, title='THOÁT KHỎI TẬN THẾ',
+                  description='Ryland Grace một giáo viên khoa học nhận ra anh chính là hy vọng cuối cùng của Trái Đất. Nhiệm vụ của anh: cứu lấy Mặt Trời khỏi một sinh thể bí ẩn đang hút cạn năng lượng ánh sáng, đẩy cả hệ Mặt Trời vào bóng tối vĩnh viễn. Nếu thất bại, sự sống trên Trái Đất sẽ lụi tàn theo ánh sáng cuối cùng của mặt trời. Giữa không gian vũ trụ cô độc và áp lực của thời gian đang cạn dần, mọi phép tính, mọi quyết định của anh đều gánh trên vai số phận của toàn nhân loại. Nhưng trong hành trình tưởng chừng chỉ có một mình giữa khoảng không vô tận ấy, một tình bạn bất ngờ với một sinh vật ngoài hành tinh đã xuất hiện. Và có lẽ, để cứu Trái Đất, anh sẽ không phải chiến đấu một mình.',
+                  age_limit=13, duration=155, release_date=datetime(2026, 4, 12),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038756/aodqkzxm0tharlx4y3cm.jpg',
+                  active=True),
+            Movie(id=7, title='CÔ BÉ CORALINE',
+                  description='Khi gia đình chuyển đến một lâu đài cổ, Coraline vô tình mở ra cánh cửa dẫn tới một thế giới song song, nơi mọi thứ rực rỡ và hoàn hảo một cách đáng ngờ. Nhưng càng đắm mình trong sự “hoàn hảo” ấy, cô càng nhận ra phía sau lớp vỏ dịu dàng là một vực sâu nguy hiểm đang chực chờ nuốt chửng tất cả. Thế giới kia không phải phép màu, mà là chiếc bẫy được giăng bằng những bí mật đen tối. Để cứu gia đình và chính mình, Coraline buộc phải đối diện với thực thể tà ác đang ẩn sau vẻ ngoài rực rỡ và đôi mắt trống rỗng vô hồn.',
+                  age_limit=13, duration=99, release_date=datetime(2026, 4, 20),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038801/niaq7eyvvgwzupqwpkpt.jpg',
+                  active=True),
+            Movie(id=8, title='CÚ NHẢY KỲ DIỆU',
+                  description='Hoppers xoay quanh Mabel, một cô gái yêu động vật, vô tình tiếp cận công nghệ cho phép chuyển ý thức con người vào cơ thể robot động vật. Nhờ đó, Mabel “nhảy” vào thế giới tự nhiên dưới hình dạng một con hải ly và có thể giao tiếp trực tiếp với các loài khác. Trong hành trình này, cô dần khám phá cách động vật nhìn nhận con người, đồng thời phát hiện những mối nguy đang đe dọa môi trường sống của chúng. Tận dụng công nghệ Nhảy, Mabel đã trở thành cầu nối, mang lại cuộc sống cân bằng cho cả con người và động vật.',
+                  age_limit=3, duration=105, release_date=datetime(2026, 5, 1),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777038878/d7zvwbsd9zylug68sdyq.jpg',
+                  active=True),
+            Movie(id=9, title='TÀI',
+                  description='Tài bất ngờ rơi vào vòng xoáy nguy hiểm vì một khoản nợ tiền khổng lồ. Bị dồn vào đường cùng, Tài buộc phải dấn thân vào những lựa chọn sai lầm khiến gia đình trở thành mục tiêu bị đe dọa. Đằng sau những hành động liều lĩnh ấy là nỗi ám ảnh về người mẹ mà Tài luôn muốn bảo vệ và bù đắp bằng mọi giá. Khi ranh giới giữa đúng và sai ngày càng mong manh, Tài phải đối mặt với câu hỏi lớn nhất của đời mình: liệu lòng hiếu thảo có đủ để biện minh cho con đường anh đang đi.',
+                  age_limit=16,
+                  duration=101, release_date=datetime(2026, 4, 18),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777039001/dqxxfowt3ow2ib8aahzq.jpg',
+                  active=True),
+            Movie(id=10, title='SHIN - CẬU BÉ BÚT CHÌ',
+                  description='Bộ phim xoay quanh một vương quốc lơ lửng mang tên Rakuga, tồn tại nhờ nguồn năng lượng đến từ những nét vẽ của con người. Nhưng khi thế giới loài người dần đánh mất sự sáng tạo, Rakuga đứng bên bờ sụp đổ. Giữa thời khắc hỗn loạn, Shin vô tình nắm giữ cây bút chì màu kỳ diệu – có thể biến mọi hình vẽ thành hiện thực. Từ những nét vẽ ngây ngô nhất, bốn “vị anh hùng bất ổn” ra đời, đồng hành cùng cậu trong chuyến phiêu lưu vừa hài hước vừa kịch tính. Khi ranh giới giữa tưởng tượng và thực tại bị xóa nhòa, Shin không chỉ chiến đấu để cứu một vương quốc, mà còn để bảo vệ điều quý giá nhất: khả năng mơ mộng và sáng tạo của trẻ em.',
+                  age_limit=3, duration=104, release_date=datetime(2026, 1, 5),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777039309/phakoqey0pwilxjehcgy.jpg',
+                  active=True),
+            Movie(id=11, title='YÊU NỮ THÍCH HÀNG HIỆU 2',
+                  description='Hai mươi năm sau màn hóa thân kinh điển vào các vai diễn Miranda, Andy, Emily và Nigel — Meryl Streep, Anne Hathaway, Emily Blunt và Stanley Tucci sẽ chính thức trở lại với những con phố thời thượng của New York và văn phòng sang trọng của Tạp chí Runway trong "The Devil Wears Prada 2" (Yêu Nữ Thích Hàng Hiệu 2). Đây là phần phim tiếp theo cực kỳ được mong đợi từ 20th Century Studios, kế thừa sức hút từ hiện tượng điện ảnh năm 2006 từng định hình phong cách cho cả một thế hệ. Bộ phim được đạo diễn bởi David Frankel, kịch bản bởi Aline Brosh McKenna, sản xuất bởi Wendy Finerman, điều hành sản xuất bởi Michael Bederman, Karen Rosenfelt và Aline Brosh McKenna.',
+                  age_limit=13, duration=119, release_date=datetime(2026, 4, 24),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777039377/kjqzbg4ljhbgnd5clbqw.jpg',
+                  active=True),
+            Movie(id=12, title='NOBITA VÀ LÂU ĐÀI DƯỚI ĐÁY BIỂN',
+                  description='Bước vào kì nghỉ hè, Nobita và các bạn tranh cãi chí chóe về địa điểm cắm trại. Theo đề xuất của Doraemon, cả nhóm quyết định cắm trại giữa lòng đại dương! Sử dụng bảo bối thần kì “xe Buggy chạy dưới nước” và “đèn pin thích nghi”, 5 bạn nhỏ tận hưởng chuyến cắm trại dưới đáy biển, gặp gỡ vô vàn sinh vật lí thú trên đường đi. Sau khi phát hiện một chiếc tàu đắm, nhóm bạn đã gặp chàng thanh niên bí ẩn El. Thật bất ngờ, anh ta lại là cư dân đáy biển, sống tại “liên bang Mu”, một vùng biển rộng lớn! Vốn căm ghét người mặt đất, cư dân đáy biển không thể nào tin tưởng Nobita và các bạn. Đúng lúc đó, lời thông báo “lâu đài quỷ... đã bắt đầu phục sinh!!” được truyền tới. “Lâu đài quỷ” khiến cư dân đáy biển khiếp sợ, rốt cuộc là gì? Đặt trọn niềm tin vào bè bạn trong lồng ngực, chuyến phiêu lưu vĩ đại quyết định số phận của trái đất, bắt đầu!',
+                  age_limit=3, duration=116, release_date=datetime(2026, 4, 24),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777039591/i1xfshdejmbpkjdymopb.jpg',
+                  active=True),
+            Movie(id=13, title='MOANA',
+                  description='Nữ anh hùng biển cả quay trở lại. Moana từ Disney sẽ khơi dậy một làn sóng mới, để sự dũng cảm, lòng vị tha và âm nhạc hòa chung một nhịp chảy.',
+                  age_limit=12, duration=90, release_date=datetime(2026, 4, 30),
+                  poster='https://res.cloudinary.com/dimiharka/image/upload/v1777039512/ajupp8vku7tl0pib5xth.jpg',
+                  active=True)
+        ]
+        db.session.add_all(movies)
+        db.session.commit()
+        print("Đã nạp 13 Movie!")
+
+        rt1 = RoomType(name='Phòng IMAX', active=True)
+        rt2 = RoomType(name='Phòng 4DX', active=True)
+        rt3 = RoomType(name='Phòng thường', active=True)
+        rt4 = RoomType(name='Phòng VIP', active=True)
+        db.session.add_all([rt1, rt2, rt3, rt4])
+        db.session.commit()
+
+        rooms = [
+            Room(room_type_id=1, number=101, image='default.png'),
+            Room(room_type_id=1, number=102, image='default.png'),
+            Room(room_type_id=2, number=103, image='default.png'),
+            Room(room_type_id=2, number=104, image='default.png'),
+            Room(room_type_id=3, number=201, image='default.png'),
+            Room(room_type_id=3, number=202, image='default.png'),
+            Room(room_type_id=3, number=203, image='default.png'),
+            Room(room_type_id=4, number=204, image='default.png'),
+            Room(room_type_id=4, number=301, image='default.png'),
+            Room(room_type_id=4, number=302, image='default.png'),
+            Room(room_type_id=4, number=303, image='default.png')
+        ]
+        db.session.add_all(rooms)
+        db.session.commit()
+
+        for r in rooms:
+            for row in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+                for number in range(1, 11):
+                    seat = Seat(row=row, number=number, room=r, active=True)  # Dùng room=r thay vì room_id=i
+                    db.session.add(seat)
+
+        db.session.commit()
+
+        print("thêm dữ liệu thành công!")
 
 

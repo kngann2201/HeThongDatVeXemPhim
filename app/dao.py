@@ -404,7 +404,7 @@ def cancel_ticket(ticket_id, customer_id):
         raise ValueError("Vé đã check-in và sử dụng, không thể hủy!")
 
     if ticket.status == TicketStatus.CANCELLED:
-        raise ValueError("Vé đã hủy!")
+        raise ValueError("Vé đã được hủy trước đó!")
 
     screening = ticket.screening_seat.screening
     now = datetime.now()
@@ -419,9 +419,17 @@ def cancel_ticket(ticket_id, customer_id):
         s_seat.status = SeatStatus.AVAILABLE
         s_seat.holding_user_id = None
 
+        bill = ticket.bill
+        if bill:
+            bill.total_amount -= ticket.price
+            if bill.total_amount < 0:
+                bill.total_amount = 0
+
+            all_cancelled = all(t.status == TicketStatus.CANCELLED for t in bill.tickets)
+            if all_cancelled:
+                bill.status = PaymentStatus.CANCELLED
+
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         raise Exception(f"Lỗi hệ thống khi hủy vé: {str(e)}")
-
-
