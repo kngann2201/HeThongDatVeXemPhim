@@ -2,6 +2,7 @@ import os
 import platform
 from flask import Flask
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from app import db
 import pytest
@@ -283,7 +284,15 @@ def sample_payment(test_session, sample_bill):
 
 @pytest.fixture
 def driver():
-    driver = webdriver.Chrome()
+    options = Options()
+
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+
+    driver = webdriver.Chrome(options=options)
+
     yield driver
     driver.quit()
 
