@@ -39,6 +39,9 @@ jobs:
       with:
         chrome-version: stable
 
+    - name: Install ChromeDriver
+      uses: nanasess/setup-chromedriver@v2
+
     - name: Install dependencies
       run:
         pip install -r requirements.txt
@@ -52,7 +55,16 @@ jobs:
         DATABASE_URL: mysql+pymysql://root:root@127.0.0.1:3306/cinemadb?charset=utf8mb4
       run: |
         python index.py &
-        sleep 10
+
+        for i in {1..30}; do
+          if curl -f http://127.0.0.1:5000 > /dev/null 2>&1; then
+            echo "Flask is ready"
+            break
+          fi
+    
+          echo "Waiting for Flask..."
+          sleep 2
+        done
 
     - name: Run tests
       env:
