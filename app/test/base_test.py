@@ -283,14 +283,7 @@ def sample_payment(test_session, sample_bill):
 
 @pytest.fixture
 def driver():
-    base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
-    driver_path = os.path.join(base, ".venv", driver_name)
-    if os.path.exists(driver_path):
-        service = Service(executable_path=driver_path)
-        driver = webdriver.Chrome(service=service)
-    else:
-        driver = webdriver.Chrome()
+    driver = webdriver.Chrome()
     yield driver
     driver.quit()
 
