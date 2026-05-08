@@ -43,11 +43,20 @@ jobs:
       run:
         pip install -r requirements.txt
 
+    - name: Create database
+      run: |
+        python -c "from app import app, db; app.app_context().push(); db.create_all()"
+
+    - name: Start Flask app
+      env:
+        DATABASE_URL: mysql+pymysql://root:root@127.0.0.1:3306/cinemadb?charset=utf8mb4
+      run: |
+        python index.py &
+        sleep 10
+
     - name: Run tests
       env:
         PYTHONPATH: .
-        DATABASE_URL: mysql+pymysql://root:root@127.0.0.1:3306/cinemadb?charset=utf8mb4
       run: |
-        python -c "from app import app, db; app.app_context().push(); db.create_all()"
         python -m pytest app/
         chromedriver --url-base=/wd/hub &
