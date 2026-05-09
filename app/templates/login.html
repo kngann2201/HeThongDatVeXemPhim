@@ -6,7 +6,7 @@
 <div class="login-wrapper">
     <div class="login-container">
         <h2 class="sign-up__title">{{ ("ĐĂNG NHẬP") }}</h2>
-        <form class="sign-up__form" method="POST" action="{{ url_for('login_my_user') }}">
+        <form class="sign-up__form" method="POST" action="{{ url_for('login_my_user', next=next_page) }}">
             <div class="sign-up__content">
                 <div class="form-group">
                     <input class="sign-up__inp" type="text" placeholder="{{ ('Tên đăng nhập') }}" name="username"
@@ -16,13 +16,13 @@
                     <input class="sign-up__inp" type="password" placeholder="{{ ('Mật khẩu') }}" name="password" id="login_password" value="{{ data.get('password', '') }}" required/>
                     <i class="fas fa-eye toggle-password" onclick="togglePassword('login_password', this)"></i>
                 </div>
-                <input type="hidden" name="next" value="{{ request.args.get('next') or ''}}">
+                <input type="hidden" name="next" value="{{ next_page or request.args.get('next') }}">
             </div>
 
             <div class="sign-up__buttons">
                 <button class="btn btn--signin" type="submit">{{ ("Đăng nhập") }}</button>
                 <div class="auth-links" style="margin-top: 20px; text-align: center;">
-                    <a class="btn--register" href="/register" style="text-decoration: none; color: #007bff;">{{ ("Tạo
+                    <a class="btn--register" href="{{ url_for('register', next=next_page) }}" style="text-decoration: none; color: #007bff;">{{ ("Tạo
                         tài khoản") }}</a>
                     <span style="margin: 0 10px; color: #ccc;">|</span>
                     <a class="forgot__password" href="/forgot_password" style="text-decoration: none; color: #666;">{{

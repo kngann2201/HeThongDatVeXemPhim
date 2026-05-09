@@ -51,6 +51,8 @@ def register_app(app):
 
     @app.route("/register", methods=['GET', 'POST'])
     def register():
+        next_page = request.args.get("next")
+
         data = {}
 
         if request.method == 'POST':
@@ -79,7 +81,7 @@ def register_app(app):
                     phone=phone, email=email, birthday=birthday, avatar=avatar_url
                 )
                 flash("Đăng ký thành công!!!", "success")
-                return redirect(url_for('login_my_user'))
+                return redirect(url_for('login_my_user', next=next_page))
             except ValueError as v:
                 flash(str(v), "danger")
             except Exception as ex:
@@ -110,7 +112,7 @@ def register_app(app):
             else:
                 flash("Tên đăng nhập hoặc mật khẩu không đúng", "danger")
 
-        return render_template('login.html', data=data)
+        return render_template('login.html', data=data, next_page=next_page)
 
     @login.user_loader
     def get_user(user_id):
@@ -224,6 +226,7 @@ def register_app(app):
         return jsonify({"success": True, "seats": seats_data, "remaining": remaining})
 
     @app.route('/booking/submit', methods=['POST'])
+    @login_required
     def booking_submit():
         seat_ids = request.form.get("seat")
         screening = request.form.get("screening")
