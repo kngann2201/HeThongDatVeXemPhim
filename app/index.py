@@ -334,7 +334,7 @@ def register_app(app):
         bill = payment.bill
 
         for ticket in bill.tickets:
-            if ticket.status== PaymentStatus.CANCELLED:
+            if ticket.status == TicketStatus.CANCELLED:
                 continue
             seat = ticket.screening_seat
             if seat.status != SeatStatus.HOLDING:

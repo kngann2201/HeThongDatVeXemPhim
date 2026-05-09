@@ -32,6 +32,11 @@ jobs:
         python-version: '3.10'
         cache: 'pip'
 
+    - name: Install Google Chrome
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
+
     - name: Install dependencies
       run:
         pip install -r requirements.txt
@@ -39,7 +44,5 @@ jobs:
     - name: Run tests
       env:
         PYTHONPATH: .
-        DATABASE_URL: mysql+pymysql://root:root@127.0.0.1:3306/cinemadb?charset=utf8mb4
       run: |
-        python -c "from app import app, db; app.app_context().push(); db.create_all()"
-        python -m pytest app/
+        python -m pytest app/ -v

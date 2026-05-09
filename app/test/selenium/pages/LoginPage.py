@@ -4,7 +4,7 @@ from app.test.selenium.pages.BasePage import BasePage
 
 
 class LoginPage(BasePage):
-    URL = 'http://127.0.0.1:5000/login'
+    URL = 'http://127.0.0.1:5005/login'
 
     USERNAME = (By.NAME, 'username')
     PASSWORD = (By.NAME, 'password')

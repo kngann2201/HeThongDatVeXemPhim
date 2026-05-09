@@ -4,7 +4,7 @@ from app.test.selenium.pages.BasePage import BasePage
 
 
 class RegisterPage(BasePage):
-    URL = 'http://127.0.0.1:5000/register'
+    URL = 'http://127.0.0.1:5005/register'
 
     NAME = (By.NAME, 'full_name')
     BIRTHDAY = (By.NAME, 'birthday')
@@ -19,7 +19,7 @@ class RegisterPage(BasePage):
     def open_page(self, url=URL):
         self.open(url)
 
-    def register(self, name, birthday, phone, email, username, password, confirm, avatar):
+    def register(self, name, birthday, phone, email, username, password, confirm, avatar=None):
         self.typing(*self.NAME, name)
         self.set_date(*self.BIRTHDAY, birthday)
         self.typing(*self.PHONE, phone)
@@ -27,5 +27,6 @@ class RegisterPage(BasePage):
         self.typing(*self.USERNAME, username)
         self.typing(*self.PASSWORD, password)
         self.typing(*self.CONFIRM, confirm)
-        self.upload_file(*self.AVATAR, avatar)
+        if avatar is not None:
+            self.upload_file(*self.AVATAR, avatar)
         self.click(*self.REGISTER_BUTTON)
