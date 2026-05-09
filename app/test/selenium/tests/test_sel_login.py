@@ -1,5 +1,8 @@
 import time
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+
 from app.test.base_test import driver, sel_app
 from app.test.selenium.pages.LoginPage import LoginPage
 
@@ -11,7 +14,9 @@ def test_login_success(driver):
     time.sleep(1)
 
     assert driver.current_url == 'http://127.0.0.1:5005/'
-    e = driver.find_element(By.CSS_SELECTOR, '#mynavbar > div > div > a > span')
+    wait = WebDriverWait(driver, 5)
+    e = wait.until(lambda d: d.find_element(By.CSS_SELECTOR, '#mynavbar > div > div > a > span'))
+    wait.until(lambda d: e.text.strip() != "")
     assert 'user123' in e.text
 
 def test_login_failure(driver):
