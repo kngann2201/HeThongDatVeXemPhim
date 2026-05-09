@@ -3,7 +3,7 @@ import time
 
 import pytest
 from selenium.webdriver.common.by import By
-from app.test.base_test import driver
+from app.test.base_test import driver, sel_app
 from app.test.selenium.pages.RegisterPage import RegisterPage
 
 def test_register_success(driver):
@@ -17,7 +17,7 @@ def test_register_success(driver):
                 'abc@gmail.com', 'abc123', 'Pass@123', 'Pass@123', avatar_path)
 
     time.sleep(1)
-    assert driver.current_url == 'http://127.0.0.1:5000/login'
+    assert driver.current_url == 'http://127.0.0.1:5005/login'
 
 def test_register_invalid_birthday(driver):
     re = RegisterPage(driver=driver)
@@ -116,7 +116,7 @@ def test_register_duplicate_email(driver):
     re.open_page()
 
     re.register('Bùi Nguyễn Thuý Ngân', '13052005', '0926788391',
-                'user@gmail.com', 'abc1234', '11', '11', None)
+                'abc@gmail.com', 'abc1234', '11111111', '11111111', None)
 
     time.sleep(1)
     e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')

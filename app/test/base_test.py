@@ -1,5 +1,8 @@
 import os
 import platform
+import threading
+import time
+
 from flask import Flask
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -8,13 +11,12 @@ from app import db
 import pytest
 import hashlib
 from datetime import datetime, timedelta
-from app.models import Movie, MovieType, RoomType, Room, MovieTypeDetail, Customer, UserRole, Seat, MovieScreening, \
-    ScreeningSeat, SeatStatus, Bill, PaymentStatus, Ticket, TicketStatus, Payment
+from app.models import *
 from datetime import date
 from app import mail as flask_mail
 
 
-def create_app():
+def create_app(db_uri=None):
     test_dir = os.path.dirname(os.path.abspath(__file__))
     app_dir = os.path.abspath(os.path.join(test_dir, '..', '..'))
 
@@ -24,8 +26,12 @@ def create_app():
         template_folder=os.path.join(app_dir, 'app', 'templates'),
         static_folder=os.path.join(app_dir, 'app', 'static')
     )
+
+    if db_uri is None:
+        db_uri = "sqlite:///:memory:"
+
     app.config.update(
-        SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
+        SQLALCHEMY_DATABASE_URI=db_uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         TESTING=True,
         MAIL_SUPPRESS_SEND=True,
@@ -41,7 +47,6 @@ def create_app():
     from app.index import register_app
     register_app(app)
     return app
-
 
 @pytest.fixture
 def test_app():
@@ -282,18 +287,53 @@ def sample_payment(test_session, sample_bill):
     test_session.commit()
     return payment
 
-@pytest.fixture
-def driver():
-    options = Options()
+@pytest.fixture(scope="session")
+def sel_app():
+    if os.getenv('GITHUB_ACTIONS'):
+        uri = "mysql+pymysql://root:root@127.0.0.1:3306/cinemadb"
+    else:
+        uri = "sqlite:///selenium_test.db"
 
-    options.add_argument("--headless=new")
+    app = create_app(db_uri=uri)
+
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        seed_data()
+
+    def run_app():
+        app.run(host='0.0.0.0', port=5005, debug=False, use_reloader=False)
+
+    server_thread = threading.Thread(target=run_app, daemon=True)
+    server_thread.start()
+    time.sleep(5)
+
+    yield app
+    if not os.getenv('GITHUB_ACTIONS') and os.path.exists("selenium_test.db"):
+        os.remove("selenium_test.db")
+
+@pytest.fixture()
+def driver(sel_app):
+    options = Options()
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--remote-debugging-port=9222")
+
+    options.add_argument("--disable-features=SafeBrowsingPasswordCheck")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--incognito")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+    prefs = {
+        "credentials_enable_service": False,
+        "profile.password_manager_enabled": False,
+        "profile.default_content_setting_values.notifications": 2,
+        "autofill.profile_enabled": False,
+        "password_manager_leak_detection": False,
+    }
+    options.add_experimental_option("prefs", prefs)
 
     driver = webdriver.Chrome(options=options)
-
     yield driver
     driver.quit()
-
-

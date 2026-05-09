@@ -4,7 +4,7 @@ from app.test.selenium.pages.BasePage import BasePage
 
 
 class RegisterPage(BasePage):
-    URL = 'http://127.0.0.1:5000/register'
+    URL = 'http://127.0.0.1:5005/register'
 
     NAME = (By.NAME, 'full_name')
     BIRTHDAY = (By.NAME, 'birthday')
