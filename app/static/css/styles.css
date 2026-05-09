@@ -501,3 +501,149 @@ html {
     opacity: 0;
     transition: opacity 0.4s ease;
 }
+.accordion-item {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 12px !important;
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.accordion-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.accordion-item .d-flex.align-items-center {
+    background-color: #ffffff;
+    position: relative;
+}
+
+.bill-header {
+    padding: 1.2rem !important;
+    font-size: 1.05rem;
+    color: #444 !important;
+    background-color: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-right: 20px !important;
+}
+
+.accordion-button::after {
+    position: absolute;
+    right: 15px;
+    background-size: 1rem;
+    transition: transform 0.3s ease;
+    margin-left: 0;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #fdf2f2 !important;
+    color: #dc3545 !important;
+    font-weight: bold;
+    box-shadow: none !important;
+}
+
+.accordion-item:has(.show) .d-flex.align-items-center {
+    border-bottom: 1px solid #eee;
+}
+
+.btn-success.shadow-sm {
+    font-size: 0.85rem;
+    padding: 10px 18px !important;
+    white-space: nowrap;
+    border-radius: 8px !important;
+    transition: all 0.3s ease;
+    z-index: 5;
+    margin-right: 45px;
+}
+
+.btn-success.shadow-sm:hover {
+    background-color: #27ae60 !important;
+    transform: scale(1.05);
+}
+
+.ticket-table thead th {
+    background-color: #f8f9fa;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #666;
+    border-top: none;
+}
+
+.ticket-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.ticket-table tbody tr:hover {
+    background-color: #fff9f9;
+}
+
+.ticket-cancelled {
+    background-color: #f8f9fa !important;
+    color: #a0a0a0 !important;
+}
+
+.ticket-cancelled strong,
+.ticket-cancelled td:nth-child(2),
+.ticket-cancelled td:nth-child(4) {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.ticket-cancelled .badge.bg-info {
+    background-color: #e9ecef !important;
+    color: #adb5bd !important;
+    text-decoration: none !important;
+}
+
+.badge {
+    padding: 10px 15px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    transition: opacity 0.2s;
+}
+
+.badge:hover {
+    opacity: 0.85;
+    color: white !important;
+}
+
+.countdown {
+    display: inline-block;
+    background: #fff5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px dashed #dc3545;
+    min-width: 60px;
+    text-align: center;
+}
+
+.btn-danger {
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+}
+
+
+
+.btn-success.shadow-sm {
+    margin-right: 0;
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+.bill-header {
+    padding-right: 40px !important;
+}
+
+.ticket-table {
+    min-width: 600px;
+}
