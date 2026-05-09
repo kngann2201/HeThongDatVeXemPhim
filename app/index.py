@@ -157,33 +157,18 @@ def register_app(app):
         return render_template('booking.html',
             movie=movie, movie_types=movie_types, room_types=room_types, view=view)
 
-    @app.route("/api/get-rooms/<int:room_type_id>", methods=['GET'])
-    def get_rooms(room_type_id):
-        rooms = dao.get_room_by_type(room_type_id)
-
-        print(f"DS phòng theo loại phòng {room_type_id} đã chọn: {rooms}")
-        rooms_data = []
-        for r in rooms:
-            rooms_data.append({
-                "id": r.id,
-                "number": r.number,
-                "image": r.image,
-                "active": r.active
-            })
-        return jsonify({"success": True, "rooms": rooms_data})
-
     @app.route("/api/get-screenings", methods=['GET'])
     def get_screenings():
         watch_date = request.args.get("watch_date")
-        room_id = request.args.get("room_id")
+        room_type_id = request.args.get("room_type_id")
         movie_id = request.args.get("movie_id")
         print("Ngày xem:", watch_date)
-        print("Id phòng đã chọn:",room_id)
-        if not watch_date or not room_id or not movie_id:
+        print("Id loại phòng đã chọn:", room_type_id)
+        if not watch_date or not movie_id or not room_type_id:
             jsonify({"success": False, "message": "Thiếu thông tin để tìm suất chiếu!"})
 
         movie = dao.get_movie_by_id(movie_id)
-        screenings = dao.get_movie_screenings(movie_id=movie_id, room_id=room_id, watch_date=watch_date)
+        screenings = dao.get_movie_screenings(movie_id=movie_id, watch_date=watch_date, room_type_id=room_type_id)
         now = datetime.now()
         screenings = [s for s in screenings if s.start_time > now]
         print("DS suất chiếu từ phim đã chọn:", screenings)
@@ -194,7 +179,8 @@ def register_app(app):
                 "start_time": s.start_time.strftime('%H:%M'),
                 "end_time": (s.start_time + timedelta(minutes=movie.duration)).strftime('%H:%M'),
                 "base_price": s.base_price,
-                "active": s.active
+                "active": s.active,
+                "room": s.room.number
             })
         return jsonify({"success": True, "screenings": screenings_data})
 

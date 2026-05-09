@@ -1,7 +1,7 @@
 const selected_info = {
-    movieId: MOVIE_ID, date: null, roomTypeId: null, roomId: null,
+    movieId: MOVIE_ID, date: null, roomTypeId: null,
     screeningId: null, startTime: null, seats: [], price: 0,
-    remaining: 8, rooms: [], screenings: [], seatMap: {}
+    remaining: 8, screenings: [], seatMap: {}
 };
 
 var swiper = new Swiper(".mySwiper", {
@@ -12,13 +12,13 @@ var swiper = new Swiper(".mySwiper", {
 const $ = (id) => document.getElementById(id);
 
 const hideAllFrom = (step) => {
-    const steps = ['menu-rooms', 'menu-screenings', 'menu-seats', 'btn-submit'];
+    const steps = ['menu-screenings', 'menu-seats', 'btn-submit'];
     let start = false;
     steps.forEach(s => { if(s === step) start = true; if(start) $(s)?.classList.add('d-none'); });
 };
 
 const resetStateFrom = (step) => {
-    const steps = ['roomType', 'room', 'screening'];
+    const steps = ['roomType', 'screening'];
     let start = false;
 
     steps.forEach(s => {
@@ -29,12 +29,6 @@ const resetStateFrom = (step) => {
             case 'roomType':
                 selected_info.roomTypeId = null;
                 document.querySelectorAll('.room-type.active')
-                    .forEach(e => e.classList.remove('active'));
-                break;
-
-            case 'room':
-                selected_info.roomId = null;
-                document.querySelectorAll('.room.active')
                     .forEach(e => e.classList.remove('active'));
                 break;
 
@@ -61,7 +55,6 @@ const saveState = () => {
     localStorage.setItem('pending_booking', JSON.stringify({
         date: selected_info.date,
         roomTypeId: selected_info.roomTypeId,
-        roomId: selected_info.roomId,
         screeningId: selected_info.screeningId
     }));
 };
@@ -81,11 +74,6 @@ async function restoreState() {
         await loadRooms(data.roomTypeId);
         document.querySelector(`.room-type[data-type="${data.roomTypeId}"]`)?.classList.add('active');
     }
-    if (data.roomId) {
-        selected_info.roomId = data.roomId;
-        await loadScreenings();
-        document.querySelector(`.room[data-room="${data.roomId}"]`)?.classList.add('active');
-    }
     if (data.screeningId) {
         selected_info.screeningId = data.screeningId;
         await loadSeats(data.screeningId);
@@ -97,18 +85,9 @@ async function restoreState() {
     localStorage.removeItem('pending_booking');
 }
 
-async function loadRooms(typeId) {
-    const res = await fetch(`/api/get-rooms/${typeId}`).then(r => r.json());
-    if (res.success) {
-        selected_info.rooms = res.rooms;
-        $('menu-rooms').classList.remove('d-none');
-        renderRooms();
-    }
-}
-
 async function loadScreenings() {
-    const {movieId, roomId, date} = selected_info;
-    const res = await fetch(`/api/get-screenings?movie_id=${movieId}&room_id=${roomId}&watch_date=${date}`).then(r => r.json());
+    const {movieId, date, roomTypeId} = selected_info;
+    const res = await fetch(`/api/get-screenings?movie_id=${movieId}&watch_date=${date}&room_type_id=${roomTypeId}`).then(r => r.json());
     if (res.success) {
         selected_info.screenings = res.screenings;
         $('menu-screenings').classList.remove('d-none');
@@ -143,19 +122,13 @@ async function loadSeats(screeningId) {
     }
 }
 
-function renderRooms() {
-    const container = document.querySelector('.rooms');
-    container.innerHTML = selected_info.rooms.map(r => `
-        <div class="room d-type ${selected_info.roomId == r.id ? 'active' : ''}" data-room="${r.id}">${r.number}</div>
-    `).join('') || '<p class="text-danger">Hiện không có phòng phù hợp!</p>';
-}
-
 function renderScreenings() {
     const container = document.querySelector('.screenings');
     container.innerHTML = selected_info.screenings.map(s => `
         <div class="screening d-type ${selected_info.screeningId == s.id ? 'active' : ''}" data-screening="${s.id}" data-start="${s.start_time}">
             <div class="time">${s.start_time} ~ ${s.end_time}</div>
             <div class="price">(${s.base_price.toLocaleString()}đ)</div>
+            <div class="room">Phòng ${s.room}</div>
         </div>
     `).join('') || '<p class="text-danger">Hiện không có suất chiếu phù hợp!</p>';
 }
@@ -228,24 +201,15 @@ document.querySelector('.room-types').addEventListener('click', (e) => {
     const btn = e.target.closest('.room-type');
     if (!btn) return;
     document.querySelector('.room-type.active')?.classList.remove('active');
-    resetStateFrom('room');
+    resetStateFrom('screening');
     btn.classList.add('active');
     selected_info.roomTypeId = btn.dataset.type;
     hideAllFrom('menu-rooms');
-    loadRooms(selected_info.roomTypeId);
+    loadScreenings();
     console.log(selected_info);
 });
 
-document.querySelector('.rooms').addEventListener('click', (e) => {
-    const btn = e.target.closest('.room');
-    if (!btn) return;
-    resetStateFrom('screening');
-    document.querySelector('.room.active')?.classList.remove('active');
-    btn.classList.add('active');
-    selected_info.roomId = btn.dataset.room;
-    hideAllFrom('menu-screenings');
-    loadScreenings();
-});
+
 
 document.querySelector('.screenings').addEventListener('click', (e) => {
     const btn = e.target.closest('.screening');
