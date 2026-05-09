@@ -327,8 +327,9 @@ def pay_success(payment, bill):
     bill.pay_time = datetime.now()
 
     for ticket in bill.tickets:
-        ticket.status = TicketStatus.PAID
-        ticket.screening_seat.status = SeatStatus.BOOKED
+        if ticket.status != TicketStatus.CANCELLED:
+            ticket.status = TicketStatus.PAID
+            ticket.screening_seat.status = SeatStatus.BOOKED
 
     db.session.commit()
 
