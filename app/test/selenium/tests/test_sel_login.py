@@ -16,7 +16,6 @@ def test_login_success(driver):
     assert driver.current_url == 'http://127.0.0.1:5005/'
     wait = WebDriverWait(driver, 5)
     e = wait.until(lambda d: d.find_element(By.CSS_SELECTOR, '#mynavbar > div > div > a > span'))
-    wait.until(lambda d: e.text.strip() != "")
     assert 'user123' in e.text
 
 def test_login_failure(driver):
