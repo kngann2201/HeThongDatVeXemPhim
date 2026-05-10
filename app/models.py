@@ -5,7 +5,7 @@ from enum import Enum as CustomEnum
 from sqlalchemy.orm import relationship
 
 from app import db, app
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Base(db.Model):
@@ -332,9 +332,65 @@ def seed_data():
     for r in rooms:
         for row in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
             for number in range(1, 11):
-                seat = Seat(row=row, number=number, room=r, active=True)  # Dùng room=r thay vì room_id=i
+                seat = Seat(row=row, number=number, room=r, active=True)
                 db.session.add(seat)
 
+    db.session.commit()
+
+    movies_screening=[
+        MovieScreening(start_time=datetime.now() + timedelta(days=1),base_price=100000,room_id=1,movie_id=1),
+        MovieScreening(start_time=datetime.now() + timedelta(minutes=20), base_price=100000, room_id=2, movie_id=2),
+        MovieScreening(start_time=datetime.now() + timedelta(hours=2), base_price=100000, room_id=3, movie_id=3),
+        MovieScreening(start_time=datetime.now() + timedelta(hours=3), base_price=100000, room_id=4, movie_id=13),
+        MovieScreening(start_time=datetime.now() + timedelta(minutes=30), base_price=100000, room_id=4, movie_id=13),
+        MovieScreening(start_time=datetime.now()+timedelta(minutes=10), base_price=100000, room_id=5, movie_id=13),
+        MovieScreening(start_time=datetime.now() + timedelta(hours=3), base_price=100000, room_id=5, movie_id=12),
+    ]
+    db.session.add_all(movies_screening)
+    db.session.commit()
+    ss1=[]
+    ss2=[]
+    ss3=[]
+    ss4=[]
+    for i in range(1,91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=4,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id= None
+        )
+        ss1.append(s)
+    for i in range(1,91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=5,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id= None
+        )
+        ss2.append(s)
+
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=6,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss3.append(s)
+
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=7,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss4.append(s)
+
+    db.session.add_all(ss1)
+    db.session.add_all(ss2)
+    db.session.add_all(ss3)
+    db.session.add_all(ss4)
     db.session.commit()
 
     print("thêm dữ liệu thành công!")
