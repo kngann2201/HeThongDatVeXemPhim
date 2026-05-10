@@ -171,7 +171,6 @@ def register_app(app):
         screenings = dao.get_movie_screenings(movie_id=movie_id, watch_date=watch_date, room_type_id=room_type_id)
         now = datetime.now()
         screenings = [s for s in screenings if s.start_time > now]
-        print("DS suất chiếu từ phim đã chọn:", screenings)
         screenings_data = []
         for s in screenings:
             screenings_data.append({
@@ -186,7 +185,7 @@ def register_app(app):
 
     @app.route("/api/get-seats/<int:screening_id>", methods=['GET'])
     def get_seats(screening_id):
-        print('Suất chiếu nhận được từ front-end: ', screening_id)
+        print('Suất chiếu đã chọn: ', screening_id)
         seats = dao.get_seats_by_screening(screening_id=screening_id)
 
         if not seats:
@@ -216,6 +215,7 @@ def register_app(app):
     def booking_submit():
         seat_ids = request.form.get("seat")
         screening = request.form.get("screening")
+        print('Bắt đầu đặt vé')
         print('DS ghế muốn đặt: ', seat_ids)
         print('Suất chiếu muốn đặt:', screening)
 
@@ -235,7 +235,6 @@ def register_app(app):
 
         try:
             screening_seats = dao.hold_seats(seat_ids, screening)
-            print("DS ghế sẽ giữ chỗ trong 10p: ", screening_seats)
 
             if len(screening_seats) != len(seat_ids):
                 return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Một số ghế không tồn tại trong suất chiếu này!'))
@@ -244,8 +243,8 @@ def register_app(app):
                 return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Vượt quá số ghế được đặt mỗi suất chiếu!'))
 
             for s in screening_seats:
-                if s.status == SeatStatus.BOOKED or (s.status == SeatStatus.HOLDING and s.holding_user_id != current_user.id):
-                    return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Ghế đã được đặt bởi người khác!"'))
+                if s.status == SeatStatus.BOOKED or s.status == SeatStatus.HOLDING:
+                    return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Ghế đã được đặt!"'))
                 else:
                     s.status = SeatStatus.HOLDING
                     s.hold_expired_at = datetime.now() + timedelta(minutes=10)

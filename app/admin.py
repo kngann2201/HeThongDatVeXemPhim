@@ -23,7 +23,7 @@ class MyAdminIndexView(AdminIndexView):
                 func.count(Ticket.id).label("total_tickets"),
                 func.sum(
                     case(
-                        (Ticket.status == TicketStatus.PAID, Ticket.price),
+                        (Ticket.status == TicketStatus.PAID or Ticket.status == TicketStatus.USED, Ticket.price),
                         else_=0
                     )
                 ).label("revenue"),
@@ -31,7 +31,7 @@ class MyAdminIndexView(AdminIndexView):
                     case((Ticket.status == TicketStatus.HOLDING, 1), else_=0)
                 ).label("holding"),
                 func.sum(
-                    case((Ticket.status == TicketStatus.PAID, 1), else_=0)
+                    case((Ticket.status == TicketStatus.PAID or Ticket.status == TicketStatus.USED, 1), else_=0)
                 ).label("paid"),
                 func.sum(
                     case((Ticket.status == TicketStatus.CANCELLED, 1), else_=0)
@@ -209,6 +209,7 @@ class SeatView(AuthenticatedView):
 
 class MovieScreeningView(AuthenticatedView):
     form_excluded_columns = ["screening_seats"]
+    column_searchable_list = ["movie.title", "room.number"]
 
     def on_model_change(self, form, model, is_created):
         db.session.flush()
@@ -262,15 +263,18 @@ class MovieScreeningView(AuthenticatedView):
         ScreeningSeat.query.filter_by(screening_id=model.id).delete()
 
 class ScreeningSeatView(AuthenticatedView):
-    form_excluded_columns = ["tickets"]
-    column_filters = ["screening", "holding_user", "status"]
+    form_excluded_columns = ["tickets", ""]
+    column_filters = ["status"]
+    column_searchable_list = ["screening.movie.title", "holding_user.full_name", "holding_user.phone_number"]
 
 class TicketView(AuthenticatedView):
-    column_list = ["bill.customer", "price", "status", "screening_seat", "active", "created_at"]
+    column_list = ["bill.customer", "price", "status", "screening_seat", "active", "created_at", "screening_seat.screening.movie.title"]
     form_excluded_columns = ["bill"]
     column_filters = ["status"]
+    column_searchable_list = ["screening_seat.screening.movie.title"]
     column_labels = {
-        "bill.customer": "Customer"
+        "bill.customer": "Customer",
+        "screening_seat.screening.movie.title": "Movie"
     }
 
 class BillView(AuthenticatedView):

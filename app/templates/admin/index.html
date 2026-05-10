@@ -5,6 +5,22 @@
 
 
 {% if current_user.is_authenticated and current_user.is_admin %}
+<form method="get" class="row mb-4 mt-4">
+    <div class="col-md-3">
+        <label>Từ ngày</label>
+        <input type="date" name="from_date" class="form-control" value="{{ request.args.get('from_date', '') }}">
+    </div>
+
+    <div class="col-md-3">
+        <label>Đến ngày</label>
+        <input type="date" name="to_date" class="form-control" value="{{ request.args.get('to_date', '') }}">
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary">Lọc</button>
+    </div>
+</form>
+
 <table class="table mt-5">
     <tr>
         <th>Phim</th>
@@ -35,22 +51,6 @@
     </tr>
     {% endfor %}
 </table>
-
-<form method="get" class="row mb-4 mt-4">
-    <div class="col-md-3">
-        <label>Từ ngày</label>
-        <input type="date" name="from_date" class="form-control" value="{{ request.args.get('from_date', '') }}">
-    </div>
-
-    <div class="col-md-3">
-        <label>Đến ngày</label>
-        <input type="date" name="to_date" class="form-control" value="{{ request.args.get('to_date', '') }}">
-    </div>
-
-    <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-primary">Lọc</button>
-    </div>
-</form>
 
 <h3 class="text-info text-center">Biểu đồ doanh thu phim</h3>
 <canvas id="revenueChart" class="mb-5" height="150"></canvas>
