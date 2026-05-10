@@ -196,7 +196,7 @@ def sample_screening(test_session):
         movie_id=1
     )
     scr3 = MovieScreening(
-        start_time=datetime.now() + timedelta(minutes=2),
+        start_time=datetime.now() + timedelta(minutes=12),
         base_price=100000,
         room_id=1,
         movie_id=1
@@ -316,28 +316,35 @@ def sel_app():
 def driver(sel_app):
     options = Options()
 
-    if os.getenv('GITHUB_ACTIONS'):
-        options.add_argument("--headless=new")
-
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--remote-debugging-port=9222")
 
-    options.add_argument("--disable-features=SafeBrowsingPasswordCheck")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--incognito")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
+    options.exclude_switches = ["enable-automation"]
     prefs = {
         "credentials_enable_service": False,
         "profile.password_manager_enabled": False,
         "profile.default_content_setting_values.notifications": 2,
-        "autofill.profile_enabled": False,
-        "password_manager_leak_detection": False,
     }
     options.add_experimental_option("prefs", prefs)
+    if os.getenv('GITHUB_ACTIONS'):
+        options.add_argument("--headless=new")
 
-    driver = webdriver.Chrome(options=options)
+    base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
+    driver_path = os.path.join(base, ".venv", driver_name)
+
+    service = Service(executable_path=driver_path)
+    try:
+        driver = webdriver.Chrome(service=service, options=options)
+        if not os.getenv('GITHUB_ACTIONS'):
+            print('Local chrome driver')
+    except:
+        driver = webdriver.Chrome(options=options)
+        print("Sử dụng trình điều khiển mặc định của hệ thống")
+
     yield driver
     driver.quit()

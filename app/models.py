@@ -186,7 +186,8 @@ def seed_data():
         password=hashlib.md5("Pass@123".encode("utf-8")).hexdigest(),
         email='user123@gmail.com',
         phone_number='0357899305',
-        role=UserRole.CUSTOMER
+        role=UserRole.CUSTOMER,
+        birthday=datetime(2004, 1, 22).date()
     )
     db.session.add_all([admin, user])
     db.session.commit()
@@ -261,7 +262,49 @@ def seed_data():
     ]
     db.session.add_all(movies)
     db.session.commit()
-    print("Đã nạp 13 Movie!")
+
+    types = [
+        MovieType(id=1, name='Kinh dị'),
+        MovieType(id=2, name='Tâm lý'),
+        MovieType(id=3, name='Tình cảm'),
+        MovieType(id=4, name='Hoạt hình'),
+        MovieType(id=5, name='Phiêu lưu'),
+        MovieType(id=6, name='Gia đình'),
+        MovieType(id=7, name='Hành động'),
+        MovieType(id=8, name='Khoa học viễn tưởng'),
+        MovieType(id=9, name='Hài hước'),
+        MovieType(id=10, name='Chính kịch'),
+        MovieType(id=11, name='Kỳ ảo')
+    ]
+
+    db.session.add_all(types)
+    db.session.commit()
+
+    movie_details = [
+        MovieTypeDetail(movie_id=1, type_id=1), MovieTypeDetail(movie_id=1, type_id=11),
+        MovieTypeDetail(movie_id=2, type_id=3), MovieTypeDetail(movie_id=2, type_id=2),
+        MovieTypeDetail(movie_id=3, type_id=4), MovieTypeDetail(movie_id=3, type_id=5),
+        MovieTypeDetail(movie_id=4, type_id=10), MovieTypeDetail(movie_id=4, type_id=2),
+        MovieTypeDetail(movie_id=5, type_id=2), MovieTypeDetail(movie_id=5, type_id=3),
+        MovieTypeDetail(movie_id=6, type_id=8), MovieTypeDetail(movie_id=6, type_id=7),
+        MovieTypeDetail(movie_id=7, type_id=4), MovieTypeDetail(movie_id=7, type_id=1),
+        MovieTypeDetail(movie_id=7, type_id=11),
+        MovieTypeDetail(movie_id=8, type_id=4), MovieTypeDetail(movie_id=8, type_id=5),
+        MovieTypeDetail(movie_id=8, type_id=6),
+        MovieTypeDetail(movie_id=9, type_id=7), MovieTypeDetail(movie_id=9, type_id=2),
+        MovieTypeDetail(movie_id=9, type_id=6),
+        MovieTypeDetail(movie_id=10, type_id=4), MovieTypeDetail(movie_id=10, type_id=9),
+        MovieTypeDetail(movie_id=10, type_id=5),
+        MovieTypeDetail(movie_id=11, type_id=9), MovieTypeDetail(movie_id=11, type_id=2),
+        MovieTypeDetail(movie_id=12, type_id=4), MovieTypeDetail(movie_id=12, type_id=5),
+        MovieTypeDetail(movie_id=12, type_id=8),
+        MovieTypeDetail(movie_id=13, type_id=4), MovieTypeDetail(movie_id=13, type_id=5),
+        MovieTypeDetail(movie_id=13, type_id=6)
+    ]
+
+    db.session.add_all(movie_details)
+    db.session.commit()
+
 
     rt1 = RoomType(name='Phòng IMAX', active=True)
     rt2 = RoomType(name='Phòng 4DX', active=True)
