@@ -213,14 +213,15 @@ def sample_screening(test_session):
     return [scr1, scr2, scr3, scr4]
 
 @pytest.fixture
-def sample_screening_seats(test_session, sample_seats):
+def sample_screening_seats(test_session, sample_seats, sample_screening):
     ss_list = []
+    target_screening = sample_screening[0]
 
     for i, seat in enumerate(sample_seats):
         is_first = (i == 0)
         ss = ScreeningSeat(
-            seat_id=seat.id,
-            screening_id=1,
+            seat=seat,
+            screening=target_screening,
             status=SeatStatus.BOOKED if is_first else SeatStatus.AVAILABLE,
             holding_user_id=1 if is_first else None
         )
@@ -233,7 +234,7 @@ def sample_screening_seats(test_session, sample_seats):
 @pytest.fixture
 def sample_bill(test_session):
     bill = Bill(
-        total_amount=100000,
+        total_amount=0,
         status=PaymentStatus.PENDING,
         customer_id=1
     )
@@ -241,38 +242,26 @@ def sample_bill(test_session):
     test_session.commit()
     return [bill]
 
+
 @pytest.fixture
 def sample_tickets(test_session, sample_screening_seats, sample_bill):
-    t1 = Ticket(
-        price=100000,
-        status=TicketStatus.PAID,
-        screening_seat_id=sample_screening_seats[0].id,
-        bill_id=sample_bill[0].id
-    )
+    t1 = Ticket(price=100000, status=TicketStatus.PAID,
+                screening_seat_id=sample_screening_seats[0].id, bill_id=sample_bill[0].id)
+    t2 = Ticket(price=100000, status=TicketStatus.PAID,
+                screening_seat_id=sample_screening_seats[1].id, bill_id=sample_bill[0].id)
+    t3 = Ticket(price=100000, status=TicketStatus.USED,
+                screening_seat_id=sample_screening_seats[2].id, bill_id=sample_bill[0].id)
+    t4 = Ticket(price=100000, status=TicketStatus.CANCELLED,
+                screening_seat_id=sample_screening_seats[3].id, bill_id=sample_bill[0].id)
 
-    t2 = Ticket(
-        price=100000,
-        status=TicketStatus.PAID,
-        screening_seat_id=sample_screening_seats[1].id,
-        bill_id=sample_bill[0].id
-    )
+    tickets = [t1, t2, t3, t4]
+    test_session.add_all(tickets)
 
-    t3 = Ticket(
-        price=100000,
-        status=TicketStatus.USED,
-        screening_seat_id=sample_screening_seats[2].id,
-        bill_id=sample_bill[0].id
-    )
+    active_total = sum(t.price for t in tickets if t.status != TicketStatus.CANCELLED)
+    sample_bill[0].total_amount = active_total
 
-    t4 = Ticket(
-        price=100000,
-        status=TicketStatus.CANCELLED,
-        screening_seat_id=sample_screening_seats[3].id,
-        bill_id=sample_bill[0].id
-    )
-    test_session.add_all([t1,t2, t3,t4])
     test_session.commit()
-    return [t1,t2, t3,t4]
+    return tickets
 
 @pytest.fixture
 def sample_payment(test_session, sample_bill):
