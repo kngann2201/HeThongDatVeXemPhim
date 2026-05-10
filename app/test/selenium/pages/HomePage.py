@@ -7,7 +7,8 @@ class HomePage(BasePage):
     URL = 'http://127.0.0.1:5005/'
     SEARCH = (By.NAME, 'kw')
     TYPE_LIST = (By.ID, 'navbarDropdown')
-    MOVIE_TYPE_1 = (By.CSS_SELECTOR, '#mynavbar > ul > li.nav-item.dropdown > ul > li:nth-child(1) > a')
+    MOVIE_TYPE_1 = (By.CSS_SELECTOR, '#mynavbar > ul > li.nav-item.dropdown > ul > li:first-child > a')
+    MOVIE_TYPE_2 = (By.CSS_SELECTOR, '#mynavbar > ul > li.nav-item.dropdown > ul > li:last-child > a')
 
     def open_page(self, url=URL):
         self.open(url)
@@ -15,6 +16,10 @@ class HomePage(BasePage):
     def filter_by_type(self):
         self.find(*self.TYPE_LIST).click()
         self.find(*self.MOVIE_TYPE_1).click()
+
+    def filter_by_type_no_movie(self):
+        self.find(*self.TYPE_LIST).click()
+        self.find(*self.MOVIE_TYPE_2).click()
 
     def search(self, kw):
         e = self.find(*self.SEARCH)

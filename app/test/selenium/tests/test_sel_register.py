@@ -27,7 +27,7 @@ def test_register_invalid_birthday(driver):
                 'abcd@gmail.com', 'abc123', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Ngày sinh không hợp lệ' in e.text
 
 def test_register_invalid_phone(driver):
@@ -38,7 +38,7 @@ def test_register_invalid_phone(driver):
                 'abcd@gmail.com', 'abc123', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Số điện thoại không hợp lệ' in e.text
 
 def test_register_invalid_email(driver):
@@ -49,7 +49,7 @@ def test_register_invalid_email(driver):
                 'abcd@gmail', 'abc123', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Không đúng định dạng hoặc email đã tồn tại' in e.text
 
 def test_register_invalid_username(driver):
@@ -60,7 +60,7 @@ def test_register_invalid_username(driver):
                 'abcd@gmail.com', 'abc', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Username phải từ 6 kí tự trở lên' in e.text
 
 @pytest.mark.parametrize('password', [
@@ -74,7 +74,7 @@ def test_register_invalid_format_password(driver, password):
                 'abcd@gmail.com', 'abc1234', password, password, None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Mật khẩu phải có chữ hoa, chữ thường, kí tự đặc biệt và số' in e.text
 
 
@@ -86,7 +86,7 @@ def test_register_invalid_length_password(driver):
                 'abcd@gmail.com', 'abc1234', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Mật khẩu phải có ít nhất 8 ký tự' in e.text
 
 def test_register_confirm_not_match(driver):
@@ -97,7 +97,7 @@ def test_register_confirm_not_match(driver):
                 'abcd@gmail.com', 'abc1234', '11111111', '20052005', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Mật khẩu không khớp!!' in e.text
 
 def test_register_duplicate_phone(driver):
@@ -108,7 +108,7 @@ def test_register_duplicate_phone(driver):
                 'abcd@gmail.com', 'abc1234', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Số điện thoại đã được sử dụng' in e.text
 
 def test_register_duplicate_email(driver):
@@ -119,7 +119,7 @@ def test_register_duplicate_email(driver):
                 'abc@gmail.com', 'abc1234', '11111111', '11111111', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Không đúng định dạng hoặc email đã tồn tại' in e.text
 
 def test_register_duplicate_username(driver):
@@ -130,7 +130,7 @@ def test_register_duplicate_username(driver):
                 'abcd@gmail.com', 'abc123', '11', '11', None)
 
     time.sleep(1)
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Tên đăng nhập đã tồn tại' in e.text
 
 

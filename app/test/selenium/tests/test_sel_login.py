@@ -18,7 +18,7 @@ def test_login_success(driver):
     wait.until(lambda d: "user123" in el.get_attribute("textContent"))
     assert "user123" in el.get_attribute("textContent")
 
-def test_login_failure(driver):
+def test_login_wrong_password(driver):
     login = LoginPage(driver=driver)
     login.open_page()
 
@@ -26,7 +26,18 @@ def test_login_failure(driver):
     time.sleep(1)
 
     assert driver.current_url == 'http://127.0.0.1:5005/login'
-    e = driver.find_element(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    e = login.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
+    assert 'Tên đăng nhập hoặc mật khẩu không đúng' in e.text
+
+def test_login_wrong_username(driver):
+    login = LoginPage(driver=driver)
+    login.open_page()
+
+    login.login('user1', 'Pass@123')
+    time.sleep(1)
+
+    assert driver.current_url == 'http://127.0.0.1:5005/login'
+    e = login.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
     assert 'Tên đăng nhập hoặc mật khẩu không đúng' in e.text
 
 def test_login_from_booking(driver):

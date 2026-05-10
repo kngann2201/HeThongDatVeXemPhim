@@ -274,7 +274,8 @@ def seed_data():
         MovieType(id=8, name='Khoa học viễn tưởng'),
         MovieType(id=9, name='Hài hước'),
         MovieType(id=10, name='Chính kịch'),
-        MovieType(id=11, name='Kỳ ảo')
+        MovieType(id=11, name='Kỳ ảo'),
+        MovieType(id=12, name='Siêu nhiên')
     ]
 
     db.session.add_all(types)
