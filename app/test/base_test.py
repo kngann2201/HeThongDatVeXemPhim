@@ -196,7 +196,7 @@ def sample_screening(test_session):
         movie_id=1
     )
     scr3 = MovieScreening(
-        start_time=datetime.now() + timedelta(minutes=12),
+        start_time=datetime.now() + timedelta(minutes=10),
         base_price=100000,
         room_id=1,
         movie_id=1

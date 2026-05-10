@@ -16,7 +16,7 @@ class BasePage:
 
     def click(self, by, value):
         e = self.find(by, value)
-        self.driver.execute_script("arguments[0].scrollIntoView();", e)
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", e)
         time.sleep(1)
         e.click()
 
