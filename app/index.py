@@ -155,7 +155,7 @@ def register_app(app):
         room_types = dao.get_room_types()
 
         return render_template('booking.html',
-            movie=movie, movie_types=movie_types, room_types=room_types, view=view)
+            movie=movie, m_types=movie_types, room_types=room_types, view=view)
 
     @app.route("/api/get-screenings", methods=['GET'])
     def get_screenings():
