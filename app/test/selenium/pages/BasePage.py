@@ -1,4 +1,5 @@
 import time
+from selenium.common.exceptions import NoAlertPresentException
 
 
 class BasePage:
@@ -29,3 +30,9 @@ class BasePage:
 
     def set_date(self, by, value, date_value):
         self.find(by, value).send_keys(date_value)
+
+    def get_alert_text(self):
+        alert = self.driver.switch_to.alert
+        text = alert.text
+        alert.accept()
+        return text
