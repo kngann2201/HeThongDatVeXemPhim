@@ -7,81 +7,85 @@
 
     <div class="accordion mt-4" id="accordionBooking">
         {% for bill_id, group in bookings|groupby('bill_id') %}
-            {% set tickets = group|list %}
-            {% set active_tickets = tickets | rejectattr('status.value', 'equalto', 2) | list %}
-            {% set total_price = active_tickets | sum(attribute='price') %}
-            {% set has_unpaid = active_tickets | selectattr('status.value', 'equalto', 0) | list | length > 0 %}
+        {% set tickets = group|list %}
+        {% set active_tickets = tickets | rejectattr('status.value', 'equalto', 2) | list %}
+        {% set total_price = active_tickets | sum(attribute='price') %}
+        {% set has_unpaid = active_tickets | selectattr('status.value', 'equalto', 0) | list | length > 0 %}
 
-            <div class="accordion-item mb-3 border">
-                <div class="d-flex align-items-center bg-white">
-                    <button class="accordion-button collapsed bill-header flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ bill_id }}">
-                        <div class="d-flex w-100 justify-content-between align-items-center pe-3">
-                            <div>
-                                <span class="me-3 text-dark"><strong>Hóa đơn: #{{ bill_id }}</strong></span>
-                                <span class="badge bg-secondary">{{ tickets|length }} vé</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="me-3 text-muted small d-none d-md-inline">{{ tickets[0].show_time }}</span>
-                                {# Hiển thị tổng tiền đã khấu trừ vé hủy #}
-                                <span class="fw-bold text-danger">{{ "{:,.0f}".format(total_price) }}đ</span>
-                            </div>
+        <div class="accordion-item mb-3 border">
+            <div class="d-flex align-items-center bg-white">
+                <button class="accordion-button collapsed bill-header flex-grow-1" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapse{{ bill_id }}">
+                    <div class="d-flex w-100 justify-content-between align-items-center pe-3">
+                        <div>
+                            <span class="me-3 text-dark"><strong>Hóa đơn: #{{ bill_id }}</strong></span>
+                            <span class="badge bg-secondary me-2">{{ tickets|length }} vé</span>
+                            <span class="text-primary fw-bold">{{ tickets[0].movie_name }}</span>
                         </div>
-                    </button>
-                    {% if has_unpaid and total_price > 0 %}
-                    <div class="pe-3">
-                        <a class="badge btn-success text-decoration-none shadow-sm" href="/payment/{{ bill_id }}" style="padding: 10px 20px;">
-                             Thanh toán
-                        </a>
+                        <div class="text-end">
+                            <span class="me-3 text-muted small d-none d-md-inline">{{ tickets[0].show_time }}</span>
+                            <span class="fw-bold text-danger">{{ "{:,.0f}".format(total_price) }}đ</span>
+                        </div>
                     </div>
-                    {% endif %}
+                </button>
+                {% if has_unpaid and total_price > 0 %}
+                <div class="pe-3">
+                    <a class="badge btn-success text-decoration-none shadow-sm" href="/payment/{{ bill_id }}"
+                       style="padding: 10px 20px;">
+                        Thanh toán
+                    </a>
                 </div>
+                {% endif %}
+            </div>
 
-                <div id="collapse{{ bill_id }}" class="accordion-collapse collapse" data-bs-parent="#accordionBooking">
-                    <div class="accordion-body p-0">
-                        <table class="table table-hover align-middle mb-0 ticket-table">
-                            <thead>
-                                <tr>
-                                    <th>Mã vé</th>
-                                    <th>Phim</th>
-                                    <th>Ghế</th>
-                                    <th>Giá</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for b in tickets %}
-                                <tr class="{% if b.status.value == 2 %}ticket-cancelled{% endif %}">
-                                    <td>#{{ b.id }}</td>
-                                    <td><strong>{{ b.movie_name }}</strong></td>
-                                    <td><span class="badge bg-info text-dark">{{ b.seat_number }}</span></td>
-                                    <td>{{ "{:,.0f}".format(b.price) }}đ</td>
-                                    <td>
-                                        {% if b.status.value == 3 %} <span class="text-success">Đã sử dụng</span>
-                                        {% elif b.status.value == 1 %} <span class="text-primary">Đã thanh toán</span>
-                                        {% elif b.status.value == 2 %} <span class="text-muted">Đã hủy</span>
-                                        {% else %}
-                                            <span class="countdown fw-bold" data-expired="{{ b.expired_time.strftime('%Y-%m-%dT%H:%M:%S') }}">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="d-flex gap-2">
-                                            {% if b.status.value == 0 or b.status.value == 1 %}
-                                                <form action="/user/cancel-ticket/{{ b.id }}" method="POST" onsubmit="return confirm('Hủy vé {{ b.seat_number }}?');">
-                                                    <button type="submit" class="badge btn-danger border-0">Huỷ vé</button>
-                                                </form>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+            <div id="collapse{{ bill_id }}" class="accordion-collapse collapse" data-bs-parent="#accordionBooking">
+                <div class="accordion-body p-0">
+                    <table class="table table-hover align-middle mb-0 ticket-table">
+                        <thead>
+                        <tr>
+                            <th>Mã vé</th>
+                            <th>Phim</th>
+                            <th>Ghế</th>
+                            <th>Giá</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for b in tickets %}
+                        <tr class="{% if b.status.value == 2 %}ticket-cancelled{% endif %}">
+                            <td>#{{ b.id }}</td>
+                            <td><strong>{{ b.movie_name }}</strong></td>
+                            <td><span class="badge bg-info text-dark">{{ b.seat_number }}</span></td>
+                            <td>{{ "{:,.0f}".format(b.price) }}đ</td>
+                            <td>
+                                {% if b.status.value == 3 %} <span class="text-success">Đã sử dụng</span>
+                                {% elif b.status.value == 1 %} <span class="text-primary">Đã thanh toán</span>
+                                {% elif b.status.value == 2 %} <span class="text-muted">Đã hủy</span>
+                                {% else %}
+                                <span class="countdown fw-bold"
+                                      data-expired="{{ b.expired_time.strftime('%Y-%m-%dT%H:%M:%S') }}">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    {% if b.status.value == 0 or b.status.value == 1 %}
+                                    <form action="/user/cancel-ticket/{{ b.id }}" method="POST"
+                                          onsubmit="return confirm('Hủy vé {{ b.seat_number }}?');">
+                                        <button type="submit" class="badge btn-danger border-0">Huỷ vé</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
         {% else %}
-            <div class="alert alert-info text-center">Bạn chưa có vé nào trong danh sách này!!!</div>
+        <div class="alert alert-info text-center">Bạn chưa có vé nào trong danh sách này!!!</div>
         {% endfor %}
     </div>
 </div>
