@@ -12,6 +12,7 @@ import pytest
 import hashlib
 from datetime import datetime, timedelta
 from app.models import *
+from app.seed import seed_data
 from datetime import date
 from app import mail as flask_mail
 

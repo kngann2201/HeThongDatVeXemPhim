@@ -11,7 +11,8 @@ from app import dao
 import re
 from datetime import datetime, timedelta
 import hashlib
-from sqlalchemy import func, case
+from sqlalchemy import func, case, or_
+
 
 class MyAdminIndexView(AdminIndexView):
     @expose("/")
@@ -23,7 +24,13 @@ class MyAdminIndexView(AdminIndexView):
                 func.count(Ticket.id).label("total_tickets"),
                 func.sum(
                     case(
-                        (Ticket.status == TicketStatus.PAID or Ticket.status == TicketStatus.USED, Ticket.price),
+                        (
+                            or_(
+                                Ticket.status == TicketStatus.PAID,
+                                Ticket.status == TicketStatus.USED
+                            ),
+                            Ticket.price
+                        ),
                         else_=0
                     )
                 ).label("revenue"),
@@ -31,7 +38,16 @@ class MyAdminIndexView(AdminIndexView):
                     case((Ticket.status == TicketStatus.HOLDING, 1), else_=0)
                 ).label("holding"),
                 func.sum(
-                    case((Ticket.status == TicketStatus.PAID or Ticket.status == TicketStatus.USED, 1), else_=0)
+                    case(
+                        (
+                            or_(
+                                Ticket.status == TicketStatus.PAID,
+                                Ticket.status == TicketStatus.USED
+                            ),
+                            1
+                        ),
+                        else_=0
+                    )
                 ).label("paid"),
                 func.sum(
                     case((Ticket.status == TicketStatus.CANCELLED, 1), else_=0)
