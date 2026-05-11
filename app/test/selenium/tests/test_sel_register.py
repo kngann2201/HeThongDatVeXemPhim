@@ -34,7 +34,7 @@ def test_register_invalid_phone(driver):
     re = RegisterPage(driver=driver)
     re.open_page()
 
-    re.register('Bùi Nguyễn Thuý Ngân', '130512005', 'abc',
+    re.register('Bùi Nguyễn Thuý Ngân', '13052005', 'abc',
                 'abcd@gmail.com', 'abc123', '11', '11', None)
 
     time.sleep(1)
@@ -104,8 +104,8 @@ def test_register_duplicate_phone(driver):
     re = RegisterPage(driver=driver)
     re.open_page()
 
-    re.register('Bùi Nguyễn Thuý Ngân', '13052005', '0926788392',
-                'abcd@gmail.com', 'abc1234', '11', '11', None)
+    re.register('Bùi Nguyễn Thuý Ngân', '13052005', '0357899305',
+                'abcd@gmail.com', 'abc1234', 'Pass@123', 'Pass@123', None)
 
     time.sleep(1)
     e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
@@ -116,7 +116,7 @@ def test_register_duplicate_email(driver):
     re.open_page()
 
     re.register('Bùi Nguyễn Thuý Ngân', '13052005', '0926788391',
-                'abc@gmail.com', 'abc1234', '11111111', '11111111', None)
+                'user123@gmail.com', 'abc1234', 'Pass@123', 'Pass@123', None)
 
     time.sleep(1)
     e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')
@@ -127,7 +127,7 @@ def test_register_duplicate_username(driver):
     re.open_page()
 
     re.register('Bùi Nguyễn Thuý Ngân', '13052005', '0926788391',
-                'abcd@gmail.com', 'abc123', '11', '11', None)
+                'abcd@gmail.com', 'user123', 'Pass@123', 'Pass@123', None)
 
     time.sleep(1)
     e = re.find(By.CSS_SELECTOR, 'body > div.flex-grow-1 > div.container.mt-3 > div')

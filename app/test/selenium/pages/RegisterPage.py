@@ -19,9 +19,20 @@ class RegisterPage(BasePage):
     def open_page(self, url=URL):
         self.open(url)
 
+    def set_birthday(self, birthday):
+        birthday_input = self.find(*self.BIRTHDAY)
+        birthday_input.clear()
+        if birthday and len(birthday) == 8:
+            birthday = f"{birthday[4:8]}-{birthday[2:4]}-{birthday[0:2]}"
+        self.driver.execute_script(
+            "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input', { bubbles: true }));",
+            birthday_input,
+            birthday
+        )
+
     def register(self, name, birthday, phone, email, username, password, confirm, avatar=None):
         self.typing(*self.NAME, name)
-        self.set_date(*self.BIRTHDAY, birthday)
+        self.set_birthday(birthday)
         self.typing(*self.PHONE, phone)
         self.typing(*self.EMAIL, email)
         self.typing(*self.USERNAME, username)

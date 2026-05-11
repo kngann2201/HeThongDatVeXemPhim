@@ -346,6 +346,7 @@ def seed_data():
         MovieScreening(start_time=datetime.now() + timedelta(minutes=30), base_price=100000, room_id=4, movie_id=13),
         MovieScreening(start_time=datetime.now()+timedelta(minutes=10), base_price=100000, room_id=5, movie_id=13),
         MovieScreening(start_time=datetime.now() + timedelta(hours=3), base_price=100000, room_id=5, movie_id=12),
+        MovieScreening(start_time=datetime.now() + timedelta(seconds=15), base_price=100000, room_id=1, movie_id=13)
     ]
     db.session.add_all(movies_screening)
     db.session.commit()
@@ -353,6 +354,7 @@ def seed_data():
     ss2=[]
     ss3=[]
     ss4=[]
+    ss5=[]
     for i in range(1,91):
         s = ScreeningSeat(
             seat_id=i,
@@ -387,11 +389,19 @@ def seed_data():
             holding_user_id=None
         )
         ss4.append(s)
-
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=8,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss5.append(s)
     db.session.add_all(ss1)
     db.session.add_all(ss2)
     db.session.add_all(ss3)
     db.session.add_all(ss4)
+    db.session.add_all(ss5)
     db.session.commit()
 
     print("thêm dữ liệu thành công!")

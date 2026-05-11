@@ -276,64 +276,77 @@ def sample_payment(test_session, sample_bill):
     test_session.commit()
     return payment
 
+
 @pytest.fixture(scope="session")
 def sel_app():
-    if os.getenv('GITHUB_ACTIONS'):
-        uri = "mysql+pymysql://root:root@127.0.0.1:3306/cinemadb"
-    else:
-        uri = "sqlite:///selenium_test.db"
+
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    db_path = os.path.join(basedir, "selenium_test.db")
+
+    uri = "sqlite:///" + db_path
 
     app = create_app(db_uri=uri)
 
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
-        seed_data()
-
     def run_app():
-        app.run(host='0.0.0.0', port=5005, debug=False, use_reloader=False)
+        app.run(
+            host='0.0.0.0',
+            port=5005,
+            debug=False,
+            use_reloader=False
+        )
 
-    server_thread = threading.Thread(target=run_app, daemon=True)
+    server_thread = threading.Thread(
+        target=run_app,
+        daemon=True
+    )
+
     server_thread.start()
-    time.sleep(5)
+
+    time.sleep(3)
 
     yield app
-    if not os.getenv('GITHUB_ACTIONS') and os.path.exists("selenium_test.db"):
-        os.remove("selenium_test.db")
 
 @pytest.fixture()
 def driver(sel_app):
     options = Options()
 
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--remote-debugging-port=9222")
+    if os.getenv('GITHUB_ACTIONS'):
+        options.add_argument("--headless=new")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+    else:
+        options.add_argument("--window-size=1366,768")
 
+    options.add_argument("--disable-gpu")
     options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument("--incognito")
-    options.exclude_switches = ["enable-automation"]
     prefs = {
         "credentials_enable_service": False,
         "profile.password_manager_enabled": False,
-        "profile.default_content_setting_values.notifications": 2,
     }
     options.add_experimental_option("prefs", prefs)
-    if os.getenv('GITHUB_ACTIONS'):
-        options.add_argument("--headless=new")
-
-    base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
-    driver_path = os.path.join(base, ".venv", driver_name)
-
-    service = Service(executable_path=driver_path)
     try:
-        driver = webdriver.Chrome(service=service, options=options)
-        if not os.getenv('GITHUB_ACTIONS'):
-            print('Local chrome driver')
-    except:
         driver = webdriver.Chrome(options=options)
-        print("Sử dụng trình điều khiển mặc định của hệ thống")
+    except:
+        base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
+        driver_path = os.path.join(base, ".venv", driver_name)
+        service = Service(executable_path=driver_path)
+        driver = webdriver.Chrome(service=service, options=options)
 
     yield driver
     driver.quit()
+
+def reset_selenium_database(app):
+    with app.app_context():
+        db.session.remove()
+        db.drop_all()
+        db.create_all()
+        seed_data()
+
+
+@pytest.fixture
+def reset_database(sel_app):
+    reset_selenium_database(sel_app)
+    yield
+    reset_selenium_database(sel_app)
