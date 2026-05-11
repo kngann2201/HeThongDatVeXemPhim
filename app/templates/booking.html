@@ -11,9 +11,9 @@
 </script>
 
 <div class="container-xxl my-5" style="max-width: 1400px;">
-{% if err_msg%}
+    {% if err_msg%}
     <div class="alert alert-danger">{{err_msg}}</div>
-{% endif %}
+    {% endif %}
     <div class="movie-container d-flex gap-5" style="padding:1rem">
         <div class="movie-poster">
             <img src="{{movie.poster}}" alt="Ảnh phim">
@@ -25,7 +25,7 @@
             <div class="row mt-auto mb-0 d-flex">
                 <div class="d-flex gap-3 flex-wrap align-items-center mb-3">
                     <strong>Thể loại</strong><br>
-                    {% for type in m_types %}
+                    {% for type in current_movie_types %}
                     <span class="type-badge">{{type.name}}</span>
                     {% endfor %}
                 </div>
@@ -35,9 +35,9 @@
                     <span>{{movie.release_date.strftime('%d/%m/%Y')}}</span>
                 </div>
                 {% if view != 0 %}
-                 <div class="d-flex gap-3 flex-wrap align-items-center mb-3">
+                <div class="d-flex gap-3 flex-wrap align-items-center mb-3">
                     <strong>Lượt xem</strong><br>
-                     <span>{{ view }} lượt đặt vé<br></span>
+                    <span>{{ view }} lượt đặt vé<br></span>
                 </div>
                 {% endif %}
 
@@ -106,7 +106,8 @@
                         <i class="fas fa-lock mb-3"></i>
                         <h5>Vui lòng đăng nhập</h5>
                         <p>Bạn cần đăng nhập để chọn ghế và đặt vé</p>
-                        <a href="/login?next={{ request.path }}" id="overlay-login-btn" class="btn btn-primary">Đăng nhập ngay</a>
+                        <a href="/login?next={{ request.path }}" id="overlay-login-btn" class="btn btn-primary">Đăng
+                            nhập ngay</a>
                     </div>
                 </div>
 

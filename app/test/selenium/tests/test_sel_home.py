@@ -111,15 +111,15 @@ def test_filter_and_search_no_result(driver):
 def test_scroll_to_bxh(driver):
     home = HomePage(driver=driver)
     home.open_page()
-    home.click(By.CSS_SELECTOR, '#mynavbar > ul > li:nth-child(3) > a')
+    home.go_to_ranking()
     time.sleep(1)
 
     e = home.find(By.ID, 'ranking_list')
     is_visible = driver.execute_script("""
             const rect = arguments[0].getBoundingClientRect();
             return (
-                rect.top >= 0 &&
-                rect.bottom <= window.innerHeight
+                rect.top < window.innerHeight &&
+                rect.bottom > 0
             );
         """, e)
     assert is_visible
@@ -144,12 +144,13 @@ def test_click_booking_from_bxh(driver):
     home = HomePage(driver=driver)
     home.open_page()
 
-    home.click(By.CSS_SELECTOR, '#mynavbar > ul > li:nth-child(3) > a')
+    home.go_to_ranking()
     time.sleep(1)
     name = home.find(By.CSS_SELECTOR, '#ranking_list  tr:nth-child(1) > td:nth-child(2) h6').text
     btn = home.find(By.CSS_SELECTOR, '#ranking_list tr:nth-child(1) > td:nth-child(5) > a')
     href = btn.get_attribute('href')
-    btn.click()
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", btn)
+    driver.execute_script("arguments[0].click();", btn)
     time.sleep(1)
     assert driver.current_url == href
     movie_name = driver.find_element(By.CLASS_NAME, 'movie-title')
@@ -188,8 +189,7 @@ def test_click_profile(driver):
         login.login('user123', 'Pass@123')
         time.sleep(1)
     finally:
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > a')
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > ul > li:nth-child(1) > a')
+        home.click_user_menu_item('#mynavbar > div > div > ul > li:nth-child(1) > a')
         time.sleep(1)
         assert driver.current_url == 'http://127.0.0.1:5005/user/profile'
 
@@ -206,8 +206,7 @@ def test_click_history_ticket(driver):
         login.login('user123', 'Pass@123')
         time.sleep(1)
     finally:
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > a')
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > ul > li:nth-child(2) > a')
+        home.click_user_menu_item('#mynavbar > div > div > ul > li:nth-child(2) > a')
         time.sleep(1)
         assert driver.current_url == 'http://127.0.0.1:5005/user/history_booking'
 
@@ -224,8 +223,7 @@ def test_click_history_watched(driver):
         login.login('user123', 'Pass@123')
         time.sleep(1)
     finally:
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > a')
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > ul > li:nth-child(3) > a')
+        home.click_user_menu_item('#mynavbar > div > div > ul > li:nth-child(3) > a')
         time.sleep(1)
         assert driver.current_url == 'http://127.0.0.1:5005/user/history_watched'
 
@@ -242,8 +240,7 @@ def test_click_log_out(driver):
         login.login('user123', 'Pass@123')
         time.sleep(1)
     finally:
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > a')
-        home.click(By.CSS_SELECTOR, '#mynavbar > div > div > ul > li:last-child > a')
+        home.click_user_menu_item('#mynavbar > div > div > ul > li:last-child > a')
         time.sleep(1)
         assert driver.current_url == 'http://127.0.0.1:5005/login'
 

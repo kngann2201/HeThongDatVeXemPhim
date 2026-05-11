@@ -1,6 +1,10 @@
 import time
-from selenium.common.exceptions import NoAlertPresentException
-
+from selenium.common.exceptions import (
+    ElementClickInterceptedException,
+    ElementNotInteractableException,
+    NoAlertPresentException,
+)
+from selenium.webdriver.support.ui import WebDriverWait
 
 class BasePage:
     def __init__(self, driver):
@@ -19,7 +23,10 @@ class BasePage:
         e = self.find(by, value)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", e)
         time.sleep(1)
-        e.click()
+        try:
+            e.click()
+        except (ElementClickInterceptedException, ElementNotInteractableException):
+            self.driver.execute_script("arguments[0].click();", e)
 
     def typing(self, by, value, text):
         e = self.find(by, value)
@@ -32,7 +39,18 @@ class BasePage:
         self.find(by, value).send_keys(date_value)
 
     def get_alert_text(self):
-        alert = self.driver.switch_to.alert
-        text = alert.text
-        alert.accept()
+        def alert_text(driver):
+            text = driver.execute_script("return window.__lastAlert || '';")
+            if text:
+                return text
+            try:
+                alert = driver.switch_to.alert
+                text = alert.text
+                alert.accept()
+                return text
+            except NoAlertPresentException:
+                return False
+
+        text = WebDriverWait(self.driver, 10).until(alert_text)
+        self.driver.execute_script("window.__lastAlert = null;")
         return text

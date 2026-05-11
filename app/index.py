@@ -13,6 +13,13 @@ from app.schedule import start_scheduler
 
 
 def register_app(app):
+    @app.context_processor
+    def common_context():
+        def get_all_movie_types():
+            return dao.get_all_genres()
+        return {
+            'movie_types': get_all_movie_types()
+        }
     @app.route("/")
     def index():
         keyword = request.args.get('kw', '')
@@ -36,8 +43,6 @@ def register_app(app):
         paginated_movies = all_movies[start:end]
 
         ranking_movies = sorted(all_movies, key=lambda x: x.get('ticket_count', 0), reverse=True)[:5]
-        movie_types = dao.get_all_genres()
-
         return render_template('index.html',
                                products=products,
                                ranking_movies=ranking_movies,
@@ -46,8 +51,7 @@ def register_app(app):
                                current_page=page,
                                keyword=keyword,
                                type_id=type_id,
-                               type_name=type_name,
-                               movie_types=movie_types)
+                               type_name=type_name)
 
     @app.route("/register", methods=['GET', 'POST'])
     def register():
@@ -151,12 +155,11 @@ def register_app(app):
             return redirect(url_for('index'))
 
         view = dao.ticket_count_by_movie_id(movie_id)
-        movie_types = dao.get_movie_types(movie_id)
         room_types = dao.get_room_types()
+        current_movie_types = dao.get_movie_types(movie_id)
 
-        return render_template('booking.html',
-            movie=movie, m_types=movie_types, room_types=room_types, view=view)
-
+        return render_template('booking.html',movie=movie,
+                               current_movie_types=current_movie_types,room_types=room_types,view=view)
     @app.route("/api/get-screenings", methods=['GET'])
     def get_screenings():
         watch_date = request.args.get("watch_date")
@@ -505,7 +508,7 @@ def register_app(app):
     def cancel_ticket_route(ticket_id):
         try:
             dao.cancel_ticket(ticket_id, current_user.id)
-            flash("Hủy vé thành công! Ghế đã được giải phóng.", "success")
+            flash("Hủy vé thành công! Tiền sẽ được hoàn sau 24h", "success")
 
         except Exception as e:
             flash(str(e), "danger")

@@ -5,6 +5,8 @@ from app.test.base_test import driver, sel_app
 from app.test.selenium.pages.HomePage import HomePage
 from app.test.selenium.pages.LoginPage import LoginPage
 from app.test.selenium.pages.BookingPage import BookingPage
+from app.test.selenium.pages.RegisterPage import RegisterPage
+import os
 
 def test_booking_success(driver):
     login = LoginPage(driver=driver)
@@ -77,6 +79,7 @@ def test_booking_9_seat(driver):
     book.select_screening_seat()
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.select_n_seats(9)
+    wait = WebDriverWait(driver, 10)
     alert_msg = book.get_alert_text()
     expected_msg = "Bạn đã đạt giới hạn đặt ghế ở suất chiếu này!"
     assert alert_msg == expected_msg
@@ -290,4 +293,102 @@ def test_booking_movie_2_screening(driver):
     book.select_pay_back()
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
+def test_booking_after_movie_shown(driver):
+    login = LoginPage(driver=driver)
+    login.open_page()
 
+    login.login('user123', 'Pass@123')
+    time.sleep(1)
+
+    assert driver.current_url == 'http://127.0.0.1:5005/'
+
+    book = BookingPage(driver=driver)
+    book.book()
+    book.select_screening1()
+    book.select_screening_seat()
+    book.select_seat()
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+    time.sleep(10)
+    book.book_ticket()
+    alert_msg = book.get_alert_text()
+    wait = WebDriverWait(driver, 10)
+    expected_msg = "Suất chiếu đã bắt đầu!"
+    assert alert_msg == expected_msg
+
+def test_booking_not_login_after_login(driver):
+    home=HomePage(driver=driver)
+    home.open_page()
+    assert driver.current_url == 'http://127.0.0.1:5005/'
+    wait = WebDriverWait(driver, 10)
+
+    book=BookingPage(driver=driver)
+    book.book()
+    book.select_screening()
+    book.select_screening_seat()
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+    book.select_login()
+    assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
+    wait = WebDriverWait(driver, 10)
+
+    login = LoginPage(driver=driver)
+    login.login('user123', 'Pass@123')
+    time.sleep(1)
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+    wait = WebDriverWait(driver, 10)
+
+
+def test_booking_not_login_after_register(driver):
+    home=HomePage(driver=driver)
+    home.open_page()
+    assert driver.current_url == 'http://127.0.0.1:5005/'
+    wait = WebDriverWait(driver, 10)
+
+    book=BookingPage(driver=driver)
+    book.book()
+    book.select_screening()
+    book.select_screening_seat()
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+
+    book.select_login()
+    assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
+    wait = WebDriverWait(driver, 10)
+
+    book.click_register()
+    assert driver.current_url == 'http://127.0.0.1:5005/register?next=/booking/13'
+
+    avatar_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../assets/avatar-cute-3.jpg")
+    )
+    re = RegisterPage(driver=driver)
+    re.register('Bùi Nguyễn Thuý Ngân', '13052005', '0926788392',
+                'abc@gmail.com', 'abc123', 'Pass@123', 'Pass@123', avatar_path)
+
+    time.sleep(1)
+    assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
+    login = LoginPage(driver=driver)
+    login.login('user123', 'Pass@123')
+    time.sleep(1)
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+    wait = WebDriverWait(driver, 10)
+
+def test_booking_success_after_cancel_book(driver):
+    login = LoginPage(driver=driver)
+    login.open_page()
+
+    login.login('user123', 'Pass@123')
+    time.sleep(1)
+
+    assert driver.current_url == 'http://127.0.0.1:5005/'
+    wait = WebDriverWait(driver, 10)
+
+    book=BookingPage(driver=driver)
+    book.book()
+    book.select_screening()
+    book.select_screening_seat()
+    book.select_seat()
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+    book.book_ticket()
+    wait = WebDriverWait(driver, 10)
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
+    book.select_pay_back()
+    assert driver.current_url == 'http://127.0.0.1:5005/'
