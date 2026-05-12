@@ -344,10 +344,3 @@ def reset_selenium_database(app):
         db.drop_all()
         db.create_all()
         seed_data()
-
-
-@pytest.fixture
-def reset_database(sel_app):
-    reset_selenium_database(sel_app)
-    yield
-    reset_selenium_database(sel_app)
