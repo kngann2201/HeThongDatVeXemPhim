@@ -4,7 +4,7 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 from app.test.selenium.pages.ProfilePage import ProfilePage
-from app.test.base_test import driver, sel_app
+from app.test.selenium.tests.conftest import driver, sel_app
 
 
 def test_change_name_success(driver):

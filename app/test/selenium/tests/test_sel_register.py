@@ -3,7 +3,7 @@ import time
 
 import pytest
 from selenium.webdriver.common.by import By
-from app.test.base_test import driver, sel_app
+from app.test.selenium.tests.conftest import driver, sel_app
 from app.test.selenium.pages.RegisterPage import RegisterPage
 
 def test_register_success(driver):

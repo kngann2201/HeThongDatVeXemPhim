@@ -1,7 +1,5 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-
-from app.test.base_test import driver
 from app.test.selenium.pages.BasePage import BasePage
 import time
 
