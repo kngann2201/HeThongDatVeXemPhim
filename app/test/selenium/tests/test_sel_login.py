@@ -3,7 +3,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from app.test.base_test import driver, sel_app
+from app.test.selenium.tests.conftest import driver, sel_app
 from app.test.selenium.pages.LoginPage import LoginPage
 
 def test_login_success(driver):

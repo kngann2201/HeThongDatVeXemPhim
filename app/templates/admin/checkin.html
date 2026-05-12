@@ -1,0 +1,92 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container-fluid mt-3">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h3 class="text-primary"><i class="fa fa-qrcode"></i> Hệ Thống Soát Vé</h3>
+        </div>
+        <div class="col-md-6">
+            <form method="GET" class="form-inline justify-content-end">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Tên, SĐT, Phim..."
+                           value="{{ request.args.get('search', '') }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <a href="{{ url_for('.index_view') }}" class="btn btn-outline-secondary ml-2">
+                    <i class="fa fa-refresh"></i> Làm mới
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow border-left-primary">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Mã Vé</th>
+                            <th>Khách Hàng</th>
+                            <th>Phim & Suất Chiếu</th>
+                            <th>Phòng & Ghế</th>
+                            <th class="text-center">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            <td class="font-weight-bold text-dark">#{{ row.id }}</td>
+                            <td>
+                                <div>{{ row.bill.customer.full_name }}</div>
+                                <small class="text-muted"><i class="fa fa-phone"></i> {{ row.bill.customer.phone_number }}</small>
+                            </td>
+                            <td>
+                                <div class="badge badge-pill badge-primary">{{ row.screening_seat.screening.movie.title }}</div>
+                                <div class="small mt-1 text-secondary">
+                                    <i class="fa fa-calendar"></i> {{ row.screening_seat.screening.start_time.strftime('%H:%M | %d/%m/%Y') }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-danger font-weight-bold">
+                                    Phòng: {{ row.screening_seat.screening.room.number }}
+                                </div>
+                                <div class="text-dark">Ghế: {{ row.screening_seat.seat.row }}{{ row.screening_seat.seat.number }}</div>
+                            </td>
+                            <td class="text-center">
+                                <form method="POST" action="{{ url_for('.checkin_ticket', ticket_id=row.id) }}">
+                                    <button type="submit" class="btn btn-success btn-sm px-4 shadow-sm" 
+                                            onclick="return confirm('Xác nhận vé #{{ row.id }} vào phòng?')">
+                                        <i class="fa fa-check-circle"></i> CHECK-IN
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa fa-info-circle fa-2x mb-2"></i><br>
+                                Không tìm thấy vé nào!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table td { vertical-align: middle !important; }
+    .badge-primary { background-color: #4e73df; }
+    .btn-success { background-color: #1cc88a; border: none; border-radius: 5px; transition: 0.3s; }
+    .btn-success:hover { background-color: #17a673; transform: scale(1.05); }
+    .border-left-primary { border-left: .25rem solid #4e73df!important; }
+</style>
+{% endblock %}

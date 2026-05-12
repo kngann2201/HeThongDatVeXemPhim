@@ -7,7 +7,7 @@ import pytest
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from app.test.selenium.pages.HomePage import HomePage
-from app.test.base_test import driver, sel_app
+from app.test.selenium.tests.conftest import driver, sel_app
 
 
 def test_all_movie(driver):
