@@ -343,12 +343,11 @@ def register_app(app):
     @app.route("/payment-return")
     def payment_return():
         txn_ref = request.args.get('txn_ref')
-        amount = request.args.get('amount')
-        amount = int(amount)
-        msg = request.args.get('msg')
+        amount = int(request.args.get('amount') or 0)
+        msg = request.args.get('msg') or 'Không tìm thấy thông tin thanh toán!'
         success = request.args.get('success')
         p = Payment.query.filter_by(txn_ref=txn_ref).first()
-        bill = p.bill
+        bill = p.bill if p else None
         return render_template("return_payment.html", txn_ref=txn_ref, amount=amount, msg=msg, success=success, bill=bill)
 
 

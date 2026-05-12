@@ -37,7 +37,7 @@
             <a href="{{ url_for('index') }}" class="btn btn-outline-secondary py-2">
                 <i class="fas fa-home me-2"></i>Về trang chủ
             </a>
-            {% if success != 'True' %}
+            {% if success != 'True' and bill %}
             <a  href="/payment/{{ bill.id }}" class="btn btn-outline-secondary py-2">
                 <i class="fas fa-clock me-2"></i>Thanh toán lại
             </a>
