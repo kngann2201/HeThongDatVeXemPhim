@@ -1,6 +1,7 @@
 import cloudinary.uploader
+from flask_admin.model.template import LinkRowAction
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
-from flask import redirect, request
+from flask import redirect, request, render_template, flash, url_for
 from flask_admin import Admin, AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.theme import Bootstrap4Theme
@@ -304,11 +305,47 @@ class PaymentView(AuthenticatedView):
     }
 
 
+class CheckinView(AuthenticatedView):
+    @expose('/')
+    def index_view(self):
+        search_query = request.args.get('search', '')
+
+        query = self.session.query(Ticket).filter(Ticket.status == TicketStatus.PAID)
+
+        if search_query:
+            query = query.join(Bill).join(Customer).join(ScreeningSeat).join(MovieScreening).join(Movie).filter(
+                or_(
+                    Customer.full_name.ilike(f'%{search_query}%'),
+                    Customer.phone_number.ilike(f'%{search_query}%'),
+                    Movie.title.ilike(f'%{search_query}%'),
+                    Ticket.id.ilike(f'%{search_query}%')
+                )
+            )
+
+        data = query.order_by(Ticket.created_at.desc()).all()
+        return self.render('admin/checkin.html', data=data)
+
+    @expose('/checkin/<int:ticket_id>/', methods=('POST',))
+    def checkin_ticket(self, ticket_id):
+        ticket = self.session.query(Ticket).get(ticket_id)
+        if ticket and ticket.status == TicketStatus.PAID:
+            try:
+                ticket.status = TicketStatus.USED
+                db.session.commit()
+                flash(f"Check-in THÀNH CÔNG vé #{ticket_id}!", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Lỗi hệ thống: {str(e)}", "error")
+        else:
+            flash("Vé không hợp lệ hoặc đã được soát trước đó!", "warning")
+
+        return redirect(url_for('.index_view'))
+
 admin = Admin(app=app, name="Quản lý rạp phim - CINEMA", theme=Bootstrap4Theme(), index_view=MyAdminIndexView())
+admin.add_view(CheckinView(Ticket, db.session, name="Check-in", endpoint="ticket-checkin"))
 admin.add_view(CustomerView(Customer, db.session))
 admin.add_view(MovieTypeView(MovieType, db.session))
 admin.add_view(MovieView(Movie, db.session))
-# admin.add_view(MovieTypeDetailView(MovieTypeDetail, db.session))
 admin.add_view(RoomTypeView(RoomType, db.session))
 admin.add_view(RoomView(Room, db.session))
 admin.add_view(SeatView(Seat, db.session))

@@ -1,4 +1,3 @@
-from app.test.base_test import driver
 from app.test.selenium.pages.BasePage import BasePage
 from selenium.webdriver.common.by import By
 import time

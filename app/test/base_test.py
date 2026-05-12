@@ -1,18 +1,10 @@
 import os
-import platform
-import threading
-import time
-
 from flask import Flask
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from app import db
+from app import db, mail, login
+from app.index import register_app
 import pytest
-import hashlib
-from datetime import datetime, timedelta
+from datetime import timedelta
 from app.models import *
-from app.seed import seed_data
 from datetime import date
 from app import mail as flask_mail
 
@@ -38,14 +30,14 @@ def create_app(db_uri=None):
         MAIL_SUPPRESS_SEND=True,
         MAIL_DEFAULT_SENDER='test@example.com',
         SECRET_KEY='sjkfksgfghsvhvagjdhaldg',
-        WTF_CSRF_ENABLED=False
+        WTF_CSRF_ENABLED=False,
+        SQLALCHEMY_ENGINE_OPTIONS={
+            "connect_args": {"check_same_thread": False, "timeout": 20}
+        }
     )
-
-    from app import db, mail, login
     db.init_app(app)
     login.init_app(app)
     mail.init_app(app)
-    from app.index import register_app
     register_app(app)
     return app
 
@@ -143,30 +135,6 @@ def mock_cloudinary(monkeypatch):
         return {'secure_url': 'https://fake-avartar.png'}
 
     monkeypatch.setattr('cloudinary.uploader.upload',fake_upload)
-
-@pytest.fixture
-def sample_users(test_session):
-    u1 = Customer(
-        full_name="User 1",
-        username="user1",
-        password=hashlib.md5("Pass@123".encode()).hexdigest(),
-        email="user1@gmail.com",
-        phone_number="0123456789",
-        role=UserRole.CUSTOMER
-    )
-
-    admin = Customer(
-        full_name="Admin",
-        username="admin",
-        password=hashlib.md5("123".encode()).hexdigest(),
-        email="admin@gmail.com",
-        phone_number="0999999999",
-        role=UserRole.ADMIN
-    )
-
-    test_session.add_all([u1, admin])
-    test_session.commit()
-    return [u1, admin]
 
 @pytest.fixture
 def sample_seats(test_session, sample_room):
@@ -276,71 +244,3 @@ def sample_payment(test_session, sample_bill):
     test_session.add(payment)
     test_session.commit()
     return payment
-
-
-@pytest.fixture(scope="session")
-def sel_app():
-
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    db_path = os.path.join(basedir, "selenium_test.db")
-
-    uri = "sqlite:///" + db_path
-
-    app = create_app(db_uri=uri)
-
-    def run_app():
-        app.run(
-            host='0.0.0.0',
-            port=5005,
-            debug=False,
-            use_reloader=False
-        )
-
-    server_thread = threading.Thread(
-        target=run_app,
-        daemon=True
-    )
-
-    server_thread.start()
-
-    time.sleep(3)
-
-    yield app
-
-@pytest.fixture()
-def driver(sel_app):
-    options = Options()
-
-    if os.getenv('GITHUB_ACTIONS'):
-        options.add_argument("--headless=new")
-        options.add_argument("--window-size=1920,1080")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-    else:
-        options.add_argument("--window-size=1366,768")
-
-    options.add_argument("--disable-gpu")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    prefs = {
-        "credentials_enable_service": False,
-        "profile.password_manager_enabled": False,
-    }
-    options.add_experimental_option("prefs", prefs)
-    try:
-        driver = webdriver.Chrome(options=options)
-    except:
-        base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-        driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
-        driver_path = os.path.join(base, ".venv", driver_name)
-        service = Service(executable_path=driver_path)
-        driver = webdriver.Chrome(service=service, options=options)
-
-    yield driver
-    driver.quit()
-
-def reset_selenium_database(app):
-    with app.app_context():
-        db.session.remove()
-        db.drop_all()
-        db.create_all()
-        seed_data()

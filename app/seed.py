@@ -109,7 +109,6 @@ def seed_data():
         MovieType(id=11, name='Kỳ ảo'),
         MovieType(id=12, name='Siêu nhiên')
     ]
-
     db.session.add_all(types)
     db.session.commit()
 
@@ -134,7 +133,6 @@ def seed_data():
         MovieTypeDetail(movie_id=13, type_id=4), MovieTypeDetail(movie_id=13, type_id=5),
         MovieTypeDetail(movie_id=13, type_id=6)
     ]
-
     db.session.add_all(movie_details)
     db.session.commit()
 
@@ -167,24 +165,28 @@ def seed_data():
             for number in range(1, 11):
                 seat = Seat(row=row, number=number, room=r, active=True)
                 db.session.add(seat)
-
     db.session.commit()
 
+    now = datetime.now()
     movies_screening=[
-        MovieScreening(start_time=datetime.now() + timedelta(days=1),base_price=100000,room_id=1,movie_id=1),
-        MovieScreening(start_time=datetime.now() + timedelta(minutes=20), base_price=100000, room_id=2, movie_id=2),
-        MovieScreening(start_time=datetime.now() + timedelta(hours=2), base_price=100000, room_id=3, movie_id=3),
-        MovieScreening(start_time=datetime.now() + timedelta(hours=3), base_price=100000, room_id=4, movie_id=13),
-        MovieScreening(start_time=datetime.now() + timedelta(minutes=30), base_price=100000, room_id=4, movie_id=13),
-        MovieScreening(start_time=datetime.now()+timedelta(minutes=10), base_price=100000, room_id=5, movie_id=13),
-        MovieScreening(start_time=datetime.now() + timedelta(hours=3), base_price=100000, room_id=5, movie_id=12),
+        MovieScreening(start_time=now + timedelta(days=1),base_price=100000,room_id=1,movie_id=1),
+        MovieScreening(start_time=now + timedelta(minutes=20), base_price=100000, room_id=2, movie_id=2),
+        MovieScreening(start_time=now + timedelta(hours=2) + timedelta(seconds=13), base_price=100000, room_id=3, movie_id=3),
+        MovieScreening(start_time=now + timedelta(hours=3), base_price=100000, room_id=4, movie_id=13),
+        MovieScreening(start_time=now + timedelta(minutes=30), base_price=100000, room_id=4, movie_id=13),
+        MovieScreening(start_time=now + timedelta(minutes=9), base_price=100000, room_id=5, movie_id=13),
+        MovieScreening(start_time=now + timedelta(hours=3), base_price=100000, room_id=5, movie_id=12),
+        MovieScreening(start_time=now + timedelta(minutes=1), base_price=100000, room_id=2, movie_id=13),
     ]
     db.session.add_all(movies_screening)
     db.session.commit()
+
     ss1=[]
     ss2=[]
     ss3=[]
     ss4=[]
+    ss5=[]
+    ss6=[]
     for i in range(1,91):
         s = ScreeningSeat(
             seat_id=i,
@@ -201,7 +203,6 @@ def seed_data():
             holding_user_id= None
         )
         ss2.append(s)
-
     for i in range(1, 91):
         s = ScreeningSeat(
             seat_id=i,
@@ -210,7 +211,6 @@ def seed_data():
             holding_user_id=None
         )
         ss3.append(s)
-
     for i in range(1, 91):
         s = ScreeningSeat(
             seat_id=i,
@@ -219,92 +219,47 @@ def seed_data():
             holding_user_id=None
         )
         ss4.append(s)
-
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=3,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss5.append(s)
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=8,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss6.append(s)
     db.session.add_all(ss1)
     db.session.add_all(ss2)
     db.session.add_all(ss3)
     db.session.add_all(ss4)
+    db.session.add_all(ss5)
+    db.session.add_all(ss6)
     db.session.commit()
 
     # TẠO DỮ LIỆU ĐỂ TEST HỦY VÉ
-    cancel_test_screenings = [
-        MovieScreening(
-            start_time=datetime.now() + timedelta(hours=3),
-            base_price=100000,
-            room_id=1,
-            movie_id=1
-        ),
-        MovieScreening(
-            start_time=datetime.now() + timedelta(hours=2),
-            base_price=100000,
-            room_id=2,
-            movie_id=2
-        ),
-        MovieScreening(
-            start_time=datetime.now() + timedelta(hours=1, minutes=30),
-            base_price=100000,
-            room_id=3,
-            movie_id=3
-        )
-    ]
-    db.session.add_all(cancel_test_screenings)
-    db.session.commit()
-
-    cancel_screening_seats = []
-    for screening_id in [8, 9, 10]:
-        for i in range(1, 91):
-            cancel_screening_seats.append(
-                ScreeningSeat(
-                    seat_id=i,
-                    screening_id=screening_id,
-                    status=SeatStatus.AVAILABLE,
-                    holding_user_id=None
-                )
-            )
-    db.session.add_all(cancel_screening_seats)
-    db.session.commit()
-
-    # Bill 1: được huỷ (>2h)
-    bill1 = Bill(
-        total_amount=100000,
-        status=PaymentStatus.SUCCESS,
-        customer_id=2
-    )
-    # Bill 2: đúng 2h
-    bill2 = Bill(
-        total_amount=100000,
-        status=PaymentStatus.SUCCESS,
-        customer_id=2
-    )
-    # Bill 3: không được huỷ (<2h)
-    bill3 = Bill(
-        total_amount=100000,
-        status=PaymentStatus.SUCCESS,
-        customer_id=2
-    )
+    bill1 = Bill(total_amount=100000, status=PaymentStatus.SUCCESS, customer_id=2)
+    bill2 = Bill(total_amount=100000, status=PaymentStatus.SUCCESS, customer_id=2)
+    bill3 = Bill(total_amount=100000, status=PaymentStatus.SUCCESS, customer_id=2)
     db.session.add_all([bill1, bill2, bill3])
     db.session.commit()
 
-    ss_1 = ScreeningSeat.query.filter_by(
-        screening_id=8,
-        seat_id=1
-    ).first()
-    ss_2 = ScreeningSeat.query.filter_by(
-        screening_id=9,
-        seat_id=2
-    ).first()
-    ss_3 = ScreeningSeat.query.filter_by(
-        screening_id=10,
-        seat_id=3
-    ).first()
-    ss_4 = ScreeningSeat.query.filter_by(
-        screening_id=8,
-        seat_id=2
-    ).first()
-    ss_1.status = SeatStatus.BOOKED
-    ss_2.status = SeatStatus.BOOKED
-    ss_3.status = SeatStatus.BOOKED
-    ss_4.status = SeatStatus.BOOKED
+    s3 = ScreeningSeat.query.filter_by(screening_id=3).order_by(ScreeningSeat.id).all()
+    s5 = ScreeningSeat.query.filter_by(screening_id=5).order_by(ScreeningSeat.id).all()
+    s7 = ScreeningSeat.query.filter_by(screening_id=7).order_by(ScreeningSeat.id).all()
+
+    ss_1 = s7[30]
+    ss_2 = s3[30]
+    ss_3 = s5[30]
+    ss_4 = s7[31]
+
+    for ss in [ss_1, ss_2, ss_3, ss_4]: ss.status = SeatStatus.BOOKED
     db.session.commit()
 
     ticket1 = Ticket(
@@ -356,8 +311,6 @@ def seed_data():
     ]
     db.session.add_all(payments)
     db.session.commit()
-
-    print("Thêm dữ liệu thành công!")
 
 with app.app_context():
     db.drop_all()
