@@ -63,7 +63,7 @@
                                 {% if b.status.value == 3 %} <span class="text-success">Đã sử dụng</span>
                                 {% elif b.status.value == 1 %} <span class="text-primary">Đã thanh toán</span>
                                 {% elif b.status.value == 2 %} <span class="text-muted">Đã hủy</span>
-                                {% else %}<span class="text-danger t-countdown" data-expired="{{ b.expired_time.strftime('%Y-%m-%dT%H:%M:%S') }}">
+                                {% else %}<span class="text-danger t-countdown" data-expired="{% if b.expired_time %}{{ b.expired_time.strftime('%Y-%m-%dT%H:%M:%S') }}{% else %}None{% endif %}">
                                 Chờ thanh toán</span>{% endif %}
                             </td>
                             <td>

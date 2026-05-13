@@ -31,7 +31,6 @@ class PaymentPage(BasePage):
 
         login.login('user123', 'Pass@123')
         time.sleep(1)
-        wait = WebDriverWait(self.driver, 10)
 
         book = BookingPage(self.driver)
         book.book()
@@ -39,7 +38,20 @@ class PaymentPage(BasePage):
         book.select_screening_seat()
         book.select_n_seats(3)
         book.book_ticket()
-        wait = WebDriverWait(self.driver, 10)
+
+    def open_payment_2(self):
+        login = LoginPage(self.driver)
+        login.open_page()
+
+        login.login('user123', 'Pass@123')
+        time.sleep(1)
+
+        book = BookingPage(self.driver)
+        book.book()
+        book.select_screening()
+        book.select_screening_seat2()
+        book.select_n_seats(3)
+        book.book_ticket()
 
     def open_history(self):
         self.click(By.CSS_SELECTOR, '#mynavbar > div > div > a')
@@ -121,13 +133,11 @@ class PaymentPage(BasePage):
         book.select_pay_back()
 
     def click_back_cancel(self):
-        wait = WebDriverWait(self.driver, 10)
         btn_back = self.find(*self.BUTTON_BACK)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_back)
         time.sleep(1)
         self.driver.execute_script("arguments[0].click();", btn_back)
         time.sleep(2)
-        wait = WebDriverWait(self.driver, 10)
         btn_cancel_confirm = self.find(*self.BUTTON_CANCEL_CONFIRM)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_cancel_confirm)
         time.sleep(1)
@@ -135,13 +145,11 @@ class PaymentPage(BasePage):
         time.sleep(2)
 
     def click_cancel(self):
-        wait = WebDriverWait(self.driver, 10)
         btn_cancel = self.find(*self.BUTTON_CANCEL)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_cancel)
         time.sleep(1)
         self.driver.execute_script("arguments[0].click();", btn_cancel)
         time.sleep(2)
-        wait = WebDriverWait(self.driver, 10)
         btn_cancel_confirm = self.find(*self.BUTTON_CANCEL_CONFIRM)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_cancel_confirm)
         time.sleep(1)
@@ -149,13 +157,11 @@ class PaymentPage(BasePage):
         time.sleep(2)
 
     def click_cancel_otp(self):
-        wait = WebDriverWait(self.driver, 10)
         btn_cancel = self.find(*self.BUTTON_CANCEL_OTP)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_cancel)
         time.sleep(1)
         self.driver.execute_script("arguments[0].click();", btn_cancel)
         time.sleep(2)
-        wait = WebDriverWait(self.driver, 10)
         btn_cancel_confirm = self.find(*self.BUTTON_CANCEL_CONFIRM)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_cancel_confirm)
         time.sleep(1)

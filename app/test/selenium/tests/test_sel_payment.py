@@ -1,21 +1,21 @@
+from datetime import datetime, timedelta
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from app.test.selenium.pages.HomePage import HomePage
+from app.test.selenium.tests.conftest import driver, sel_app
+from app import db
+from app.models import SeatStatus, ScreeningSeat
 from app.test.selenium.pages.LoginPage import LoginPage
 from app.test.selenium.pages.BookingPage import BookingPage
 from app.test.selenium.pages.PaymentPage import PaymentPage
 from app.test.selenium.pages.HistoryBookingPage import HistoryBookingPage
 from selenium.webdriver.support import expected_conditions as EC
-import os
 
 
 def test_payment_success(driver):
-
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
     payment.search_payment_type('NCB')
     payment.select_NCB()
@@ -37,13 +37,9 @@ def test_payment_success_my_ticket(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.click_pay_back()
-    wait = WebDriverWait(driver, 10)
     payment.open_history()
-    wait = WebDriverWait(driver, 10)
     payment.click_pay_my_ticket()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -77,9 +73,7 @@ def test_cancel_payment(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.click_cancel()
@@ -93,9 +87,7 @@ def test_cancel_payment_otp(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -114,9 +106,7 @@ def test_invalid_card_number(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('970419852619143219')
@@ -134,9 +124,7 @@ def test_invalid_card_holder(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -154,9 +142,7 @@ def test_invalid_card_date(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -174,9 +160,7 @@ def test_invalid_3(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -197,9 +181,7 @@ def test_invalid_otp_fail(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -220,9 +202,7 @@ def test_invalid_otp(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.select_payment_now()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -242,7 +222,6 @@ def test_payment_1_movie_2_bill(driver):
     payment = PaymentPage(driver=driver)
     payment.open_payment()
     payment.click_pay_back()
-    wait = WebDriverWait(driver, 10)
 
     book = BookingPage(driver=driver)
     book.book()
@@ -250,16 +229,11 @@ def test_payment_1_movie_2_bill(driver):
     book.select_screening_seat()
     book.select_n_seats_start_end(3,4)
     book.book_ticket()
-    wait = WebDriverWait(driver, 10)
 
     payment.click_pay_back()
-    wait = WebDriverWait(driver, 10)
     payment.open_history()
-    wait = WebDriverWait(driver, 10)
     payment.click_pay_my_ticket()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     wait = WebDriverWait(driver, 15)
@@ -270,12 +244,10 @@ def test_payment_1_movie_2_bill(driver):
 
 def test_payment_after_cancel(driver):
     payment = PaymentPage(driver=driver)
-    payment.open_payment()
+    payment.open_payment_2()
     payment.click_pay_back()
-    wait = WebDriverWait(driver, 10)
 
     payment.open_history()
-    wait = WebDriverWait(driver, 10)
     h = HistoryBookingPage(driver=driver)
 
     price_b = h.find(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(4) .text-end .text-danger')
@@ -289,12 +261,10 @@ def test_payment_after_cancel(driver):
     assert price_b.text == '200,000đ'
     h.click(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(4) .bg-white')
     time.sleep(1)
-    e = h.find(By.CSS_SELECTOR, '#collapse5 .ticket-cancelled > td:nth-child(4) > span')
+    e = h.find(By.CSS_SELECTOR, '#collapse5 tr:nth-child(2) > td:nth-child(5) > span')
     assert 'Đã hủy' in e.text
     payment.click_pay_my_ticket()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
     payment.search_payment_type('NCB')
     payment.select_NCB()
     wait = WebDriverWait(driver, 15)
@@ -303,7 +273,7 @@ def test_payment_after_cancel(driver):
     )
     assert "200.000" in cancel_msg_element.text
 
-def test_payment_my_ticket(driver):
+def test_payment_my_ticket(driver, sel_app):
     login = LoginPage(driver=driver)
     login.open_page()
 
@@ -314,13 +284,17 @@ def test_payment_my_ticket(driver):
 
     payment = PaymentPage(driver=driver)
     payment.open_history()
+    time.sleep(1)
     h = HistoryBookingPage(driver=driver)
     h.click(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(4) .bg-white')
     time.sleep(1)
     payment.click_pay_my_ticket_cancel()
-    wait = WebDriverWait(driver, 10)
     payment.select_payment_type()
-    wait = WebDriverWait(driver, 10)
+    with sel_app.app_context():
+        seat = ScreeningSeat.query.filter_by(status=SeatStatus.HOLDING).first()
+        if seat:
+            seat.hold_expired_at = datetime.now() - timedelta(seconds=10)
+            db.session.commit()
     payment.search_payment_type('NCB')
     payment.select_NCB()
     payment.card_number('9704198526191432198')
@@ -331,8 +305,8 @@ def test_payment_my_ticket(driver):
     payment.otp_value('123456')
     assert driver.current_url == 'https://sandbox.vnpayment.vn/paymentv2/Ncb/Transaction/Confirm.html'
     payment.select_btn_confirm()
-    wait = WebDriverWait(driver, 15)
+    wait = WebDriverWait(driver, 10)
     fail_msg_element = wait.until(
-        EC.visibility_of_element_located((By.CSS_SELECTOR, ".result-card h2.text-info"))
+        EC.visibility_of_element_located((By.CSS_SELECTOR, ".result-card h2.text-danger"))
     )
     assert "Ghế đã bị huỷ trong khi thanh toán!" in fail_msg_element.text
