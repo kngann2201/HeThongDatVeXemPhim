@@ -41,7 +41,7 @@ def start_scheduler(app, db):
 
     release_expired_seats()
     checkin_tickets()
-    scheduler.add_job(release_expired_seats, 'interval', minutes=0.9)
-    scheduler.add_job(checkin_tickets, 'interval', minutes=0.9)
+    scheduler.add_job(release_expired_seats, 'interval', seconds=1)
+    scheduler.add_job(checkin_tickets, 'interval', seconds=1)
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         scheduler.start()

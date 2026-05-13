@@ -238,7 +238,7 @@ def get_movie_types(movie_id):
 def get_room_types():
     return db.session.query(RoomType).all()
 
-def get_movie_screenings(movie_id, watch_date, room_type_id):
+def get_movie_screenings(movie_id, watch_date, room_type_id, now=None):
     watch_date = datetime.strptime(str(watch_date), "%Y-%m-%d").date()
     start = datetime.combine(watch_date, datetime.min.time())
     end = start + timedelta(days=1)
@@ -250,12 +250,13 @@ def get_movie_screenings(movie_id, watch_date, room_type_id):
             MovieScreening.movie_id == movie_id,
             MovieScreening.start_time >= start,
             MovieScreening.start_time < end,
-            MovieScreening.start_time >= datetime.now(),
             RoomType.id == room_type_id
-        )
-        .order_by(MovieScreening.start_time.asc())
-        .all())
-    return query
+        ))
+
+    if now:
+        query = query.filter(MovieScreening.start_time > now).order_by(MovieScreening.start_time.asc())
+
+    return query.all()
 
 
 def get_seats_by_screening(screening_id):

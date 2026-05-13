@@ -134,4 +134,3 @@ def test_invalid_phone(test_app, phone):
             birthday_obj = datetime.strptime('1/1/2008', '%d/%m/%Y').date()
             add_user(username='a1' * 4, password='Abc1234@', full_name='admin',
                      phone=phone, birthday=birthday_obj, email='admin123@gmail.com', avatar=None)
-

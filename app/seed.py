@@ -168,10 +168,11 @@ def seed_data():
     db.session.commit()
 
     now = datetime.now()
+    print(now)
     movies_screening=[
         MovieScreening(start_time=now + timedelta(days=1),base_price=100000,room_id=1,movie_id=1),
         MovieScreening(start_time=now + timedelta(minutes=20), base_price=100000, room_id=2, movie_id=2),
-        MovieScreening(start_time=now + timedelta(hours=2) + timedelta(seconds=13), base_price=100000, room_id=3, movie_id=3),
+        MovieScreening(start_time=now + timedelta(hours=2) + timedelta(seconds=30), base_price=100000, room_id=3, movie_id=3),
         MovieScreening(start_time=now + timedelta(hours=3), base_price=100000, room_id=4, movie_id=13),
         MovieScreening(start_time=now + timedelta(minutes=30), base_price=100000, room_id=4, movie_id=13),
         MovieScreening(start_time=now + timedelta(minutes=9), base_price=100000, room_id=5, movie_id=13),

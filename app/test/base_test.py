@@ -51,10 +51,6 @@ def test_app():
         db.drop_all()
 
 @pytest.fixture
-def test_mail_object():
-    return flask_mail
-
-@pytest.fixture
 def test_client(test_app):
     return test_app.test_client()
 
@@ -148,7 +144,7 @@ def mock_cloudinary(monkeypatch):
     def fake_upload(file):
         return {'secure_url': 'https://fake-avartar.png'}
 
-    monkeypatch.setattr('cloudinary.uploader.upload',fake_upload)
+    monkeypatch.setattr('cloudinary.uploader.upload', fake_upload)
 
 @pytest.fixture
 def sample_seats(test_session, sample_room):
@@ -156,7 +152,7 @@ def sample_seats(test_session, sample_room):
     rows = ['A', 'B']
 
     for r in rows:
-        for n in range(1, 9):
+        for n in range(1, 12):
             s = Seat(row=r, number=n, room_id=sample_room[0].id)
             seats.append(s)
 
@@ -165,30 +161,30 @@ def sample_seats(test_session, sample_room):
     return seats
 
 @pytest.fixture
-def sample_screening(test_session, sample_room, sample_movie):
+def sample_screening(test_session, sample_movie, sample_room):
     scr1 = MovieScreening(
         start_time=datetime.now() + timedelta(days=1),
         base_price=100000,
-        room_id=sample_room[0].id,
-        movie_id=sample_movie[0].id
+        room_id=1,
+        movie_id=1
     )
     scr2 = MovieScreening(
         start_time=datetime.now() - timedelta(days=1),
         base_price=100000,
-        room_id=1,
-        movie_id=1
+        room_id=sample_room[0].id,
+        movie_id=sample_movie[0].id
     )
     scr3 = MovieScreening(
         start_time=datetime.now() + timedelta(minutes=10),
         base_price=100000,
-        room_id=1,
-        movie_id=1
+        room_id=sample_room[0].id,
+        movie_id=sample_movie[0].id
     )
     scr4 = MovieScreening(
         start_time=datetime.now() - timedelta(minutes=1),
         base_price=100000,
-        room_id=1,
-        movie_id=1
+        room_id=sample_room[0].id,
+        movie_id=sample_movie[0].id
     )
 
     test_session.add_all([scr1, scr2, scr3, scr4])
