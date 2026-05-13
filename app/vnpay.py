@@ -2,15 +2,17 @@ import hmac
 import urllib.parse
 import hashlib
 from datetime import datetime, timedelta
-from flask import request
+from flask import current_app, request, url_for
 from app import app
 
 
 VNPAY_TMN_CODE = app.config["VNPAY_TMN_CODE"]
 VNPAY_HASH_SECRET = app.config["VNPAY_HASH_SECRET"]
 
-VNPAY_RETURN_URL = "http://127.0.0.1:5000/vnpay_return"
 VNPAY_PAYMENT_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+
+def get_vnpay_return_url():
+    return current_app.config.get("VNPAY_RETURN_URL") or url_for("vnpay_return", _external=True)
 
 def build_payment_url(amount, txn_ref, order_info = 'Movie Ticket Payment'):
     vnpay_amount = int(amount*100)
@@ -27,7 +29,7 @@ def build_payment_url(amount, txn_ref, order_info = 'Movie Ticket Payment'):
         "vnp_OrderInfo": order_info,
         "vnp_OrderType": "other",
         "vnp_Locale": "vn",
-        "vnp_ReturnUrl": VNPAY_RETURN_URL,
+        "vnp_ReturnUrl": get_vnpay_return_url(),
         "vnp_IpAddr": request.remote_addr,
         "vnp_CreateDate": datetime.now().strftime('%Y%m%d%H%M%S'),
         "vnp_ExpireDate": expire_date.strftime('%Y%m%d%H%M%S')
