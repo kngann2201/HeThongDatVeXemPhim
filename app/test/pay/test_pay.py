@@ -217,6 +217,24 @@ def test_pay_success_from_booking(test_session, test_client, sample_screening, s
     updated_bill = test_session.query(Bill).filter_by(id=bill.id).first()
     assert updated_bill.status == PaymentStatus.SUCCESS
 
+def test_pay_exception(test_client, test_session, sample_payment, mocker):
+    class FakeUser:
+        is_authenticated = True
+        id = 1
+
+    user = FakeUser()
+    mocker.patch('flask_login.utils._get_user', return_value=user)
+    bill = Bill(customer_id=user.id, total_amount=1000)
+    db.session.add(bill)
+    db.session.commit()
+
+    mocker.patch("app.db.session.commit", side_effect=Exception("Database Down"))
+    response = test_client.get(f"/payment/{bill.id}", follow_redirects=True)
+    html = response.get_data(as_text=True)
+    assert 'Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!' in html
+
+
+
 
 
 

@@ -55,14 +55,15 @@ def driver(sel_app):
     options.add_argument('--timezone=Asia/Ho_Chi_Minh')
 
     try:
-        driver = webdriver.Chrome(options=options)
-    except Exception as e:
-        print(e)
         base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
         driver_name = "chromedriver.exe" if platform.system() == "Windows" else "chromedriver"
         driver_path = os.path.join(base, ".venv", driver_name)
         service = Service(executable_path=driver_path)
         driver = webdriver.Chrome(service=service, options=options)
+
+    except Exception as e:
+        print(e)
+        driver = webdriver.Chrome(options=options)
 
     driver.execute_script("return new Date().getTimezoneOffset();")
 

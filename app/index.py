@@ -277,8 +277,8 @@ def register_app(app):
 
         except Exception as e:
             db.session.rollback()
-            print("Lỗi khi đặt vé:", e)
-            return redirect('/')
+            flash("Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!", "error")
+            return redirect(url_for('index'))
 
     @app.route("/payment/<int:bill_id>")
     @login_required

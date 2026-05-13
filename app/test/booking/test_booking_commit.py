@@ -233,3 +233,30 @@ def test_booking_commit_success(test_session, test_client, sample_screening, sam
     for seat_id in seat_ids:
         ss = ScreeningSeat.query.get(seat_id)
         assert ss.status == SeatStatus.HOLDING
+
+def test_booking_commit_exception(test_session, test_client, sample_screening, sample_screening_seats, mocker):
+    class FakeUser:
+        is_authenticated = True
+        id = 5
+
+    user = FakeUser()
+    mocker.patch('flask_login.utils._get_user', return_value=user)
+
+    seat_ids = [
+        sample_screening_seats[1].id,
+        sample_screening_seats[2].id
+    ]
+    mocker.patch("app.db.session.commit", side_effect=Exception("Database Down"))
+    response = test_client.post(
+        '/booking/submit',
+        data={
+            'seat': ",".join(map(str, seat_ids)),
+            'screening': sample_screening[0].id
+        },
+        follow_redirects = True
+    )
+    html = response.get_data(as_text=True)
+    assert 'Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!' in html
+
+
+

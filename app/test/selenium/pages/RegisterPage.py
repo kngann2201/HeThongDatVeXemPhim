@@ -19,7 +19,7 @@ class RegisterPage(BasePage):
     def open_page(self, url=URL):
         self.open(url)
 
-    def set_birthday(self, birthday):
+    def set_date(self, birthday):
         birthday_input = self.find(*self.BIRTHDAY)
         birthday_input.clear()
         if birthday and len(birthday) == 8:
@@ -32,7 +32,7 @@ class RegisterPage(BasePage):
 
     def register(self, name, birthday, phone, email, username, password, confirm, avatar=None):
         self.typing(*self.NAME, name)
-        self.set_birthday(birthday)
+        self.set_date(birthday)
         self.typing(*self.PHONE, phone)
         self.typing(*self.EMAIL, email)
         self.typing(*self.USERNAME, username)

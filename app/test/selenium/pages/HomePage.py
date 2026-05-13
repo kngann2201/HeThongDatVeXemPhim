@@ -51,12 +51,10 @@ class HomePage(BasePage):
         href = item.get_attribute('href')
         current_url = self.driver.current_url
 
-        try:
-            WebDriverWait(self.driver, 3).until(
-                lambda d: d.find_element(By.CSS_SELECTOR, '#mynavbar > div > div > ul').is_displayed()
-            )
-            self.driver.execute_script("arguments[0].click();", item)
-            WebDriverWait(self.driver, 3).until(lambda d: d.current_url != current_url)
-        except TimeoutException:
-            if href:
-                self.driver.get(href)
+
+        WebDriverWait(self.driver, 3).until(
+            lambda d: d.find_element(By.CSS_SELECTOR, '#mynavbar > div > div > ul').is_displayed()
+        )
+        self.driver.execute_script("arguments[0].click();", item)
+        WebDriverWait(self.driver, 3).until(lambda d: d.current_url != current_url)
+
