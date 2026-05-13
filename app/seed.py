@@ -247,7 +247,8 @@ def seed_data():
     bill1 = Bill(total_amount=100000, status=PaymentStatus.SUCCESS, customer_id=2)
     bill2 = Bill(total_amount=100000, status=PaymentStatus.SUCCESS, customer_id=2)
     bill3 = Bill(total_amount=100000, status=PaymentStatus.SUCCESS, customer_id=2)
-    db.session.add_all([bill1, bill2, bill3])
+    bill4 = Bill(total_amount=100000, status=PaymentStatus.PENDING, customer_id=2)
+    db.session.add_all([bill1, bill2, bill3, bill4])
     db.session.commit()
 
     s3 = ScreeningSeat.query.filter_by(screening_id=3).order_by(ScreeningSeat.id).all()
@@ -258,7 +259,11 @@ def seed_data():
     ss_2 = s3[30]
     ss_3 = s5[30]
     ss_4 = s7[31]
-
+    ss_5 = s7[50]
+    ss_5.status = SeatStatus.HOLDING
+    ss_5.holding_user_id = 2
+    ss_5.hold_expired_at = datetime.now() + timedelta(seconds=15)
+    db.session.commit()
     for ss in [ss_1, ss_2, ss_3, ss_4]: ss.status = SeatStatus.BOOKED
     db.session.commit()
 
@@ -286,7 +291,13 @@ def seed_data():
         screening_seat_id=ss_4.id,
         bill_id=bill1.id
     )
-    db.session.add_all([ticket1, ticket2, ticket3, ticket4])
+    ticket5 = Ticket(
+        price=100000,
+        status=TicketStatus.HOLDING,
+        screening_seat_id=ss_5.id,
+        bill_id=bill4.id
+    )
+    db.session.add_all([ticket1, ticket2, ticket3, ticket4, ticket5])
     db.session.commit()
 
     payments = [

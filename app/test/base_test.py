@@ -64,6 +64,20 @@ def test_session(test_app):
     db.session.rollback()
 
 @pytest.fixture
+def sample_user(test_session):
+    user = Customer(
+        username="testclient",
+        password="123",
+        role=UserRole.CUSTOMER,
+        full_name="Nguyễn Văn A",
+        email="test@example.com",
+        phone_number="0123456789"
+    )
+    test_session.add(user)
+    test_session.commit()
+    return user
+
+@pytest.fixture
 def sample_movie(test_session):
     m1 = Movie(
         title="Dune: Hành Tinh Cát",
@@ -151,12 +165,12 @@ def sample_seats(test_session, sample_room):
     return seats
 
 @pytest.fixture
-def sample_screening(test_session):
+def sample_screening(test_session, sample_room, sample_movie):
     scr1 = MovieScreening(
         start_time=datetime.now() + timedelta(days=1),
         base_price=100000,
-        room_id=1,
-        movie_id=1
+        room_id=sample_room[0].id,
+        movie_id=sample_movie[0].id
     )
     scr2 = MovieScreening(
         start_time=datetime.now() - timedelta(days=1),
@@ -201,11 +215,11 @@ def sample_screening_seats(test_session, sample_seats, sample_screening):
     return ss_list
 
 @pytest.fixture
-def sample_bill(test_session):
+def sample_bill(test_session, sample_user):
     bill = Bill(
-        total_amount=0,
+        total_amount=10000,
         status=PaymentStatus.PENDING,
-        customer_id=1
+        customer_id=sample_user.id
     )
     test_session.add(bill)
     test_session.commit()

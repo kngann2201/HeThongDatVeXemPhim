@@ -338,25 +338,23 @@ def pay_success(payment, bill):
 
     db.session.commit()
 
-def get_info_movie(customer_id, status_enum):
-    target_statuses = [status_enum]
-    if status_enum == TicketStatus.PAID:
-        target_statuses.append(TicketStatus.CANCELLED)
+def get_info_movie(customer_id):
+    target_statuses = [TicketStatus.USED]
 
     results = db.session.query(
         Ticket.id, Movie.title, MovieScreening.start_time,
         Room.number, Seat.row, Seat.number,
         Ticket.price, Ticket.status
-    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id)\
-     .join(Seat, ScreeningSeat.seat_id == Seat.id)\
-     .join(Room, Seat.room_id == Room.id)\
-     .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id)\
-     .join(Movie, MovieScreening.movie_id == Movie.id)\
-     .join(Bill, Ticket.bill_id == Bill.id)\
-     .filter(
-         Bill.customer_id == customer_id,
-         Ticket.status.in_(target_statuses)
-     ).all()
+    ).join(ScreeningSeat, Ticket.screening_seat_id == ScreeningSeat.id) \
+        .join(Seat, ScreeningSeat.seat_id == Seat.id) \
+        .join(Room, Seat.room_id == Room.id) \
+        .join(MovieScreening, ScreeningSeat.screening_id == MovieScreening.id) \
+        .join(Movie, MovieScreening.movie_id == Movie.id) \
+        .join(Bill, Ticket.bill_id == Bill.id) \
+        .filter(
+        Bill.customer_id == customer_id,
+        Ticket.status.in_(target_statuses)
+    ).all()
 
     ticket_list = []
     for r in results:
@@ -386,9 +384,9 @@ def get_all_info_movie(customer_id):
         .order_by(Bill.id.desc()) \
         .all()
 
-    watched_list = []
+    ticket_list = []
     for r in results:
-        watched_list.append({
+        ticket_list.append({
             'id': r[0],
             'movie_name': r[1],
             'show_time': r[2].strftime('%H:%M - %d/%m/%Y'),
@@ -399,7 +397,7 @@ def get_all_info_movie(customer_id):
             'bill_id': r[8],
             'expired_time': r[9]
         })
-    return watched_list
+    return ticket_list
 
 def cancel_ticket(ticket_id, customer_id):
     ticket = Ticket.query.join(Bill).filter(

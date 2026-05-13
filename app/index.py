@@ -250,7 +250,7 @@ def register_app(app):
                     return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Ghế đã được đặt!"'))
                 else:
                     s.status = SeatStatus.HOLDING
-                    s.hold_expired_at = datetime.now() + timedelta(minutes=10)
+                    s.hold_expired_at = datetime.now() + timedelta(seconds=30)
                     s.holding_user_id = current_user.id
 
             total = 0
@@ -365,7 +365,7 @@ def register_app(app):
     @app.route("/user/history_watched")
     @login_required
     def history_watched():
-        data = dao.get_info_movie(current_user.id, TicketStatus.USED)
+        data = dao.get_info_movie(current_user.id)
         return render_template('user/history_watched.html', ticket_list=data)
 
     @app.route('/forgot_password', methods=['GET', 'POST'])

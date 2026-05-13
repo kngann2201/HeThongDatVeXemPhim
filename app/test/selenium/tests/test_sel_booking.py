@@ -6,6 +6,7 @@ from app.test.selenium.pages.HomePage import HomePage
 from app.test.selenium.pages.LoginPage import LoginPage
 from app.test.selenium.pages.BookingPage import BookingPage
 from app.test.selenium.pages.RegisterPage import RegisterPage
+from app.test.selenium.pages.HistoryBookingPage import HistoryBookingPage
 import os
 
 def test_booking_success(driver):
@@ -14,7 +15,7 @@ def test_booking_success(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -22,21 +23,26 @@ def test_booking_success(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_seat()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
 
 def test_booking_not_login(driver):
     home=HomePage(driver=driver)
     home.open_page()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
     book.book()
     book.select_screening()
     book.select_screening_seat()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.select_login()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
 
 def test_booking_8_seat(driver):
@@ -45,7 +51,7 @@ def test_booking_8_seat(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -53,8 +59,10 @@ def test_booking_8_seat(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(8)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
 
 def test_booking_9_seat(driver):
@@ -63,13 +71,14 @@ def test_booking_9_seat(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
     book.book()
     book.select_screening()
     book.select_screening_seat()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.select_n_seats(9)
     alert_msg = book.get_alert_text()
@@ -82,7 +91,7 @@ def test_booking_sum_8_seat(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -90,18 +99,23 @@ def test_booking_sum_8_seat(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(5)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book.book()
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats_start_end(3,5)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
 
 
@@ -111,7 +125,7 @@ def test_booking_sum_9_seat(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -119,15 +133,19 @@ def test_booking_sum_9_seat(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(5)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book.book()
     book.select_screening()
     book.select_screening_seat()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.select_n_seats_start_end(4,5)
     alert_msg = book.get_alert_text()
@@ -140,7 +158,7 @@ def test_booking_8_seat_after_booking(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -148,10 +166,13 @@ def test_booking_8_seat_after_booking(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(8)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book.book()
@@ -168,7 +189,7 @@ def test_booking_seat_before_10m(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -176,6 +197,7 @@ def test_booking_seat_before_10m(driver):
     book.select_screening_2()
     book.select_screening_seat()
     book.select_n_seats(3)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
     alert_msg = book.get_alert_text()
@@ -188,7 +210,7 @@ def test_booking_after_booked(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -196,11 +218,13 @@ def test_booking_after_booked(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(5)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
-    
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book.book()
@@ -216,7 +240,7 @@ def test_booking_2_movie(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -224,22 +248,26 @@ def test_booking_2_movie(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(8)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
-    
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book.book2()
     book.select_screening_2()
     book.select_screening_seat()
     book.select_n_seats(8)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/12'
     book.book_ticket()
-    
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
 def test_booking_movie_2_screening(driver):
@@ -248,7 +276,7 @@ def test_booking_movie_2_screening(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
@@ -256,22 +284,26 @@ def test_booking_movie_2_screening(driver):
     book.select_screening()
     book.select_screening_seat()
     book.select_n_seats(8)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
-    
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book.book()
     book.select_screening()
     book.select_screening_seat2()
     book.select_n_seats(8)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.book_ticket()
-    
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
 def test_booking_after_movie_shown(driver):
@@ -280,7 +312,7 @@ def test_booking_after_movie_shown(driver):
 
     login.login('user123', 'Pass@123')
     time.sleep(1)
-
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book = BookingPage(driver=driver)
@@ -292,6 +324,7 @@ def test_booking_after_movie_shown(driver):
     time.sleep(65)
 
     book.book_ticket()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     alert_msg = book.get_alert_text()
     expected_msg = "Suất chiếu đã bắt đầu!"
@@ -300,37 +333,44 @@ def test_booking_after_movie_shown(driver):
 def test_booking_not_login_after_login(driver):
     home=HomePage(driver=driver)
     home.open_page()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
     book.book()
     book.select_screening()
     book.select_screening_seat()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     book.select_login()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
 
     login = LoginPage(driver=driver)
     login.login('user123', 'Pass@123')
     time.sleep(1)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
 
 
 def test_booking_not_login_after_register(driver):
     home=HomePage(driver=driver)
     home.open_page()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
 
     book=BookingPage(driver=driver)
     book.book()
     book.select_screening()
     book.select_screening_seat()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
-
     book.select_login()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
 
     book.click_register()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/register?next=/booking/13'
 
     avatar_path = os.path.abspath(
@@ -341,30 +381,47 @@ def test_booking_not_login_after_register(driver):
                 'abc@gmail.com', 'abc123', 'Pass@123', 'Pass@123', avatar_path)
 
     time.sleep(1)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/login?next=/booking/13'
     login = LoginPage(driver=driver)
     login.login('user123', 'Pass@123')
     time.sleep(1)
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
     
 
 def test_booking_success_after_cancel_book(driver):
+    h = HistoryBookingPage(driver=driver)
+    h.open_page()
+
+    price_b = h.find(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(1) .text-end .text-danger')
+    assert price_b.text == '200,000đ'
+
+    h.click(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(1) .bg-white')
+    time.sleep(1)
+    h.click(By.CSS_SELECTOR, '#collapse1 tr:nth-child(2) > td:nth-child(6) .btn-danger')
+    h.accept_alert(expect='Hủy vé thành công!')
+
+    price_b = h.find(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(1) .text-end .text-danger')
+    assert price_b.text == '100,000đ'
+    h.click(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(1) .bg-white')
+    time.sleep(1)
+    e = h.find(By.CSS_SELECTOR, '#collapse1 tr:nth-child(2) > td:nth-child(5) > span')
+    assert 'Đã hủy' in e.text
     login = LoginPage(driver=driver)
     login.open_page()
-
-    login.login('user123', 'Pass@123')
-    time.sleep(1)
-
-    assert driver.current_url == 'http://127.0.0.1:5005/'
-
     book=BookingPage(driver=driver)
-    book.book()
-    book.select_screening()
+    book.book2()
+    book.select_screening_2()
     book.select_screening_seat()
-    book.select_seat()
-    assert driver.current_url == 'http://127.0.0.1:5005/booking/13'
+    time.sleep(1)
+    book.select_seat_test_cancel()
+    wait = WebDriverWait(driver, 10)
+    assert driver.current_url == 'http://127.0.0.1:5005/booking/12'
+    time.sleep(1)
     book.book_ticket()
-    
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
     book.select_pay_back()
+    wait = WebDriverWait(driver, 10)
     assert driver.current_url == 'http://127.0.0.1:5005/'
