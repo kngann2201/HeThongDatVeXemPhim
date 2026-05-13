@@ -82,6 +82,7 @@ async function restoreState() {
         const s = selected_info.screenings.find(i => i.id == data.screeningId);
         if (s) selected_info.price = s.base_price;
     }
+    localStorage.removeItem('pending_booking');
 }
 
 async function loadScreenings() {
