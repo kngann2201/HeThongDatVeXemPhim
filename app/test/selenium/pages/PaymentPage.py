@@ -8,7 +8,7 @@ import time
 
 class PaymentPage(BasePage):
     BUTTON_VNPAY_NOW=(By.CSS_SELECTOR,'.payment-card .d-grid .btn-vnpay')
-    BUTTON_PAYMENT_TYPE=(By.CSS_SELECTOR,'#accordionList div:nth-child(2) .list-method-button')
+    BUTTON_PAYMENT_TYPE=(By.CSS_SELECTOR,'#accordionList > div:nth-child(2) > div.list-method-button > div')
     SEARCH=(By.ID,'searchPayMethod2')
     BUTTON_NCB=(By.CSS_SELECTOR,'#NCB > div')
     CARD_NUMBER=(By.ID,'card_number_mask')
@@ -54,7 +54,6 @@ class PaymentPage(BasePage):
         time.sleep(2)
 
     def select_payment_type(self):
-        wait = WebDriverWait(self.driver, 15)
         btn_vnpay_type = self.find(*self.BUTTON_PAYMENT_TYPE)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_vnpay_type)
         time.sleep(1)

@@ -43,7 +43,6 @@ class BasePage:
             text = alert.text
             alert.accept()
 
-        text = WebDriverWait(self.driver, 10).until(alert_text)
         self.driver.execute_script("window.__lastAlert = null;")
         return text
 
