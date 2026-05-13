@@ -10,7 +10,7 @@ class BookingPage(BasePage):
     SCREENING_TYPE = (By.CSS_SELECTOR, '.room-types div:nth-child(2)')
     SCREENING_TYPE1 = (By.CSS_SELECTOR, '.room-types div:nth-child(1)')
     SCREENING_TYPE2 = (By.CSS_SELECTOR, '.room-types div:nth-child(3)')
-    SCREENING_SEAT=(By.CSS_SELECTOR,'#menu-screenings > div > div:nth-child(1)')
+    SCREENING_SEAT = (By.CSS_SELECTOR,'#menu-screenings > div > div:nth-child(1)')
     SCREENING_SEAT2 = (By.CSS_SELECTOR, '#menu-screenings > div > div:nth-child(2)')
 
     SEATS = [

@@ -128,23 +128,13 @@ def test_vnpay_payment_not_found(test_client):
     assert "Không tìm thấy thông tin thanh toán!" in decoded_url
     assert res.status_code == 302
 
-def test_vnpay_already_paid(test_client, test_session):
-    bill = Bill(customer_id=1, total_amount=1000)
-    payment = Payment(bill_id=1, txn_ref="abc123",amount=1000)
-    test_session.add_all([bill, payment])
-    test_session.commit()
-    dao.pay_success(payment, bill)
-    res = test_client.get("/vnpay_return?&vnp_TxnRef=abc123&vnp_ResponseCode=99")
-    decoded_url = unquote_plus(res.location)
-    assert "Hoá đơn đã được thanh toán trước đó!" in decoded_url
-
 def test_vnpay_fail_response_code(test_client, test_session):
     bill = Bill(customer_id=1, total_amount=1000)
     payment = Payment(bill=bill, txn_ref="abc", amount=1000)
     test_session.add_all([bill, payment])
     test_session.commit()
 
-    res = test_client.get("/vnpay_return?vnp_TxnRef=abc&vnp_ResponseCode=24")
+    res = test_client.get("/vnpay_return?vnp_TxnRef=abc&vnp_ResponseCode=51")
 
     decoded = unquote_plus(res.location)
     assert "Thanh toán thất bại!" in decoded
@@ -168,6 +158,65 @@ def test_vnpay_success(test_client, test_session):
     res = test_client.get("/vnpay_return?vnp_ResponseCode=00&vnp_TxnRef=1")
     decoded = unquote_plus(res.location)
     assert "Thanh toán thành công" in decoded
+
+    updated_bill = test_session.query(Bill).filter_by(id=bill.id).first()
+    assert updated_bill.status == PaymentStatus.SUCCESS
+
+def test_vnpay_duplicate_bill(test_client, test_session, sample_payment):
+    payment = sample_payment
+    bill = payment.bill
+
+    dao.pay_success(payment, bill)
+    test_session.commit()
+    res = test_client.get(f"/vnpay_return?vnp_ResponseCode=00&vnp_TxnRef={payment.txn_ref}")
+    decoded = unquote_plus(res.location)
+    assert "Hoá đơn đã được thanh toán trước đó!" in decoded
+
+def test_vnpay_payment_timeout(test_client, test_session, sample_payment):
+    payment = sample_payment
+    payment.created_date = datetime.now() - timedelta(minutes=10)
+    test_session.commit()
+    res = test_client.get(f"/vnpay_return?vnp_ResponseCode=24&vnp_TxnRef={payment.txn_ref}")
+    decoded = unquote_plus(res.location)
+    assert "Thanh toán thất bại" in decoded
+
+def test_pay_success_from_booking(test_session, test_client, sample_screening, sample_screening_seats, mocker):
+    class FakeUser:
+        is_authenticated = True
+        id = 5
+
+    user = FakeUser()
+    mocker.patch('flask_login.utils._get_user', return_value=user)
+
+    seat_ids = [
+        sample_screening_seats[1].id,
+        sample_screening_seats[2].id
+    ]
+
+    response = test_client.post(
+        '/booking/submit',
+        data={
+            'seat': ",".join(map(str, seat_ids)),
+            'screening': sample_screening[0].id
+        }
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'Chuyển hướng thanh toán' in html
+
+    bill = Bill.query.filter_by(customer_id=user.id).first()
+    payment = Payment(bill=bill, txn_ref=1, amount=1000)
+    test_session.add_all([bill, payment])
+    test_session.commit()
+
+    res = test_client.get("/vnpay_return?vnp_ResponseCode=00&vnp_TxnRef=1")
+    decoded = unquote_plus(res.location)
+    assert "Thanh toán thành công" in decoded
+
+    updated_bill = test_session.query(Bill).filter_by(id=bill.id).first()
+    assert updated_bill.status == PaymentStatus.SUCCESS
+
 
 
 

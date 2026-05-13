@@ -7,7 +7,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import pytest
 from app import db
-from app.schedule import start_scheduler
 from app.seed import seed_data
 from app.test.base_test import create_app
 
@@ -53,6 +52,8 @@ def driver(sel_app):
         "profile.password_manager_leak_detection": False
     }
     options.add_experimental_option("prefs", prefs)
+    options.add_argument('--timezone=Asia/Ho_Chi_Minh')
+
     try:
         driver = webdriver.Chrome(options=options)
     except Exception as e:
@@ -62,6 +63,8 @@ def driver(sel_app):
         driver_path = os.path.join(base, ".venv", driver_name)
         service = Service(executable_path=driver_path)
         driver = webdriver.Chrome(service=service, options=options)
+
+    driver.execute_script("return new Date().getTimezoneOffset();")
 
     yield driver
     driver.quit()

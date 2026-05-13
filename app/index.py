@@ -160,6 +160,7 @@ def register_app(app):
 
         return render_template('booking.html',movie=movie,
                                current_movie_types=current_movie_types,room_types=room_types,view=view)
+
     @app.route("/api/get-screenings", methods=['GET'])
     def get_screenings():
         watch_date = request.args.get("watch_date")
@@ -167,13 +168,13 @@ def register_app(app):
         movie_id = request.args.get("movie_id")
         print("Ngày xem:", watch_date)
         print("Id loại phòng đã chọn:", room_type_id)
+        print("Id phim đã chọn:", movie_id)
         if not watch_date or not movie_id or not room_type_id:
-            jsonify({"success": False, "message": "Thiếu thông tin để tìm suất chiếu!"})
+            return jsonify({"success": False, "message": "Thiếu thông tin để tìm suất chiếu!", "screenings": []})
 
         movie = dao.get_movie_by_id(movie_id)
-        screenings = dao.get_movie_screenings(movie_id=movie_id, watch_date=watch_date, room_type_id=room_type_id)
         now = datetime.now()
-        screenings = [s for s in screenings if s.start_time > now]
+        screenings = dao.get_movie_screenings(movie_id=movie_id, watch_date=watch_date, room_type_id=room_type_id, now=now)
         screenings_data = []
         for s in screenings:
             screenings_data.append({
@@ -192,7 +193,7 @@ def register_app(app):
         seats = dao.get_seats_by_screening(screening_id=screening_id)
 
         if not seats:
-            return jsonify({"success": False, "message": "Không tìm thấy ghế phù hợp!"})
+            return jsonify({"success": False, "message": "Không tìm thấy ghế phù hợp!", "seats": []})
 
         user_used = 0
         if current_user.is_authenticated:
@@ -231,23 +232,28 @@ def register_app(app):
         now = datetime.now()
         scr = dao.get_screening_by_id(screening)
         if scr.start_time <= now:
-            return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Suất chiếu đã bắt đầu, không thể đặt vé!'))
+            flash("Suất chiếu đã bắt đầu, không thể đặt vé!", "error")
+            return redirect(url_for('booking', movie_id=scr.movie_id))
 
         if scr.start_time - now < timedelta(minutes=10):
-            return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Không thể đặt vé sát giờ chiếu!'))
+            flash("Không thể đặt vé trong 10 phút trước giờ chiếu!", "error")
+            return redirect(url_for('booking', movie_id=scr.movie_id))
 
         try:
             screening_seats = dao.hold_seats(seat_ids, screening)
 
             if len(screening_seats) != len(seat_ids):
-                return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Một số ghế không tồn tại trong suất chiếu này!'))
+                flash("Một số ghế không tồn tại trong suất chiếu này!", "error")
+                return redirect(url_for('booking', movie_id=scr.movie_id))
 
             if dao.total_seat_per_screening(screening, current_user.id) + len(seat_ids) > 8:
-                return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Vượt quá số ghế được đặt mỗi suất chiếu!'))
+                flash("Vượt quá số ghế được đặt mỗi suất chiếu!", "error")
+                return redirect(url_for('booking', movie_id=scr.movie_id))
 
             for s in screening_seats:
                 if s.status == SeatStatus.BOOKED or s.status == SeatStatus.HOLDING:
-                    return redirect(url_for('booking', movie_id=scr.movie_id, err_msg='Ghế đã được đặt!"'))
+                    flash("Ghế đã được đặt!", "error")
+                    return redirect(url_for('booking', movie_id=scr.movie_id))
                 else:
                     s.status = SeatStatus.HOLDING
                     s.hold_expired_at = datetime.now() + timedelta(minutes=10)
@@ -260,8 +266,6 @@ def register_app(app):
                 total += price
                 dao.add_ticket(bill_id=bill.id, ss_id=s.id, price=price)
             bill.total_amount = total
-
-            session.pop("booking_seats", None)
             db.session.commit()
 
             txn_ref = f"{bill.id}_{int(time.time())}"
@@ -350,7 +354,6 @@ def register_app(app):
         p = Payment.query.filter_by(txn_ref=txn_ref).first()
         bill = p.bill
         return render_template("return_payment.html", txn_ref=txn_ref, amount=amount, msg=msg, success=success, bill=bill)
-
 
     @app.route("/user/profile")
     @login_required
