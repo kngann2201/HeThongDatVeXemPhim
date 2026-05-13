@@ -247,7 +247,7 @@ def test_payment_1_movie_2_bill(driver):
     book = BookingPage(driver=driver)
     book.book()
     book.select_screening()
-    book.select_screening_seat2()
+    book.select_screening_seat()
     book.select_n_seats_start_end(3,4)
     book.book_ticket()
     wait = WebDriverWait(driver, 10)
@@ -283,13 +283,13 @@ def test_payment_after_cancel(driver):
 
     h.click(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(4) .bg-white')
     time.sleep(1)
-    h.click(By.CSS_SELECTOR, '#collapse4 tr:nth-child(2) > td:nth-child(6) > div > form > button')
+    h.click(By.CSS_SELECTOR, '#collapse5 tr:nth-child(2) > td:nth-child(6) > div > form > button')
     h.accept_alert(expect='Hủy vé thành công!')
     price_b = h.find(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(4) .text-end .text-danger')
     assert price_b.text == '200,000đ'
     h.click(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(4) .bg-white')
     time.sleep(1)
-    e = h.find(By.CSS_SELECTOR, '#collapse4 .ticket-cancelled > td:nth-child(4) > span')
+    e = h.find(By.CSS_SELECTOR, '#collapse5 .ticket-cancelled > td:nth-child(4) > span')
     assert 'Đã hủy' in e.text
     payment.click_pay_my_ticket()
     wait = WebDriverWait(driver, 10)
@@ -332,7 +332,7 @@ def test_payment_my_ticket(driver):
     assert driver.current_url == 'https://sandbox.vnpayment.vn/paymentv2/Ncb/Transaction/Confirm.html'
     payment.select_btn_confirm()
     wait = WebDriverWait(driver, 15)
-    success_msg_element = wait.until(
+    fail_msg_element = wait.until(
         EC.visibility_of_element_located((By.CSS_SELECTOR, ".result-card h2.text-info"))
     )
-    assert "Ghế đã bị huỷ trong khi thanh toán!" in success_msg_element.text
+    assert "Ghế đã bị huỷ trong khi thanh toán!" in fail_msg_element.text

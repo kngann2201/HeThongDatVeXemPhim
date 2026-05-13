@@ -36,7 +36,7 @@ class PaymentPage(BasePage):
         book = BookingPage(self.driver)
         book.book()
         book.select_screening()
-        book.select_screening_seat2()
+        book.select_screening_seat()
         book.select_n_seats(3)
         book.book_ticket()
         wait = WebDriverWait(self.driver, 10)
