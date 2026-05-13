@@ -159,4 +159,13 @@
         cursor: not-allowed;
     }
 </style>
+<script>
+    const btn = document.getElementById('submit-btn');
+    btn.addEventListener('click', () => {
+        let flashMessage = document.querySelector('.alert');
+        if (flashMessage) {
+            flashMessage.remove();
+        }
+    });
+</script>
 {% endblock %}

@@ -368,7 +368,7 @@ def register_app(app):
     @app.route("/user/history_watched")
     @login_required
     def history_watched():
-        data = dao.get_info_movie(current_user.id, TicketStatus.USED)
+        data = dao.get_info_movie(current_user.id)
         return render_template('user/history_watched.html', ticket_list=data)
 
     @app.route('/forgot_password', methods=['GET', 'POST'])

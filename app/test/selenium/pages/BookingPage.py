@@ -22,8 +22,9 @@ class BookingPage(BasePage):
         (By.CSS_SELECTOR, '#seat-map > div:nth-child(1) > div:nth-child(6)'),
         (By.CSS_SELECTOR, '#seat-map > div:nth-child(1) > div:nth-child(7)'),
         (By.CSS_SELECTOR, '#seat-map > div:nth-child(1) > div:nth-child(8)'),
-        (By.CSS_SELECTOR, '#seat-map > div:nth-child(1) > div:nth-child(9)')
+        (By.CSS_SELECTOR, '#seat-map > div:nth-child(1) > div:nth-child(9)'),
     ]
+    SEAT_CANCEL=(By.CSS_SELECTOR, '#seat-map > div:nth-child(4) > div:nth-child(2)')
     BUTTON_BOOK=(By.ID,'btn-submit')
     BUTTON_LOGIN=(By.CSS_SELECTOR,'#overlay-login-btn')
     BUTTON_PAYBACK=(By.CSS_SELECTOR,'.payment-card .d-grid .btn-outline-secondary')
@@ -151,6 +152,13 @@ class BookingPage(BasePage):
     def select_seat(self):
         self.click_seat_by_index(0)
 
+    def select_seat_test_cancel(self):
+        seat = self.find(*self.SEAT_CANCEL)
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", seat)
+        time.sleep(1)
+        self.driver.execute_script("arguments[0].click();", seat)
+        time.sleep(2)
+
     def book_ticket(self):
         btn_submit = self.find(*self.BUTTON_BOOK)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_submit)
@@ -189,6 +197,7 @@ class BookingPage(BasePage):
         if 'HOLDING' in class_name:
             return True
         return False
+
     def click_register(self):
         btn_order2 = self.find(*self.BUTTON_REGISTER)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_order2)

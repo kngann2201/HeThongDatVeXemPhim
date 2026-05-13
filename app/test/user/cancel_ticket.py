@@ -12,7 +12,7 @@ class FakeUser:
 
 @pytest.fixture
 def mock_user(mocker):
-    user = FakeUser(user_id=1)  # ID = 1 khớp với sample_users của bạn
+    user = FakeUser(user_id=1)
     mocker.patch('flask_login.utils._get_user', return_value=user)
     return user
 

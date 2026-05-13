@@ -98,7 +98,7 @@ def test_system_cancel_flow(driver):
     hb.open_page(login=True)
 
     hb.click(By.CSS_SELECTOR, '#accordionBooking > div:last-child .bg-white')
-    hb.click(By.CSS_SELECTOR, '#collapse4 tr:nth-child(1) > td:nth-child(6) .btn-danger')
+    hb.click(By.CSS_SELECTOR, '#collapse5 tr:nth-child(1) > td:nth-child(6) .btn-danger')
     hb.accept_alert(expect='Hủy vé thành công!')
 
 
