@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import pytest
 from app import db
+from app.schedule import start_scheduler as scheduler
 from app.seed import seed_data
 from app.test.base_test import create_app
 
@@ -91,4 +92,11 @@ def mock_cloudinary_upload(monkeypatch):
         'cloudinary.uploader.upload',
         lambda file: {'secure_url': 'https://res.cloudinary.com/test/avatar-cute-3.jpg'}
     )
+
+@pytest.fixture(autouse=True, scope="session")
+def start_scheduler(sel_app):
+    from app import db
+    os.environ["WERKZEUG_RUN_MAIN"] = "true"
+    scheduler(sel_app, db)
+    yield
 

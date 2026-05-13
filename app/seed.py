@@ -263,7 +263,7 @@ def seed_data():
     ss_5 = s7[50]
     ss_5.status = SeatStatus.HOLDING
     ss_5.holding_user_id = 2
-    ss_5.hold_expired_at = datetime.now() + timedelta(seconds=15)
+    ss_5.hold_expired_at = datetime.now() + timedelta(seconds=30)
     db.session.commit()
     for ss in [ss_1, ss_2, ss_3, ss_4]: ss.status = SeatStatus.BOOKED
     db.session.commit()

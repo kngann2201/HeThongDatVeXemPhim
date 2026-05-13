@@ -45,3 +45,4 @@ def start_scheduler(app, db):
     scheduler.add_job(checkin_tickets, 'interval', seconds=1)
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         scheduler.start()
+        print('Scheduler start')

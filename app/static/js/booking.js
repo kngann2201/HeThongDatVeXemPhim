@@ -175,9 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < 14; i++) {
         const d = new Date();
         d.setDate(d.getDate() + i);
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+
         const active = i === 0 ? 'active' : '';
         wrapper.innerHTML += `<div class="swiper-slide" style="width:auto">
-            <div class="date-card ${active}" data-date="${d.toISOString().split('T')[0]}">
+            <div class="date-card ${active}" data-date="${formattedDate}">
                 <div class="day-num">${d.getDate()}/${d.getMonth()+1}</div>
                 <div class="day-name">${i===0 ? "Hôm nay" : ["CN","T2","T3","T4","T5","T6","T7"][d.getDay()]}</div>
             </div>

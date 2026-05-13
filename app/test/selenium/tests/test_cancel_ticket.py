@@ -1,6 +1,4 @@
 import time
-
-import pytest
 from selenium.webdriver.common.by import By
 from app import db
 from app.models import Ticket, TicketStatus
@@ -10,6 +8,8 @@ from app.test.selenium.pages.HistoryBookingPage import HistoryBookingPage
 def test_cancel_ticket_success(driver):
     h = HistoryBookingPage(driver=driver)
     h.open_page()
+
+    time.sleep(10)
 
     price_b = h.find(By.CSS_SELECTOR, '#accordionBooking > div:nth-child(1) .text-end .text-danger')
     assert price_b.text == '200,000đ'
