@@ -43,8 +43,8 @@ class PaymentPage(BasePage):
 
     def open_history(self):
         self.click(By.CSS_SELECTOR, '#mynavbar > div > div > a')
-        self.click(By.CSS_SELECTOR, '#mynavbar > div > div > ul > li:nth-child(2) > a')
         time.sleep(1)
+        self.click(By.CSS_SELECTOR, '#mynavbar > div > div > ul > li:nth-child(2) > a')
 
     def select_payment_now(self):
         btn_vnpay_now = self.find(*self.BUTTON_VNPAY_NOW)
@@ -54,11 +54,10 @@ class PaymentPage(BasePage):
         time.sleep(2)
 
     def select_payment_type(self):
-        btn_vnpay_type = self.find(*self.BUTTON_PAYMENT_TYPE)
+        wait = WebDriverWait(self.driver, 10)
+        btn_vnpay_type = wait.until(EC.element_to_be_clickable(self.BUTTON_PAYMENT_TYPE))
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_vnpay_type)
-        time.sleep(1)
         self.driver.execute_script("arguments[0].click();", btn_vnpay_type)
-        time.sleep(2)
 
     def search_payment_type(self,value):
         self.typing(*self.SEARCH,value)
@@ -104,11 +103,11 @@ class PaymentPage(BasePage):
         time.sleep(2)
 
     def click_pay_my_ticket(self):
-        btn_pay = self.find(*self.BUTTON_PAY)
+        wait = WebDriverWait(self.driver, 10)
+        btn_pay = wait.until(EC.presence_of_element_located(self.BUTTON_PAY))
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn_pay)
         time.sleep(1)
         self.driver.execute_script("arguments[0].click();", btn_pay)
-        time.sleep(2)
 
     def click_pay_my_ticket_cancel(self):
         btn_pay = self.find(*self.BUTTON_PAY_CANCEL)
