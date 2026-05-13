@@ -256,7 +256,7 @@ def register_app(app):
                     return redirect(url_for('booking', movie_id=scr.movie_id))
                 else:
                     s.status = SeatStatus.HOLDING
-                    s.hold_expired_at = datetime.now() + timedelta(seconds=30)
+                    s.hold_expired_at = datetime.now() + timedelta(minutes=10)
                     s.holding_user_id = current_user.id
 
             total = 0
