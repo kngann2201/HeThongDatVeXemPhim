@@ -71,8 +71,8 @@ async function restoreState() {
     }
     if (data.roomTypeId) {
         selected_info.roomTypeId = data.roomTypeId;
-        await loadRooms(data.roomTypeId);
         document.querySelector(`.room-type[data-type="${data.roomTypeId}"]`)?.classList.add('active');
+        await loadScreenings();
     }
     if (data.screeningId) {
         selected_info.screeningId = data.screeningId;
@@ -82,7 +82,6 @@ async function restoreState() {
         const s = selected_info.screenings.find(i => i.id == data.screeningId);
         if (s) selected_info.price = s.base_price;
     }
-    localStorage.removeItem('pending_booking');
 }
 
 async function loadScreenings() {
@@ -173,7 +172,8 @@ function updatePrice() {
 document.addEventListener('DOMContentLoaded', () => {
     const wrapper = $('date-wrapper');
     for (let i = 0; i < 14; i++) {
-        const d = new Date(); d.setDate(d.getDate() + i);
+        const d = new Date();
+        d.setDate(d.getDate() + i);
         const active = i === 0 ? 'active' : '';
         wrapper.innerHTML += `<div class="swiper-slide" style="width:auto">
             <div class="date-card ${active}" data-date="${d.toISOString().split('T')[0]}">
@@ -193,7 +193,7 @@ $('date-wrapper').addEventListener('click', (e) => {
     card.classList.add('active');
     selected_info.date = card.dataset.date;
     resetStateFrom('roomType');
-    hideAllFrom('menu-rooms');
+    hideAllFrom('menu-screenings');
     selected_info.roomTypeId = null;
 });
 
@@ -204,7 +204,7 @@ document.querySelector('.room-types').addEventListener('click', (e) => {
     resetStateFrom('screening');
     btn.classList.add('active');
     selected_info.roomTypeId = btn.dataset.type;
-    hideAllFrom('menu-rooms');
+    hideAllFrom('menu-screenings');
     loadScreenings();
     console.log(selected_info);
 });

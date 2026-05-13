@@ -12,7 +12,7 @@
         {% set total_price = active_tickets | sum(attribute='price') %}
         {% set has_unpaid = active_tickets | selectattr('status.value', 'equalto', 0) | list | length > 0 %}
 
-        <div class="accordion-item mb-3 border">
+        <div class="accordion-item mb-3 border pay-container">
             <div class="d-flex align-items-center bg-white">
                 <button class="accordion-button collapsed bill-header flex-grow-1" type="button"
                         data-bs-toggle="collapse" data-bs-target="#collapse{{ bill_id }}">
@@ -29,11 +29,12 @@
                     </div>
                 </button>
                 {% if has_unpaid and total_price > 0 %}
-                <div class="pe-3">
-                    <a class="badge btn-success text-decoration-none shadow-sm" href="/payment/{{ bill_id }}"
+                <div class="pe-3 d-flex flex-column">
+                    <a class="badge btn-success text-decoration-none shadow-sm pay-btn" href="/payment/{{ bill_id }}"
                        style="padding: 10px 20px;">
                         Thanh toán
                     </a>
+                    <span class="countdown fw-bold text-danger">-</span>
                 </div>
                 {% endif %}
             </div>
@@ -62,10 +63,8 @@
                                 {% if b.status.value == 3 %} <span class="text-success">Đã sử dụng</span>
                                 {% elif b.status.value == 1 %} <span class="text-primary">Đã thanh toán</span>
                                 {% elif b.status.value == 2 %} <span class="text-muted">Đã hủy</span>
-                                {% else %}
-                                <span class="countdown fw-bold"
-                                      data-expired="{{ b.expired_time.strftime('%Y-%m-%dT%H:%M:%S') }}">-</span>
-                                {% endif %}
+                                {% else %}<span class="text-danger t-countdown" data-expired="{{ b.expired_time.strftime('%Y-%m-%dT%H:%M:%S') }}">
+                                Chờ thanh toán</span>{% endif %}
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
@@ -92,28 +91,36 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const billContainers = document.querySelectorAll(".pay-container");
 
-    const countdowns = document.querySelectorAll(".countdown");
+    billContainers.forEach(container => {
+        const pay = container.querySelector(".pay-btn");
+        if (!pay) return;
+        const clock = container.querySelector(".countdown");
+        const countdowns = container.querySelectorAll(".t-countdown");
+        let expiredTime = null;
+        for (const countdown of countdowns) {
+            let expired = new Date(countdown.dataset.expired).getTime();
 
-    countdowns.forEach(countdown => {
-        const expiredTime = new Date(countdown.dataset.expired).getTime();
+            if (expired && expired !== "None") {
+                expiredTime = expired;
+                break;
+            }
+        }
 
         function updateCountdown() {
             const now = new Date().getTime();
             const distance = expiredTime - now;
 
             if (distance <= 0) {
-                countdown.classList.remove("text-danger")
-                countdown.innerHTML = "Vé đã bị huỷ";
-                return;
+                container.remove();
             }
 
-            countdown.classList.add("text-danger");
             const minutes = Math.floor(distance / 1000 / 60);
             const seconds = Math.floor((distance / 1000) % 60);
 
-            countdown.innerHTML =
-                `Hạn thanh toán: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            clock.innerHTML =
+                `Hạn: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
         updateCountdown();

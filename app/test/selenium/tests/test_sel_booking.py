@@ -104,7 +104,6 @@ def test_booking_sum_8_seat(driver):
     book.book_ticket()
     assert driver.current_url == 'http://127.0.0.1:5005/booking/submit'
 
-
 def test_booking_sum_9_seat(driver):
     login = LoginPage(driver=driver)
     login.open_page()
