@@ -98,5 +98,6 @@ def start_scheduler(sel_app):
     from app import db
     os.environ["WERKZEUG_RUN_MAIN"] = "true"
     scheduler(sel_app, db)
+    print('Scheduler start')
     yield
 
