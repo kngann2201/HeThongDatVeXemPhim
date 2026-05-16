@@ -300,6 +300,7 @@ def register_app(app):
             return redirect(url_for('index'))
 
     @app.route("/vnpay_return")
+    @login_required
     def vnpay_return():
         res_code = request.args.get("vnp_ResponseCode")
         trans_id = request.args.get("vnp_TransactionNo")
@@ -343,6 +344,7 @@ def register_app(app):
         return redirect(url_for('payment_return', txn_ref=txn_ref, amount=payment.amount, msg=msg, success=success))
 
     @app.route("/payment-return")
+    @login_required
     def payment_return():
         txn_ref = request.args.get('txn_ref')
         amount = int(request.args.get('amount') or 0)
