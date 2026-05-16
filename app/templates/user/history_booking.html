@@ -29,7 +29,7 @@
                     </div>
                 </button>
                 {% if has_unpaid and total_price > 0 %}
-                <div class="pe-3 d-flex flex-column">
+                <div class="pe-3 d-flex flex-column pay-combo">
                     <a class="badge btn-success text-decoration-none shadow-sm pay-btn" href="/payment/{{ bill_id }}"
                        style="padding: 10px 20px;">
                         Thanh toán
@@ -95,38 +95,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     billContainers.forEach(container => {
         const pay = container.querySelector(".pay-btn");
-        if (!pay) return;
         const clock = container.querySelector(".countdown");
+        const pc = container.querySelector(".pay-como");
+
+        if (!pay || !clock) return;
+
         const countdowns = container.querySelectorAll(".t-countdown");
         let expiredTime = null;
-        for (const countdown of countdowns) {
-            let expired = new Date(countdown.dataset.expired).getTime();
 
-            if (expired && expired !== "None") {
-                expiredTime = expired;
+        for (const countdown of countdowns) {
+            let expiredVal = countdown.dataset.expired;
+            if (expiredVal && expiredVal !== "None") {
+                expiredTime = new Date(expiredVal).getTime();
                 break;
             }
         }
 
-        function updateCountdown() {
+        if (!expiredTime) return;
+
+        const updateCountdown = () => {
             const now = new Date().getTime();
             const distance = expiredTime - now;
 
             if (distance <= 0) {
-                container.remove();
+                clearInterval(timer);
+                if (pc) pc.remove();
+                clock.innerHTML = "Hết hạn";
+                return;
             }
 
-            const minutes = Math.floor(distance / 1000 / 60);
+            const minutes = Math.floor(distance / (1000 * 60));
             const seconds = Math.floor((distance / 1000) % 60);
 
-            clock.innerHTML =
-                `Hạn: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
+            clock.innerHTML = `Hạn: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        };
 
         updateCountdown();
-        setInterval(updateCountdown, 1000);
+        const timer = setInterval(updateCountdown, 1000);
     });
-
 });
 </script>
 {% endblock %}

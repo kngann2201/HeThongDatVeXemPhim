@@ -18,7 +18,7 @@ class PaymentPage(BasePage):
     BUTTON_AGREE=(By.ID,'btnAgree')
     OTP=(By.ID,'otpvalue')
     BUTTON_CONFIRM=(By.ID,'btnConfirm')
-    BUTTON_PAY=(By.CSS_SELECTOR,'#accordionBooking > div:nth-child(4) > div.d-flex.align-items-center.bg-white > div > a')
+    BUTTON_PAY=(By.CSS_SELECTOR,'#accordionBooking > div:nth-child(5) > div.d-flex.align-items-center.bg-white > div > a')
     BUTTON_PAY_CANCEL = (By.CSS_SELECTOR, '#accordionBooking div:nth-child(4)  > div.d-flex.align-items-center.bg-white > div > a')
     BUTTON_BACK=(By.CSS_SELECTOR,'.header-desktop > div > div:nth-child(1) > a > div > span.ubtn-text')
     BUTTON_CANCEL_CONFIRM=(By.CSS_SELECTOR,'#modalCancelPayment > div > div > div.modal-footer.justify-content-center > div > div:nth-child(2) > a > div > span')
@@ -35,7 +35,7 @@ class PaymentPage(BasePage):
         book = BookingPage(self.driver)
         book.book()
         book.select_screening()
-        book.select_screening_seat()
+        book.select_screening_seat2()
         book.select_n_seats(3)
         book.book_ticket()
 

@@ -258,5 +258,22 @@ def test_booking_commit_exception(test_session, test_client, sample_screening, s
     html = response.get_data(as_text=True)
     assert 'Hệ thống đang có lỗi, vui lòng thử lại sau ít phút!' in html
 
+def test__booking_without_login(test_session, test_client, sample_screening, sample_screening_seats, mocker):
+    seat_ids = [
+        sample_screening_seats[1].id,
+        sample_screening_seats[2].id
+    ]
+    response = test_client.post(
+        '/booking/submit',
+        data={
+            'seat': ",".join(map(str, seat_ids)),
+            'screening': sample_screening[0].id
+        },
+        follow_redirects = True
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'Đăng nhập' in html
 
 

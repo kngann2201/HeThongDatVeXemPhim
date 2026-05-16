@@ -46,3 +46,5 @@ def test_get_screening_missing_info(test_session, test_client, sample_screening,
     assert data['message'] == "Thiếu thông tin để tìm suất chiếu!"
     assert len(data['screenings']) == 0
 
+
+
