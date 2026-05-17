@@ -212,7 +212,7 @@ def get_all_genres():
 def get_genre_by_id(genre_id):
     if not genre_id:
         return None
-    return MovieType.query.get(genre_id)
+    return MovieType.query.filter_by(genre_id)
 
 def count_movies():
     return db.session.query(Movie).count()
