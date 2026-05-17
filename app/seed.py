@@ -188,12 +188,39 @@ def seed_data():
     ss4=[]
     ss5=[]
     ss6=[]
-    for i in range(1,91):
+    ss7=[]
+    ss8=[]
+
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=1,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss7.append(s)
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=2,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss8.append(s)
+    for i in range(1, 91):
+        s = ScreeningSeat(
+            seat_id=i,
+            screening_id=3,
+            status=SeatStatus.AVAILABLE,
+            holding_user_id=None
+        )
+        ss5.append(s)
+    for i in range(1, 91):
         s = ScreeningSeat(
             seat_id=i,
             screening_id=4,
             status=SeatStatus.AVAILABLE,
-            holding_user_id= None
+            holding_user_id=None
         )
         ss1.append(s)
     for i in range(1,91):
@@ -204,7 +231,7 @@ def seed_data():
             holding_user_id= None
         )
         ss2.append(s)
-    for i in range(1, 91):
+    for i in range(1, 81):
         s = ScreeningSeat(
             seat_id=i,
             screening_id=6,
@@ -212,7 +239,7 @@ def seed_data():
             holding_user_id=None
         )
         ss3.append(s)
-    for i in range(1, 91):
+    for i in range(1, 81):
         s = ScreeningSeat(
             seat_id=i,
             screening_id=7,
@@ -220,14 +247,6 @@ def seed_data():
             holding_user_id=None
         )
         ss4.append(s)
-    for i in range(1, 91):
-        s = ScreeningSeat(
-            seat_id=i,
-            screening_id=3,
-            status=SeatStatus.AVAILABLE,
-            holding_user_id=None
-        )
-        ss5.append(s)
     for i in range(1, 91):
         s = ScreeningSeat(
             seat_id=i,
@@ -242,6 +261,8 @@ def seed_data():
     db.session.add_all(ss4)
     db.session.add_all(ss5)
     db.session.add_all(ss6)
+    db.session.add_all(ss7)
+    db.session.add_all(ss8)
     db.session.commit()
 
     # TẠO DỮ LIỆU ĐỂ TEST HỦY VÉ

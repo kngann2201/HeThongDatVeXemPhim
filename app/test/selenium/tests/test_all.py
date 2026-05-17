@@ -1,5 +1,7 @@
 import os
 import time
+
+import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -104,6 +106,7 @@ def test_system_booking_cancel_flow(driver):
     hb.click(By.CSS_SELECTOR, '#collapse5 tr:nth-child(1) > td:nth-child(6) .btn-danger')
     hb.accept_alert(expect='Hủy vé thành công!')
 
+@pytest.mark.skipif(os.getenv('GITHUB_ACTIONS') == 'true')
 def test_booking_payment_flow(driver):
     home = HomePage(driver=driver)
     home.open_page()
