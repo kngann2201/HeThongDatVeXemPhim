@@ -12,7 +12,7 @@ var swiper = new Swiper(".mySwiper", {
 const $ = (id) => document.getElementById(id);
 
 const hideAllFrom = (step) => {
-    const steps = ['menu-screenings', 'menu-seats', 'btn-submit'];
+    const steps = ["menu-screenings", "menu-seats", "booking-summary", "btn-submit"];
     let start = false;
     steps.forEach(s => { if(s === step) start = true; if(start) $(s)?.classList.add('d-none'); });
 };
@@ -200,6 +200,7 @@ $('date-wrapper').addEventListener('click', (e) => {
     card.classList.add('active');
     selected_info.date = card.dataset.date;
     resetStateFrom('roomType');
+    resetBookingState();
     hideAllFrom('menu-screenings');
     selected_info.roomTypeId = null;
 });
@@ -212,6 +213,7 @@ document.querySelector('.room-types').addEventListener('click', (e) => {
     btn.classList.add('active');
     selected_info.roomTypeId = btn.dataset.type;
     hideAllFrom('menu-screenings');
+    resetBookingState();
     loadScreenings();
     console.log(selected_info);
 });
@@ -221,6 +223,7 @@ document.querySelector('.room-types').addEventListener('click', (e) => {
 document.querySelector('.screenings').addEventListener('click', (e) => {
     const btn = e.target.closest('.screening');
     if (!btn) return;
+    resetBookingState();
     resetStateFrom('seat');
     document.querySelector('.screening.active')?.classList.remove('active');
     btn.classList.add('active');
@@ -260,7 +263,8 @@ $('seat-map').addEventListener('click', (e) => {
     renderSeats();
 
     const total = selected_info.price * selected_info.seats.length;
-    updatePrice()
+    updatePrice();
+    $('menu-screenings').classList.remove('d-none');
 });
 
 $('overlay-login-btn').addEventListener('click', saveState);

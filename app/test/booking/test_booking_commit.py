@@ -231,7 +231,7 @@ def test_booking_commit_success(test_session, test_client, sample_screening, sam
     tickets = Ticket.query.filter_by(bill_id=bill.id).all()
     assert len(tickets) == 2
     for seat_id in seat_ids:
-        ss = ScreeningSeat.query.get(seat_id)
+        ss = ScreeningSeat.query.filter_by(seat_id=seat_id).first()
         assert ss.status == SeatStatus.HOLDING
 
 def test_booking_commit_exception(test_session, test_client, sample_screening, sample_screening_seats, mocker):

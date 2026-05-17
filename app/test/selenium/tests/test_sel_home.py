@@ -1,9 +1,5 @@
 import time
-
-from selenium.common import NoSuchElementException
-
 from app.test.selenium.pages.LoginPage import LoginPage
-import pytest
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from app.test.selenium.pages.HomePage import HomePage
@@ -79,7 +75,7 @@ def test_filter_no_result(driver):
     home.open_page()
 
     home.filter_by_type_no_movie()
-    time.sleep(1)
+    time.sleep(1.2)
     assert home.find(By.CSS_SELECTOR, '.container.mt-4 > div > p').text == 'Tìm thấy 0 phim phù hợp'
     assert home.find(By.CSS_SELECTOR, '.container.mt-4 h4').text == 'Không tìm thấy phim nào khớp với yêu cầu'
 

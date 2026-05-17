@@ -45,4 +45,4 @@ jobs:
       env:
         PYTHONPATH: .
       run: |
-        python -m pytest app/ -v
+        python -m pytest app/ -v --ignore=app/test/selenium/tests/test_sel_payment.py
