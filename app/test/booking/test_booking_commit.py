@@ -221,10 +221,7 @@ def test_booking_commit_success(test_session, test_client, sample_screening, sam
         }
     )
 
-    assert response.status_code == 200
-    html = response.get_data(as_text=True)
-    assert 'Chuyển hướng thanh toán' in html
-
+    assert response.status_code == 302
     bill = Bill.query.filter_by(customer_id=user.id).first()
     assert bill is not None
     assert bill.total_amount == 200000

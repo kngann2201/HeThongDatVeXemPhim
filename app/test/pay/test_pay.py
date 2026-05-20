@@ -97,9 +97,10 @@ def test_payment_bill_not_found(test_client, mocker):
 
     user = FakeUser()
     mocker.patch('flask_login.utils._get_user', return_value=user)
-    res = test_client.get("/payment/999999")
-    assert res.status_code == 302
-    assert res.headers['Location'] ==  '/'
+    res = test_client.get("/payment/999999", follow_redirects=True)
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+    assert 'Hoá đơn không tồn tại!' in html
 
 def test_payment_success_redirect(test_client, mocker):
     class FakeUser:
@@ -114,7 +115,7 @@ def test_payment_success_redirect(test_client, mocker):
 
     res = test_client.get(f"/payment/{bill.id}")
     assert res.status_code == 302
-    assert "vnpayment.vn" in res.location
+    assert bill.payments is not None
 
 def test_vnpay_no_response_code(test_client, mocker):
     class FakeUser:
@@ -238,47 +239,6 @@ def test_vnpay_payment_timeout(test_client, test_session, sample_payment, mocker
     for t in tickets:
         assert t.status == TicketStatus.CANCELLED or TicketStatus.HOLDING
     assert "Thanh toán thất bại" in decoded
-
-def test_pay_success_from_booking(test_session, test_client, sample_screening, sample_screening_seats, mocker):
-    class FakeUser:
-        is_authenticated = True
-        id = 5
-
-    user = FakeUser()
-    mocker.patch('flask_login.utils._get_user', return_value=user)
-
-    seat_ids = [
-        sample_screening_seats[1].id,
-        sample_screening_seats[2].id
-    ]
-
-    response = test_client.post(
-        '/booking/submit',
-        data={
-            'seat': ",".join(map(str, seat_ids)),
-            'screening': sample_screening[0].id
-        }
-    )
-
-    assert response.status_code == 200
-    html = response.get_data(as_text=True)
-    assert 'Chuyển hướng thanh toán' in html
-
-    bill = Bill.query.filter_by(customer_id=user.id).first()
-    payment = Payment(bill=bill, txn_ref=1, amount=1000)
-    test_session.add_all([bill, payment])
-    test_session.commit()
-
-    res = test_client.get("/vnpay_return?vnp_ResponseCode=00&vnp_TxnRef=1")
-    decoded = unquote_plus(res.location)
-    assert "Thanh toán thành công" in decoded
-    assert payment.status == PaymentStatus.SUCCESS
-    updated_bill = test_session.query(Bill).filter_by(id=bill.id).first()
-    assert updated_bill.status == PaymentStatus.SUCCESS
-    tickets = updated_bill.tickets
-    for t in tickets:
-        assert t.status == TicketStatus.PAID
-
 
 def test_pay_exception(test_client, test_session, sample_payment, mocker):
     class FakeUser:

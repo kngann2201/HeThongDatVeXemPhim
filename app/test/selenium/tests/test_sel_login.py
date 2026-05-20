@@ -48,3 +48,5 @@ def test_login_from_booking(driver):
     time.sleep(1)
 
     assert driver.current_url == 'http://127.0.0.1:5005/booking/12'
+
+
